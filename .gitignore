@@ -3,5 +3,6 @@
 .RData
 .Ruserdata
 .httr-oauth
+.DS_Store
 *.html
 *_files/
