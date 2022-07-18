@@ -1,0 +1,29 @@
+---
+title: "Workshop A07: Making tidy data wide, and joining datasets"
+output: html_document
+---
+
+Today we'll use a new dataset for schools alongside the school roll data. Both are from:
+
+https://www.educationcounts.govt.nz/statistics/school-rolls
+
+We'll be looking at how to summarise by more than one group, and how to turn that into a table. In addition, we'll look at how we can join datasets together to summarise student level information by school level information (e.g. by region).
+
+Start by downloading labA07.Rmd and load it into RStudio.
+
+https://www.massey.ac.nz/~jcmarsha/161122/labs/labA07.Rmd
+
+### Pivoting wider for tables
+
+To turn things into a table we can `pivot_wider`. This takes 'tidy', long-form data, where each row represents a single observation, and each column represents a variable to untidy data where perhaps multiple observations are within a single row. This type of data is harder to work with in general (and harder to plot) but is sometimes more readable for humans!
+
+e.g. in the `roll` data we have a single column for the count of students, rather than separate columns for male and female counts. This is easier to work with when data wrangling and plotting, but is harder to draw conclusions from when we see the data in tabular form - separate male and female
+columns might be more useful.
+
+### Joining datasets
+
+We'll also look at how to join datasets together via the `left_join` function. When we left join one dataset to another, we use the common columns to match rows up, and then transfer information from the second dataset into the first, lining it up by row.
+
+In todays example we'll add some information on each school to the `roll` dataset.
+
+**Read through the `labA07.Rmd` file and work on the exercises within.**

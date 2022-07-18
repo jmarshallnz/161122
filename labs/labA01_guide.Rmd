@@ -1,0 +1,97 @@
+---
+title: "Workshop A01: Our first R script"
+output: html_document
+---
+
+Our goal in this first set of exercises is to produce some plots and learn a bit about how R/RStudio works.
+
+## Before we start
+
+Make sure you have both R and RStudio installed. In addition, make sure you have the `tidyverse` package installed.
+
+Both of these are detailed here:
+
+https://r-resources.massey.ac.nz/help/usingrin161.122.html
+
+## Loading up our first R script
+
+Start by downloading labA01.R to somewhere on your computer. The easiest way to do this is to right click on the URL below and "Save file as..."
+
+https://www.massey.ac.nz/~jcmarsha/161122/labs/labA01.R
+
+Then load it into RStudio. The fail-safe way to do that is to first load RStudio up, and then use the File->Open File... option (alternatively the folder button on the toolbar), browsing to where the file was saved, and loading it up.
+
+Alternatively, you may be able to right-click on the file in explorer or Finder, then Open with... and choose RStudio.
+
+When done, you'll see that RStudio loads the script (a text file with a list of comments and commands) into the `Editor` pane in the top right. There's 3 other panes available: The `Console` pane in bottom left, which is where commands are run and (text) output given, The `Environment/History` pane in top right, and the `Files/Plots/Packages/Help` pane in bottom right. We'll use all of them today!
+
+## Making sure it all works
+
+1. Start by reading through the script. You'll see it has a bunch of comments at the top (each line beginning with a hash character) which explain what is going on, followed by some lines of code that perform various tasks.
+
+2. The first command is `library(tidyverse)`. This tells RStudio to load in the libraries (also known as packages) called the `tidyverse`. Packages are a way to extend the base R/RStudio functionality. In this case, the tidyverse package is a set of packages for doing data analysis in a consistent way. See http://www.tidyverse.org for more information.
+
+3. Place your cursor on the line `library(tidyverse)` and then click on the `Run` button in the top right of the editor pane. Alternatively, `Ctrl`-`Enter` (`Command`-`Enter` on a Mac) will run the line. What should happen is the line will be copied down to the `Console` window, where it will be executed. In this case, the package will be loaded and you should get a message that looks something like this:
+
+```{r, echo=FALSE}
+library(tidyverse)
+```
+
+If you get an error here, it's probably due to the `tidyverse` packages not being installed - check https://r-resources.massey.ac.nz/help/usingrin161.122.html or contact your lecturers to get things figured out.
+
+## Now for something useful!
+
+4. Now, we're going to load up some data on earthquakes from Fiji. This dataset is included with R/RStudio. Place your cursor on the `data(quakes)` line and run it. Again, the code will be copied down to the Console and executed. You'll see you now have a `quakes` object in the `Environment` pane in the top left.
+
+5. Double click on the `quakes` object in the `Environment` pane to have a look - this shows you the data in a spreadsheet form. You should see 5 columns of data with observations from 1000 earthquakes.
+
+6. The next 2 lines of code produce a plot. This seems quite a lot of effort! But that effort will be rewarded by allowing us to produce very elegant charts that tell clear stories later on!
+
+    To run the two lines, you can place your cursor anywhere within those 2 lines and hit the `Run` button or `Ctrl`-`Enter` (`Command`-`Enter` on Mac). You can also highlight the 2 lines and do the same thing if you prefer. Notice that R/RStudio is treating the 2 lines as if they were a single statement - in fact, they are! The two parts are joined up using the `+` operator in this case. Essentially we "add" the `geom_point` bit on to the `ggplot` bit to produce the plot.
+
+7. Let's break down what is going on, as it's quite a lot! One way to do that is to run it in sections.
+
+    Type in (or copy + paste) `ggplot(data=quakes)` on a separate line in the R script and run that line.
+
+    This tells R/RStudio to create a new plot using `quakes` as the data - it'll just give a blank canvas in the plot window.
+
+    **NOTE** If you accidentally added the `+` from the original, when you run it you'll find that it copies to the `Console` but you'll be left with a `+ ` prompt there, rather than the usual `> ` prompt. This is R/RStudio knowing that the command is not complete, so it's waiting for the rest of it. If this happens and you don't intend it, just hit `Esc` key until the prompt returns to the usual `> `.
+
+    Next, type in the bit inside the `geom_point` function: `aes(x=long, y=lat)` on a separate line in the R script and run that. You should get:
+
+    ```{r, echo=FALSE}
+    aes(x=long, y=lat)
+    ```
+
+    defining the mapping from "Aesthetic" features of the plot (e.g. the x and y axes) to features of the data. The `aes` is short for aesthetics.
+
+    Lastly, the `geom_point()` command adds a layer of geometry to the plot, mapping from the data to the axes using the `aes` bit. In this case we're adding points. So this will add each observation as a point on the plot.
+
+## Adding to our plot
+
+In addition to the `x` and `y` aesthetics we've used above, there's a bunch of others. For example, you can change `colour`, `shape`, `size` as well as transparency of points using `alpha`. Plus lots more.
+
+8. Try the following:
+
+    ```{r, eval=FALSE}
+    ggplot(data=quakes) +
+      geom_point(mapping=aes(x=long, y=lat), col='pink', size=2)
+    ```
+
+    Notice the `'pink'` there is in quotation marks. This is because it's a label for something, not a quantity that R/RStudio would already know about. You can use either single quotes `'` or double quotes `"` as long as you're consistent (i.e. start and end with the same thing).
+    
+    Also, notice that when we specify multiple parameters to the function `geom_point()` we separate them using a comma. This is a general principle: functions in R/RStudio always use parentheses when we run them, and parameters that we specify are always separated by commas. Note we did that with the `aes()` function too.
+    
+9. You might want to experiment with the other parameters. What happens when you use `shape=2` for example? Or `alpha=0.4`? Try experimenting!
+
+10. In the same way that `x` and `y` are mapped to features in our data, we can do the same for the other aesthetics. Try adding `col=mag` to the `aes()` function so that it looks like:
+
+    ```{r, eval=FALSE}
+    ggplot(data=quakes) +
+      geom_point(aes(x=long, y=lat, col=mag))
+    ```
+
+11. You might want to try looking at `col=stations` as well. You should find they look really similar. This makes sense - larger earthquakes are likely felt more widely, so will be detected at more stations.
+
+12. Once you're done, remember you can add comments to your script - save it in a safe place so you can go back to it later.
+

@@ -1,0 +1,18 @@
+---
+title: "Workshop A04: RMarkdown and grouped numeric variables"
+output: html_document
+---
+
+In this exercise we have an example of R Markdown - a way to combine narrative writing with code and output from analyses to create reproducible reports.
+
+The goal today is to learn a bit about how the markdown format works, and to look at how to deal with numeric variables that are grouped.
+
+Start by downloading labA04.Rmd and load it into RStudio. The easiest way to do this is to right click on the URL below and "Save file as..."
+
+https://www.massey.ac.nz/~jcmarsha/161122/labs/labA04.Rmd
+
+1. Read through this markdown document. You'll notice that it combines plain text writing as well as various embellishments such as headings, italics, bold and the like.
+
+2. In addition there are R code blocks included, which will allow you to add some analysis alongside the markdown writing.
+
+3. When you "Knit" the markdown document (using the "Knit" button on the toolbar) you'll get all the analyses in R code blocks run and the code and output will be placed inline with the writing. This will produce an HTML "Notebook" that contains everything nicely formatted up.

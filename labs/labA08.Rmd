@@ -1,0 +1,62 @@
+---
+title: "Workshop A08: Finding the MP for Wairarapa's Ute"
+output: html_document
+---
+
+## Introduction
+
+Today we'll be looking at a subset from the NZTA fleet data. This holds registration information on all vehicles in New Zealand.
+
+We have a subset of it which is loaded below. If you're on a slower internet connect, you might want to download the data from the URL and load it locally.
+
+```{r message=FALSE}
+library(tidyverse)
+
+fleet <- read_csv("https://www.massey.ac.nz/~jcmarsha/data/fleet.csv.gz")
+#roll <- read_csv("fleet.csv.gz") # for loading from a local copy
+
+fleet
+```
+
+## Reproducing the plot
+
+The following code block filters the `fleet` data down to just cars and vans:
+
+```{r}
+cars_vans <- fleet |> filter(VEHICLE_TYPE == "PASSENGER CAR/VAN")
+```
+
+### Try yourself
+
+1. Summarise the data by counting the number of cars/vans of each `BASIC_COLOUR` for each `VEHICLE_YEAR` and then convert these to proportions by `VEHICLE_YEAR`. *Hint: `group_by(VEHICLE_YEAR)` followed by a `count` and then `mutate` is what you need.*
+2. Get the basic plot up and running by plotting proportion on the y-axis and `VEHICLE_YEAR` on the x-axis, facetting by `BASIC_COLOUR`.
+3. Fine tune the plot with labelling.
+
+
+## Are Ford Rangers a rural phenomenon?
+
+The following code pulls out utes (utility vehicles) from 2016 onwards, and classifies them via a `Type` variable into `Ranger` or `Other`:
+
+```{r}
+utes <- fleet |> filter(BODY_TYPE == "UTILITY") |>
+  filter(VEHICLE_YEAR > 2015) |>
+  mutate(Type = ifelse(MAKE == "FORD" & MODEL == "RANGER", "Ranger", "Other"))
+```
+
+### Try yourself
+
+1. Calculate the proportion of utes that are Ford Rangers for each TLA. *Hint: You want to `group_by(TLA)` and then `count`, then compute the proportion, as was done for colours above.*
+2. Using only the proportions that correspond to `Ranger` (rather than `Other`) utes, produce a bar chart for the proportion of Ford Rangers across each `TLA`. You might want to use `fct_reorder` to reorder the `TLA` by the proportion variable so the barchart is ordered. Remember to use `geom_col` for where you have already computed the bar lengths.
+3. What is your conclusion? Are Ford Rangers a rural thing?
+
+
+## Finding the MP for Wairarapa's Ute
+
+In this question your goal is to find the row in the dataset that contains the Ute owned by the Member of Parliament for the Wairarapa electorate. Use all the `fleet` data for this question.
+
+### Try yourself:
+
+1. Use Google to find out who the Member of Parliament for Wairarapa is, in case you don't know.
+2. Use Google image search to find a picture of their ute. You want one where you can see the number plate (registration).
+3. Lookup the registration on https://www.rightcar.govt.nz/ to find the brand, colour and year of the vehicle.
+4. Based on the `VEHICLE_YEAR`, `MAKE`, `BASIC_COLOUR` and that the `BODY_TYPE` is `UTILITY` and that it is registered in the `MASTERTON DISTRICT` (this is the `TLA`), find the row corresponding to this vehicle.

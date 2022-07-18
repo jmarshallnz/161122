@@ -1,0 +1,42 @@
+---
+title: "Workshop A08: Finding the MP for Wairarapa's Ute"
+output: html_document
+---
+
+Today we'll use a new dataset based on a subset of the NZTA fleet data. You can grab the whole lot (all 1.1GB of it) here if you're interested:
+
+https://nzta.govt.nz/resources/new-zealand-motor-vehicle-register-statistics/new-zealand-vehicle-fleet-open-data-sets/#data
+
+We'll be looking at a smaller subset of this and using it to, among other things, find the Wairarapa Member of Parliament's old ute (he's since sold it).
+
+Start by downloading `labA08.Rmd` and load it into RStudio.
+
+https://www.massey.ac.nz/~jcmarsha/161122/labs/labA08.Rmd
+
+We're going to be looking at three things with these data:
+
+1. Reproducing the below plot on how colours come in and out of fashion
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+library(tidyverse)
+fleet <- read_csv("https://www.massey.ac.nz/~jcmarsha/data/fleet.csv.gz")
+fleet |> filter(VEHICLE_TYPE == "PASSENGER CAR/VAN") |>
+  group_by(VEHICLE_YEAR) |>
+  count(col = BASIC_COLOUR) |>
+  mutate(percent = n/sum(n)) |>
+  ggplot() +
+  geom_line(aes(x=VEHICLE_YEAR, y=percent)) +
+  facet_wrap(~col) +
+  scale_y_continuous(labels = scales::label_percent()) +
+  labs(x = NULL,
+       y = "Percentage of cars and vans",
+       title = "The rise of orange and demise of brown and gold",
+       subtitle = "Car and van colours in New Zealand") +
+  theme_bw()
+```
+
+2. Whether Ford Rangers are really a rural vehicle.
+
+3. Finding the MP for Wairarapa's Ute.
+
+**Read through the `labA08.Rmd` file and work on the exercises within.**

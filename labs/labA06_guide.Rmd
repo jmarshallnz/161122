@@ -1,0 +1,27 @@
+---
+title: "Workshop A06: Grouping and small multiple plots"
+output: html_document
+---
+
+We'll once again be using the student roll data from:
+
+https://www.educationcounts.govt.nz/statistics/school-rolls
+
+Start by downloading labA06.Rmd and load it into RStudio.
+
+https://www.massey.ac.nz/~jcmarsha/161122/labs/labA06.Rmd
+
+We'll be using the `dplyr` package in the `tidyverse` to manipulate the data.
+
+Today we'll be looking at the `group_by` and `summarise` functions which really shows off the power of `dplyr`.
+
+The `summarise` function allows you to compute a summary (a single number) from all rows.
+
+The `group_by` function allows you to perform operations per group. e.g. using `group_by(EthnicGroup)` followed by a
+`summarise` will mean the summaries are computed for each ethnic group, rather than across the whole dataset.
+
+We'll also look at how to produce 'small multiple' plots with `ggplot2`. These allow you to split a dataset into
+groups and plot a small chart for each group, sharing the same axes and setup so that you can compare how things
+change from group to group.
+
+**Read through the `labA06.Rmd` file and work on the exercises within.**

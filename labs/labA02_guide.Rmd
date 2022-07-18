@@ -1,0 +1,66 @@
+---
+title: "Workshop A02: Our second R script"
+output: html_document
+---
+
+In this exercise we're going to experiment with different geometry layers, and look at how to tidy up axis labels.
+
+Start by downloading labA02.R and load it into RStudio.
+
+https://www.massey.ac.nz/~jcmarsha/161122/labs/labA02.R
+
+```{r setup, include=FALSE}
+library(tidyverse)
+```
+
+This script is the same as the last - you should get the same plot if you run the code.
+
+## Different geometries
+
+1. Copy and paste the code that does the plot, and change the `geom_point` to `geom_bin2d`. This divides the latitude and longitude up into small chunks (bins)
+and then counts the number of observations in each bin and uses that as the colour.
+
+2. Repeat the above, but instead of using `geom_bin2d`, try `geom_density2d`. This will smooth the data, and give a contour plot instead like contour lines for elevation on a map. Along each line, the density of points is the same.
+
+3. Instead of swapping one geometry for another, we can add them together. e.g:
+
+    ```{r, eval=FALSE}
+    ggplot(data=quakes) +
+      geom_point(mapping=aes(x=long, y=lat)) +
+      geom_density2d(mapping=aes(x=long, y=lat))
+    ```
+
+4. Try altering the colour of the contour lines and points. You can use `linetype` to change the contour lines, e.g. `geom_density2d(mapping=aes(x=long, y=lat), linetype='dashed')`.
+
+5. For the density layer, you might want to also experiment with the `adjust` parameter which governs the amount of smoothing. Setting it to something below 1 (e.g. 0.5) will result in less smoothing, so the contours will look a bit noisier, but be closer to the data. Setting it to something above 1 (e.g. 2) will result in more smoothing, so the contours will be less noisy, but also not so close to the data. A good value trades off these two measures (noisiness versus closeness to the data). This is an example of the **Bias-Variance tradeoff**, a key concept in statistics.
+
+6. Let's clean up the axis labels. Using the complete words would be better than the shortcuts. We can do this with `labs(x="Longitude")`. We just add this on in the same way we added the additional `geom_density2d()` function.
+
+7. We can add a title as well using `labs(title="my title goes here")`. Have a think about what would make a good title for this plot.
+
+## Improving a plot
+
+Consider the plot below:
+
+```{r}
+ggplot(data=quakes) +
+  geom_point(mapping=aes(x=mag, y=stations))
+```
+
+We notice two things on this plot. Firstly, there's an obvious positive correlation, but secondly we notice that the magnitude variable has clearly been rounded to the nearest tenth as all the points form vertical strips.
+
+Try to improve this plot by:
+
+1. Investigate `geom_jitter` to jitter the points horizontally a bit. The `width` and `height` parameters might be useful for altering the amount of jitter.
+
+2. Try adding some smoothing via `geom_smooth` or `geom_density2d`. Which smoother do you think is more appropriate in this example and why?
+
+3. You can modify the amount of smoothing in `geom_smooth` via `span=0.75` after first switching to a LOESS (local linear smoother) using code like this:
+    
+    ```{r, eval=FALSE}
+    geom_smooth(mapping=aes(x=mag, y=stations), method='loess', span=0.75)
+    ```
+
+    Smaller values will smooth less, values closer to 1 will smooth more. This is a LOESS (local linear smoother) and `span` here refers to the proportion of the data used to estimate the trend at each point (i.e. the trend at the left of the plot uses the left-most 75% of the data, the trend at the right uses the right-most 75% of the data). Smaller values of span adapt to the data faster, but will give a noisier result, while larger values lead to less noise, but don't adapt quickly to the data. Another example of the variance-bias trade-off.
+
+4. Tidy up the axis labels, and choose a good title.

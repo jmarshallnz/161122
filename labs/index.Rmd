@@ -1,0 +1,45 @@
+---
+title: "161.122 Statistics"
+subtitle: "Topic A Workshops"
+output:
+  html_document:
+    mathjax: null
+    highlight: null
+    self_contained: false
+    theme: null
+    css: default.css
+---
+
+The goal of these workshops is to gain familiarity with the way that statisticians work: using software (R/RStudio) to manipulate, transform, and visualise data.
+
+## Before we start
+
+Make sure you have both R and RStudio installed. In addition, make sure you have the `tidyverse` package installed.
+
+Both of these are detailed here:
+
+https://r-resources.massey.ac.nz/help/usingrin161.122.html
+
+## Workshops
+
+[A01: Our first R script: Plotting with ggplot2](https://www.massey.ac.nz/~jcmarsha/161122/labs/labA01_guide.html)
+
+[A02: ggplot2: Improving plots with more geometries](https://www.massey.ac.nz/~jcmarsha/161122/labs/labA02_guide.html)
+
+[A03: ggplot2: Summaries for numeric variables](https://www.massey.ac.nz/~jcmarsha/161122/labs/labA03_guide.html)
+
+[A04: R Markdown and grouped numeric variables](https://www.massey.ac.nz/~jcmarsha/161122/labs/labA04_guide.html)
+
+[A05: Data wrangling with `dplyr`](https://www.massey.ac.nz/~jcmarsha/161122/labs/labA05_guide.html)
+
+[A06: Grouping data and small multiples](https://www.massey.ac.nz/~jcmarsha/161122/labs/labA06_guide.html)
+
+[A07: Making tidy data wide, joining datasets](https://www.massey.ac.nz/~jcmarsha/161122/labs/labA07_guide.html)
+
+[A08: Bringing things together](https://www.massey.ac.nz/~jcmarsha/161122/labs/labA08_guide.html)
+
+## Screencasts
+
+Below is a set of youtube videos of Jonathan M working through each of the workshops.
+
+https://www.youtube.com/playlist?list=PLZ_OkMURFtaV26Zo_gywrlLmpXWT5qK6p

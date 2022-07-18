@@ -1,0 +1,41 @@
+---
+title: "Workshop A05: Data wrangling"
+output: html_document
+---
+
+The data we'll be using is the count of students of each gender, ethnic group and year level among schools in New Zealand in 2020 from:
+
+https://www.educationcounts.govt.nz/statistics/school-rolls
+
+Start by downloading labA05.Rmd and load it into RStudio.
+
+https://www.massey.ac.nz/~jcmarsha/161122/labs/labA05.Rmd
+
+We'll be using the `dplyr` package in the `tidyverse` to manipulate the data.
+
+In particular, we'll be using:
+ - `filter` to select rows
+ - `arrange` to change the order of rows
+ - `select` to choose columns
+ - `mutate` to create new columns
+ 
+In addition, we'll learn about the pipe!
+ 
+## The pipe operator `|>`
+ 
+What the pipe does is takes what you provide on the left hand side and "pipes" it into the first argument into the function you provide on the right hand side. As all the above data wrangling functions from `dplyr` take a `data.frame` as their first argument and return a `data.frame`, we can use the pipe to chain them together. e.g. the code
+
+```{r, eval=FALSE}
+roll |>
+  filter(EthnicGroup == "International fee paying") |>
+  filter(Level == "Year 13") |>
+  arrange(desc(Students))
+```
+
+can be read as "Take the roll data, filter it so that we keep the "International fee paying" students, then filter further so that we keep "Year 13" students, and finally arrange by descending number of students."
+
+You can insert the pipe command `|>` by using ctrl-shift-M (cmd-shift-M on Mac) in RStudio. By default this gives you the `magittr` pipe `%>%` which works the same but looks different. You can configure it to use the base R pipe `|>` under Tools->Global Options->Code and enabling the "Use native pipe operator" checkbox.
+
+This allows us to chain together individual steps of a data analysis into a single pipeline that does all the work sequentially. It tends to make our data wrangling code easier to read.
+
+**Read through the `labA05.Rmd` file and work on the exercises within.**
