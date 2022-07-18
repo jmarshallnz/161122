@@ -1,0 +1,433 @@
+---
+title: "Workshop C04: Time Series Regression"
+output:
+  html_document: 
+    toc: yes
+    code_download: true
+---
+
+```{r, message=FALSE}
+library(tidyverse)
+library(visreg)
+library(broom)
+library(lubridate)
+```
+
+## Introduction: Time Series - Basic Concepts
+
+In this workshop, we will introduce a new concept in statistics - **time series**. Time series are observations or measurements that are indexed according to time **regularly**. Examples of time series are the number of newly confirmed COVID-19 cases **per day** in NZ, the global sales of iPhone **per month**, the **quarterly** unemployment rate in NZ, and the **daily** closing value of the NZX50.
+
+*Give a few examples on time series.*
+
+It is easy to notice that all the time series data are collected with a natural temporal ordering. In an abstract sense, we record a time series like $y_1,y_2,...,y_T$, or just $y_t,t=1,...,T$ where $t=1,...,T$ is the **time index**. 
+
+Why does that make things different?
+
+What happened today may affect tomorrow's world but nothing could change the outcomes of yesterday. The time series has a natural temporal ordering which implies a **unidirectional** causal relationship. The structure of time series implied by this ordering distinguishes it from other types of data that are commonly analysed. 
+
+In addition to the time index, it is important to notice that data points in a time series are collected **regularly** over time. In the beginning of this workshop, we highlight the words, 'per day', 'per month', 'quarterly', and 'daily'. These words define the **frequency** or **periodicity** of time series **within one year**, i.e. the number of observations within a fixed time period. The frequency is 12 for monthly time series and 365 for daily time series within one year.
+
+*List a few more adjectives/adverbs describing the frequency.*
+
+**Answer**: weekly, hourly, annually ... 
+
+*What is the frequency of the wind speed in Wellington per hour within one day?*
+
+**Answer**: 24
+
+
+*What is the frequency of the daily precipitation in Auckland within one week?*
+
+**Answer**: 7
+
+The above concepts will be pretty easy to understand by exploring some real time series. So we will perform an exploratory data analysis on NZ housing data collected by the Reserve Bank of New Zealand(RBNZ) in Exercise 1. Interestingly, time can still be modelled by our linear model easily and the fitted linear model can be further used to make time series predictions. In Exercise 2 and 3, we will learn how to analyse time series via linear models.
+
+You first need to install `RBNZ` and `janitor` using the `Packages` menu in the bottom right. Just click the install button and type in `RBNZ`, then install. Or you can install the package with R command `install.packages()`. RStudio may have prompted you about installing them when you loaded this file.
+
+## Exercise 1: Exploring NZ House Price
+
+Before we start the formal statistical analysis on any real time series, it is essential to load the data first and then turn the data to a suitable format ready for any further analysis. 
+
+1. The following R code chunk retrieves the quarterly time series on housing from the website of the Reserve Bank of New Zealand (RBNZ) (https://www.rbnz.govt.nz/statistics).
+
+```{r}
+housing <- read_csv("https://www.massey.ac.nz/~jcmarsha/161122/data/housing.csv")
+housing
+```
+
+`housing` data contains one column for time information (`date`) and four columns for different housing information, i.e. total value of housing stock `m`, residential investment `real_m`, house price index (HPI) `index`, and the number of house sales `number`.
+
+*Specify the frequency of `housing` data.*
+
+**Answer**: 4
+
+2. Let's make a scatter-line plot of house price index over time. You may customise it a bit to get a better appearance. 
+
+```{r}
+housing %>% ggplot(aes(x=date,y=index)) + geom_point() + geom_line() +
+  xlab('Time') + ylab('House Price Index') + ggtitle('Will Kiwi afford the house price?')
+```
+
+
+The warning message `Removed 1 rows containing missing values (geom_point).` in your HTML reminds you that there is an `NA` value in our data. Let's remove this NA value from the tibble via `drop_na()` as
+```{r}
+housing <- housing %>% drop_na()
+```
+
+We can see clearly over the last three decades HPI was increasing in most years. There are a few exceptions, i.e., around 1998, 2008, 2011. *What happened in these years?*
+
+**Answer**:  the Asian Financial crisis in 1997, the global financial crisis of 2007–2008, and the 2011 Christchurch earthquake.
+
+Another feature of this time series is that HPI seems increase with different speeds over different decades. In 1990s, HPI tends to be flatten or just increase moderately. But the first two decades in 21 century look quite crazy. The affordability of NZ house has become a core social issue. Generally speaking, HPI shows an increasing **trend** over the past thirty years. 
+
+What will happen in the next decade with the shock of COVID-19? Will the house price in NZ become more affordable in the future? To answer these questions, it is important for us to extract the long term **trend** from this time series and make predictions on the future HPI. 
+
+3. *Make scatter-line plot for the rest three variables in `housing`. Briefly summarise their features.*
+
+**Answer**:
+
+```{r}
+housing %>% ggplot(aes(x=date,y=number)) + geom_point() + geom_line() +
+  xlab('Time') + ylab('Number of House Sales') + ggtitle('How many houses are sold in the past years?')
+```
+
+No clear trend or seasonality can be observed here. But the pattern can be linked to HPI. When the house price is increasing, the number of house sales tends to be high. However, when the house price is fatten, the number of house sales tends to be low. One can also expect the internal correlation between successive numbers given the frequent short term movements in this time series (increasing or decreasing within several successive quarters).
+
+```{r}
+housing %>% ggplot(aes(x=date,y=m)) + geom_point() + geom_line() +
+  xlab('Time') + ylab('Total Value of Housing Stock') + ggtitle('Is housing market always prospering?')
+```
+
+Almost same features as we can see from HPI. Just notice that the total value of housing stock can be roughly calculated by the average house price times the total number of houses. The newly built houses make the depression caused by the Asian Financial crisis in 1997 and the 2011 Christchurch earthquake less obvious. 
+
+```{r}
+housing %>% ggplot(aes(x=date,y=real_m)) + geom_point() + geom_line() +
+  xlab('Time') + ylab('Residential Investment') + ggtitle('
+Residential Investment Opportunity!')
+```
+
+The residential investment has a similar general pattern as the number of house sales as it contributes a certain portion to the whole housing market (another important contributor is the first home buyer.) However, the details of residential investment are different from the number of house sales. We see many zigzag segments in this time series especially in the first two decades. This may reflect the self-regulatory rationality of the investors who may not follow the trend of an over-heated housing market. *OK, I have to say that maybe the housing market in our country becomes a little crazy in the recent years.* **The last sentence is purely a personal comment.**   
+
+
+## Exercise 2: Capturing the Trend of House Price
+
+The time index $t=1,2,3,...,T$ implied by the natural temporal ordering is always increasing. A very simple idea is to consider the pairs $(1,y_1)$, $(2,y_2)$,...,$(T,y_T)$ just like the pairs of observation $(x_i,y_i),i=1,2,...,n$ in the linear model. 
+
+If the underlying trend of a time series shows either increasing or decreasing pattern consistently, it is natural to link it with the time index of each observation. *Why?* 
+
+**Answer**: The correlation coefficient will confirm your intuition.  
+
+Moreover, if the underlying trend looks linear, a simple linear model like `y~t` becomes a perfect candidate to discover the underlying trend in a time series.
+
+Anyway, let's try it on HPI! Before fitting our linear model, it is necessary to expand our tibble by adding the time indices $1,2,3,...$ as follows.
+
+```{r}
+housing.ts <- housing %>% mutate(time=1:n())
+housing.ts
+```
+
+*Why we don't use `date` immediately?*
+
+**Answer**: Actually, you can use `date`. I prefer the time index as it provides a consistent way to analyse any time series. A tricky issue of using `date` is that the intercept may not be interpretable. For the time index, it is easy to understand that the intercept is the observation at time 0, i.e. the day/month/quarter right before the first one in our time series. For `date`, interpreting the intercept will force us to go back to the birth of Jesus. 
+
+1. Now we can fit a simple linear regression model as follows
+```{r}
+hpi.lm <- lm(index~time,data=housing.ts)
+summary(hpi.lm)
+```
+
+*Comment on the R summary of this model.*
+
+**Answer**:  Very high $R^2$. Both coefficients are highly significant. Looks good!
+
+We can further visualise the fitted linear model as 
+```{r}
+visreg(hpi.lm, gg=TRUE) + xlab('Time Index') + ylab('House Price Index')
+```
+
+*Comment on the goodness of fit of the linear trend model based on the visualisation.*
+
+**Answer**: Even with a very high $R^2$, the plot make me feel worried. A straight line can not capture the complicated cycles in the house market.
+
+*Perform a standard residual diagnostics for your fitted linear model by following the steps in Lab C3.*
+
+```{r}
+plot(hpi.lm)
+```
+
+**Answer**: The residuals diagnostics confirm our concerns on the visualisation. None of the residuals plots looks good. Strange patterns in all plots suggest that there is a lot of information hidden in the residuals. 
+
+**Optional Challenge: Make a log transformation on HPI and fit another linear model. Compare the R summary with the model without transformation. Perform the standard residual diagnostics on this model.** 
+
+```{r}
+hpi.lm.log <- lm(log(index)~time,data=housing.ts)
+summary(hpi.lm.log)
+visreg(hpi.lm.log,trans = exp,partial=TRUE)
+plot(hpi.lm.log)
+```
+
+**Answer**: $R^2$ gets even higher! The visualisation looks slightly better. The residuals plots are still worrying except for the Q-Q plot. 
+
+2. A group of talented school students studied HPI before they learned the log transformation. They noticed that HPI was increasing slowly at the beginning but increasing faster later. In other words, the increase in HPI occurs at an increasing rate for each successive time period. The students suggested that we may use a **quadratic** function instead of the linear function to model the trend as follows.
+\[
+mean(y_t)=a+bt+ct^2.
+\]
+But the students didn't know how to find the coefficients $a,b,c$. Can we help?
+
+The answer is YES! Interestingly, this can be done via `lm()` easily as follows.
+
+```{r}
+hpi.qm <- lm(index~time+I(time^2), data=housing.ts)
+summary(hpi.qm)
+```
+
+**It is important to use `I(time^2)`, not `time^2` if you want to fit a quadratic trend to a time series.**
+
+We can find an additional row in `Coefficients:` as `I(time^2)`. There is the estimate for $c$ as you may expected. The interpretation of rest is just like what we have done in Lab C2. One interesting thing is that the estimate for $b$ becomes insignificant! 
+
+*Compare the R summary with that in Step 1. Discuss your findings.*
+
+**Answer**: $R^2$ gets higher just like the transformed model. The quadratic term is highly significant but the linear term becomes insignificant. 
+
+Visualising this model can be done with `visreg()` in the usual way, but let's use the `broom` library instead to do it here:
+
+```{r}
+augment(hpi.qm) %>% ggplot(aes(x = time ,y=index)) + geom_point() + geom_line() +
+        geom_line(aes(y=.fitted),col='red') + xlab('Time Index') + ylab('House Price Index')
+```
+
+You may add the confidence band or prediction band by following Exercise 1 in Lab C3. 
+
+Sometimes people prefer making a plot in the calendar time rather than in the time index. This can be done easily by using `broom` as follows. Notice that we add the original data set `housing.ts` into `augment()` and change `x = time` to `x = date` in `ggplot()`. This is very handy in many cases especially you are fitting a linear model with transformation. 
+
+```{r}
+augment(hpi.qm,housing.ts) %>% ggplot(aes(x = date ,y=index)) + geom_point() + geom_line() +
+        geom_line(aes(y=.fitted),col='red') + xlab('Time') + ylab('House Price Index')
+```
+
+*Comment on the goodness of fit of the quadratic trend model based on the visualisation.*
+
+**Answer**: It is slightly better than the linear model. But the general pattern in HPI time series still deviate from the curve frequently. 
+
+3. Now we have two candidate models from Step 1 and 2 for HPI time series. 
+A natural question arises: Which model is better? 
+
+Both R summary and visualisation can be used. The residual analysis is another tool to find the better model. While these tools are useful, we have a more delicate way to compare the above two models performance. Particularly, the linear model can be regarded as a special case of the quadratic model. If we set $c=0$, the quadratic model reduces to the linear model. If two models can be linked in such manner, we call these two models are **nested**. The simple model is usually called a **reduced model** (linear one in this case) and the complicated model is usually called an **extended model** (quadratic one in this case).
+
+An **ANOVA (ANalysis Of VAriance) test** can be used to compare two nested candidate models as
+```{r}
+anova(hpi.lm, hpi.qm)
+```
+
+`anova()` tests if the additional parameter(s) $c$ in the quadratic model is zero or not, i.e. the null hypothesis is $c=0$ and the p-value is reported by `Pr(>F)`. *What does the output of `anova()` suggest?* If the P-value is small we can conclude that that `Model 2` - the quadratic trend model is better. 
+
+It is easy to find the improvement in goodness of fit from the quadratic model is significant for HPI time series. In fact, with the additional coefficient $c$, the quadratic trend model (and any extended model) is guaranteed to get closer to the real time series than the linear trend model(and any reduced model). 
+
+*A pure quadratic model as $y=a+cx^2$ is also nested with the quadratic model $y=a+bx+cx^2$. Why? Use ANOVA to tell which model is better.*
+
+**Answer**: *Make sure that you still have `I()` in your pure quadratic model.* `anova()` tells us that the linear term can be excluded for a more concise model. 
+
+```{r}
+hpi.pqm <- lm(index~I(time^2), data=housing.ts)
+anova(hpi.pqm, hpi.qm)
+```
+
+
+However, the quadratic trend model is more complicated than the linear trend model and the pure quadratic model as it has one more coefficient. If the improvement is just marginal, we may prefer the linear model or the pure quadratic model as they are so concise. The ANOVA test examines if the extended model (quadratic trend model ) explains sufficient variability in $y$ compared to the reduced model (linear trend model) at a price of adding one more parameter. We will revisit this topic in Lab C6.
+
+4. *Predict HPI for Q3 and Q4 of 2020 with both linear trend model and quadratic trend model with 95% prediction intervals. Comment on your predictions.*
+
+**Answer**: One has to figure out that the time indices for Q3 and Q4 of 2020 are 123 and 124. 
+
+```{r}
+newtime <- data.frame(time=c(123,124))
+predict(hpi.lm,newdata=newtime)
+predict(hpi.qm,newdata=newtime)
+```
+
+The linear trend model is certainly underestimating the HPI. The quadratic one may do a better job. However, both two models are unable to quantify the uncertainties in a right way due the highly ill-posed residuals.
+
+
+## Exercise 3: Addressing Seasonalities in Consumption
+
+Besides the trend extracted by our linear models, another important feature of time series is the **seasonality** or **seasonal effects**. Many things exhibit seasonal patterns over different time periods (e.g. months or quarters) of a year. For example:
+    
+  - Sales of ski equipment are very high during winter and almost nonexistent during other seasons.
+
+  - Sales at department stores around Christmas holidays are much higher than during other times of the year.
+
+  - Power bills are expected to be higher during winter than in other seasons. 
+
+*Enumerate a few more time series with a seasonal pattern.*
+
+**Answer**: electricity production per month/week/day, sales of ice creams, etc.
+
+
+Clearly, seasonality is closely related to the frequency and their linkages can be expected just by reading the words 'monthly', 'weekly', or 'quarterly'. In fact, in a time series the seasonal pattern for a particular quarter or month is exactly repeated by the frequency of the time series. 
+
+Obviously, it is necessary to include the seasonal effects in time series modelling in most cases. Otherwise, the prediction becomes rather superficial as it only accounts for the long-term trend. 
+
+How can we make use of the seasonal effects? We will start by exploring the data set `M2 Consumption` from RBNZ.
+
+1. First of all, we load `consumption` data from the RBNZ website - see (https://www.rbnz.govt.nz/statistics/m2) for more information on this time series. We then subset the data, filtering out the 2020 data and before. We'll reserve 2020 and 2021 for prediction.
+
+```{r}
+consumption <- read_csv("https://www.massey.ac.nz/~jcmarsha/161122/data/consumption.csv")
+retail.trade.sales <- consumption %>%
+  filter(date < ymd('2020-01-01'))
+retail.trade.sales %>%
+  ggplot(aes(x=date,y=x_m)) + geom_point() + geom_line() + 
+  xlab('Time') + ylab('Retail Trade Sales')
+```
+
+*Specify the frequency of this time series.*
+
+**Answer**: 4
+
+We can clearly see an increasing trend over these years in general. The regular fluctuations of sales within one year suggest strong seasonal effects. *Why?* One shall also notice that the seasonal variability is increasing over time.  
+
+2. First of all, we can extract a linear trend from this time series as follows
+
+```{r}
+rts.ts <- retail.trade.sales %>% mutate(time=1:n())
+rts.lm <- lm(x_m~time,data=rts.ts)
+summary(rts.lm)
+```
+
+The R output reads pretty good with all coefficient significant and a very high $R^2=0.9457$! 
+
+Let's visualise the model as follows:
+```{r}
+visreg(rts.lm, gg=TRUE) + xlab('Time Index') + ylab('Retail Trade Sales')
+```
+
+Oops. A simple line won't be able to capture the seasonality.
+
+3. Let's perform a standard residual diagnostics on the fitted model.
+
+```{r}
+plot(rts.lm)
+```
+
+Except for Q-Q plot, rest diagnostic plots look really really weird! *Add a few detailed comments on each plot.*
+
+In addition to the above standard diagnostic plots, the **residuals versus time** plot is frequently used in the residual diagnostics of time series modelling as
+
+```{r}
+augment(rts.lm) %>%
+  ggplot(aes(x=time,y=.resid)) + geom_point() + geom_line() +
+  ggtitle('Residuals versus Time Index') + xlab('Time Index')
+```
+
+The pattern in the **residuals versus time** plot seems containing the information on the seasonality! Such pattern actually suggests that the residuals violate the i.i.d. condition, i.e. the independently and identically distributed condition. We can conjecture that the residuals in different seasons is coming from different distributions and they are correlated in the time order. *How can we check the internal correlation in residuals?*
+
+**Answer**: This one is not straightforward. To discover the internal correlation in a time series, we need a bit more background knowledge. Nevertheless, we may conjecture that there is a one-step correlation in a time series, say $x_1$ is correlated with $x_2$,  $x_2$ is correlated with $x_3$,...,$x_{t-1}$ is correlated with $x_t$. Like $(x_i,y_i)$ is paired for computing the correlation coefficient, we have the pairs $(x_1,x_2)$, $(x_2,x_3)$,...,$x_{t-1},x_t$ and we can compute the correlation between $\{x_t\}$ and $\{x_{t+1}\}$. Such a correlation coefficient within a time series is called **autocorrelation**. We can further examine the higher order (multi-step) autocorrelation. These issues will be explored in the last two lectures.
+
+```{r}
+set.seed(2020)
+tibble(e=rnorm(100)) %>% summarise(acf1=cor(e[-1],e[-length(e)]))
+```
+
+We further make a box plot to compare the residuals over different quarters.
+Here we add the data set `rts.ts` to `augment()` to make sure that we have the access to the calendar time and we can get the corresponding quarter by `quarter()` from `lubridate()`. 
+
+```{r}
+augment(rts.lm, rts.ts) %>% mutate(quarter=quarter(date)) %>%
+  ggplot(aes(y=.resid,x=quarter)) + geom_boxplot(aes(group=quarter))
+```
+
+Each box in the above boxplot characterises the residuals, i.e. the deviations from the trend line, at a specific quarter. The residuals here are a combination of true random errors and seasonal effects. 
+
+How can we extract the information on seasonality? A simple idea is to estimate the seasonal effect at a particular quarter by the mean of residuals at this quarter. This will add a constant shift to the trend line for each quarter. The rest deviations will be regarded as the final residuals. 
+
+*Try to compute the residuals mean of each quarter by `summarise().`*
+
+
+**Answer**:
+```{r}
+augment(rts.lm, rts.ts) %>% mutate(quarter=quarter(date)) %>% group_by(quarter) %>% summarise(resid.mean=mean(.resid))
+```
+
+
+4. The above procedures seems work well but tedious. A surprising fact is that we can complete these jobs with one line by `lm()` as follows. The trick is that we must turn `quarter` into a factor (categorical, qualitative) variable via `factor()` and include it in the regression formula in `lm()`.
+
+```{r}
+rts.ts.q <- rts.ts %>% mutate(quarter=factor(quarter(date))) 
+rts.lm.q <- lm(x_m~time+quarter,data=rts.ts.q)
+summary(rts.lm.q)
+```
+
+We have obtained a few more rows in `Coefficients:`, including `quarter2`,`quarter3`,`quarter4` with `Estimate`, `Std. Error`, etc. 
+
+Looks good! Oh, wait, where is `quarter1`?
+
+In fact, the seasonal effect at the first quarter is included in `(Intercept)`$=True.Intercept + Seasonal.Effect.of.Q1$! More importantly, `Estimate`s for the rest three quarters is not the seasonal effects at corresponding quarters. They are instead the difference between $Seasonal.Effect.of.Q1$ and $Seasonal.Effect.of.Q2.Q3.and .Q4$
+
+Therefore, we can write the follow equation for our fitted linear model as
+\[
+mean(Retail.Trade.Sales)=7240.8 + 162.6 \times Time + D_Q, Q=1,2,3,4.
+\]
+where $D_1=0$, $D_2=-330.0$,$D_3=-278.0$ and $D_4=1521.8$.
+
+More details on this strange issue after adding factor variables in the linear model will be revealed in the coming Lectures C5 and C6, and corresponding Labs.
+
+Visualise our model with both linear trend and seasonal effects:
+```{r}
+augment(rts.lm.q) %>% ggplot(aes(x = time ,y=x_m)) + geom_point() + geom_line(alpha=0.3) +
+  geom_line(aes(y=.fitted),col='red') + xlab('Time Index') + ylab('Retail Trade Sales')
+```
+
+Now the fitted curve looks much more reasonable! *Do you think there is any room for further improvement?*
+
+**Answer**: Yes. We can see that the seasonal variations are increasing over time. A log transform can help stabilise the increasing variability.
+
+*Perform a time series residual analysis on your fitted model. Remember the residuals versus time plot.*
+
+**Answer**: 
+```{r}
+plot(rts.lm.q)
+augment(rts.lm.q) %>% ggplot(aes(x=time,y=.resid)) + geom_point()
+```
+Not really good! Still have some obvious patterns in the residuals. None of the plots pass the diagonostics. Need some better models to address it.
+
+*Try to visualise the model with `visreg()`. What do you find from the plots of `visreg()`.*
+
+**Answer**: 
+```{r}
+visreg(rts.lm.q)
+```
+
+`visreg()` splits the effect of trend and seasonality to two separate graphs.
+
+5. We can predict the sales in 2020 as follows
+```{r}
+newtime <- data.frame(time=nrow(rts.ts)+(1:4),quarter=factor(1:4))
+augment(rts.lm.q,newdata=newtime)
+```
+By adding `newdata=newtime` in `augment()`, we can get the prediction immediately just like `predict()` and the results are organised well in a tibble. 
+
+*Compute the mean square errors of your prediction in 2020.*
+
+```{r}
+rts.2020 <- consumption %>%
+  filter(date >= ymd('2020-01-01') & date <= ymd('2021-01-01') ) %>% 
+  cbind(augment(rts.lm.q,newdata=newtime)) 
+rts.2020
+rts.2020 %>% summarise(mse=mean((x_m-.fitted)^2))
+```
+The predictions are not really good as the sales have been underestimated consistently. 
+
+*What will happen if we use the fitted model to predict the sales in 2021?*
+
+**Answer**: We won't get good predictions given the shock of COVID-19
+
+**Optional Challenge: Will log transform improve your model fit? Try it!**
+
+**Answer**:
+```{r}
+rts.lm.q.log <- lm(log(x_m)~time+quarter,data=rts.ts.q)
+summary(rts.lm.q.log)
+augment(rts.lm.q.log,newdata=newtime) %>% mutate(.pred=exp(.fitted))
+```
+
+Predictions are much better! You can check residuals and visualisation accordingly. 

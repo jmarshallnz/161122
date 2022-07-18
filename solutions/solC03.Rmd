@@ -1,0 +1,351 @@
+---
+title: "Workshop C3: Diagnostics and Transformations"
+output:
+  html_document: 
+    toc: yes
+    code_download: true
+---
+
+```{r}
+library(tidyverse)
+```
+
+## Exercise 1: Visualising the model with a prediction band
+
+`visreg` provides us an efficient routine to visualise our linear model. However, it only produces the line with a confidence band. We need to do a bit more work to visualising our model with a prediction band. 
+
+1. Load the package `datarium` and the data `marketing`. Fit the linear model, and save the result in the object `lm.youtube` again. Then, sweep your fitted result by the package `broom` and get the tidy version `lm.youtube`.
+
+    ```{r}
+    library(datarium)
+    library(broom)
+    data(`marketing`)
+    lm.youtube <- lm(sales ~ youtube, data=marketing)
+    lm.youtube.fit <- augment(lm.youtube)
+    ```
+
+2. Get all prediction intervals for each observed `youtube` by calling `predict()` without supplying `new.data`, and save the result in `lm.youtube.pred`. We can then bind `lm.youtube.pred` with `lm.youtube.fit` by column with the R function `cbind()`, aka colunm bind.
+
+    ```{r}
+    lm.youtube.pred <- predict(lm.youtube, interval='prediction')
+    lm.youtube.fit.pred <- lm.youtube.fit %>% cbind(lm.youtube.pred) %>% select(-fit) %>% tibble()
+    lm.youtube.fit.pred
+    ```
+
+    Here we further remove the duplicate column `fit`.
+
+3. First, visualise your linear model with the fitted line and the scatter plot. You can then add the prediction band by the R function `geom_ribbon()` with `aes(ymin = lwr, ymax = upr)` which defines a shaded region bounded by the lower limits and upper limits of the prediction intervals in your plot. You may need to adjust `fill` and `alpha` in `geom_ribbon()` to get a nicer plot.
+
+    ```{r}
+    lm.youtube.fit.pred %>% ggplot(aes(x = youtube ,y=sales)) +
+        geom_point() +
+        geom_ribbon(aes(ymin = lwr, ymax = upr), fill = "grey70", alpha=0.5) +
+        geom_smooth(method='lm')
+    ```
+    
+4. The default prediction interval in R is a 95% prediction interval which means around 95% observations shall fall into the bands. *Check the plot in Step 3 and count the points falling outside the prediction band. Add one or two comments on your findings.*
+
+**Answer**: It is not hard to see that there are 9 points falling outside the bands. This results in $1-9/200=95.5\%$ observations within the bands. The result agrees well with the confidence level. We can also complete this job by `filter()` and `summarise()`.
+
+    ```{r}
+    lm.youtube.fit.pred %>% filter(sales>upr|sales<lwr) %>% summarise(n())
+    ```
+
+5. Actually, the prediction band we plotted is a **pointwise** 95% prediction interval. The term **pointwise** means that, each individual observation falls into the corresponding prediction interval with a probability 95%. *Try to split `youtube` into two groups `youtube<200` and `youtube>200` and count the points falling in the prediction band for each group. Add one or two comments on your findings.*
+
+**Answer**: Graphical approaches are not attrative this time but we can still use `filter()` and `summarise()`. The results can be found in the following R code chunks. The critical issue is that the prediction bands seem too wide for the lower budgets and too narrow for the higher budgets. The bands are not consistent for different budgets (`x`) and therefore violate the pointwise condition. 
+
+    ```{r}
+    lm.youtube.fit.pred %>% filter(youtube>200) %>% ggplot(aes(x = youtube ,y=sales)) +
+        geom_point() +
+        geom_ribbon(aes(ymin = lwr, ymax = upr), fill = "grey70", alpha=0.5) +
+        geom_smooth(method='lm')
+        lm.youtube.fit.pred %>% filter(youtube<200) %>% ggplot(aes(x = youtube ,y=sales)) +
+        geom_point() +
+        geom_ribbon(aes(ymin = lwr, ymax = upr), fill = "grey70", alpha=0.5) +
+        geom_smooth(method='lm')
+    ```
+
+    ```{r}
+    lm.youtube.fit.pred %>% filter(youtube>200) %>% summarise(n())
+    lm.youtube.fit.pred %>% filter(youtube>200) %>% filter(sales<upr) %>% filter(sales>lwr) %>% summarise(n())
+    lm.youtube.fit.pred %>% filter(youtube<200) %>% summarise(n())
+    lm.youtube.fit.pred %>% filter(youtube<200) %>% filter(sales<upr) %>% filter(sales>lwr) %>% summarise(n())
+    ```
+
+## Exercise 2: Model diagnostics
+
+As we can see from Exercise 1, the prediction interval tends to be too wide when `youtube` is large and too narrow when `youtube` is small. A similar issue also arises when we try to predict the sales given zero budget in Exercise 3 of Lab C2. The prediction at zero budget may significantly overestimate the actual sales.
+
+These issues allude to a critical point: does our linear model provide a good fit to our data?
+
+Of course, we can always get some clues from the scatter plot and smoothed curve for `sales` against `youtube`. We can even conclude that the fitted line fails to capture a significant portion of uncertainties in our data. So a linear model may not be an adequate model for the relationship between `sales` and `youtube`.
+
+The next question is how to identify and quantify the inadequacy of our linear model? 
+
+The visualisation of model identifies some ill-posed patterns in our model but it fails to identify the root cause of the problem. $R^2$ is a simple indicator but it won't capture the issues on prediction discussed above. 
+
+What we need are some diagnostic tools to check the fitness of our linear model on the data set and identify the crux in our fitted model. However, before we carry out the examination on our fitted linear model, we need to know when a fitted linear model will behave well. 
+
+To ensure the overall good performance of a fitted linear model, we need our data satisfy a few conditions, i.e. four assumptions as follows 
+
+  * **L**inearity
+
+      Residuals don't depend on $x$. The trend is correctly modelled as a line. A line won't fit an exponential trend. 
+
+  * **I**ndependence
+
+      Residuals don't depend on each other. If residuals are dependent, we can expect that one residual may contribute some information to another residual and vice versa. 
+
+  * **N**ormality
+
+      Residuals are distributed normally. Normality ensures that the least square estimation will catch the best possible line.  
+
+  * **E**qual variance
+
+      Residuals have constant variance. The variation doesn't change as we move along the trend.
+  
+with Linearity being the most important. 
+
+1. Firstly we'll be looking at linearity and equal variance, both of which can be assessed using a plot of **the residuals versus the fitted value**.
+
+    If linearity holds, we'd expect a plot of residuals vs fitted value to show no trend - the points should be scattered fairly constantly above and below the line - in particular we don't want to see a curve.
+
+    If equal variance holds, we'd expect the scatter of points around the trend to be constant as the fitted value changes. You want it to be relatively even, and in particular not increasing from left to right (i.e. not spreading out).
+
+    We can demonstrate this idea by using the stochastic simulation. An example of a good plot (left) and bad plot (right) is shown below for two artificial data sets, i.e., linear and exponential. 
+
+    ```{r,  fig.width=8, fig.height=3,}
+    set.seed(2020)
+    n <- 50
+    ab <- c(0,2)
+    demo <- tibble(x=(1:n)/n, e= rnorm(n, sd=0.1)) %>% mutate (y=ab[1]+ab[2]*x+e) %>% 
+      mutate (y2=exp(ab[1]+ab[2]*x+e))
+    demo %>% select(x, y, y2) %>% gather(key = "Group", value = "Y", -x) %>%
+      ggplot(aes(x=x,y=Y,col=Group)) + geom_point()
+    g1 <- lm(y~x,data=demo) %>% augment() %>% 
+      ggplot(aes(x=.fitted,y=.resid)) + geom_point() +geom_smooth()+geom_hline(yintercept=0)
+    g2 <- lm(y2~x,data=demo) %>% augment() %>% 
+      ggplot(aes(x=.fitted,y=.resid)) + geom_point() +geom_smooth()+geom_hline(yintercept=0)
+    library(patchwork)
+    g1+g2 
+    ```
+
+    *Compare the scatter plots and the plots of residuals versus fitted values. Think about the reason why we include horizontal lines at $y=0$ and smoothed curves with confidence bands in the residual plots.*
+
+    **Answer**: The right panel shows a clear curvature but the left panel looks quite random. The blue smoothed curves try to extract general patterns from residuals vs fits plots and the confidence bands can help to tell if the general trend differs a lot from the baseline ($y=0$). 
+
+    You can see more examples using the interactive found here:
+ 
+    https://shiny.massey.ac.nz/jcmarsha/linearity
+
+    *You can of course modify some parameters in the above R code chunk and even change the exponential function to some other functions. A possible choice is to change `ab <- c(0,2)` to `ab <- c(0,0.5)`.*
+
+    ```{r,  fig.width=8, fig.height=3,}
+    set.seed(2020)
+    n <- 50
+    ab <- c(0,0.5)
+    demo <- tibble(x=(1:n)/n, e= rnorm(n, sd=0.1)) %>% mutate (y=ab[1]+ab[2]*x+e) %>% 
+      mutate (y2=exp(ab[1]+ab[2]*x+e))
+    demo %>% select(x, y, y2) %>% gather(key = "Group", value = "Y", -x) %>%
+      ggplot(aes(x=x,y=Y,col=Group)) + geom_point()
+    g1 <- lm(y~x,data=demo) %>% augment() %>% 
+      ggplot(aes(x=.fitted,y=.resid)) + geom_point() +geom_smooth()+geom_hline(yintercept=0)
+    g2 <- lm(y2~x,data=demo) %>% augment() %>% 
+      ggplot(aes(x=.fitted,y=.resid)) + geom_point() +geom_smooth()+geom_hline(yintercept=0)
+    library(patchwork)
+    g1+g2 
+    ```
+
+    **Answer**: This case is a little tricky as the residuals vs fits plot does not reveal any issue in the exponential model. Why? This is because the exponential function $\exp(x)$ can be well approximated by a linear function $1+x$ if $x$ is small. This fact actually provides additional warranties on using linear models in scientific research. Though many natural phenomena may follow some nonlinear laws, those complicated nonlinear functions can be approximated by our linear models under certain conditions!
+
+2. Let's see how well our model for sales does by producing the diagnostic plot for the linear model you fit above using the following. 
+    
+    ```{r}
+    lm.youtube.fit %>% ggplot(aes(x=.fitted,y=.resid)) +
+      geom_point()+geom_smooth()+geom_hline(yintercept=0)
+    ```
+
+    *Take a good look at the plot. Do you think linearity and equal variance hold? Add some notes about each assumption to your notebook.*
+    
+    **Answer**: Linearity looks ok, though we still worry about the left end corresponding to small budgets. The equal variance is certainly violated!
+    
+    
+3. In addition to the residuals vs fits plot, we have another tool, i.e. **the scale-location plot**, to check equal variance. The plot can be generated by using the following R code chunk:
+    
+    ```{r}
+    lm.youtube.fit %>% mutate(.root.abs.std.resid=sqrt(abs(.std.resid))) %>%
+      ggplot(aes(x=.fitted,y=.root.abs.std.resid)) + geom_point()+geom_smooth()+geom_hline(yintercept=0)
+    ```
+    
+    Similar to the residual versus fits plot, the scale-Location plot shows whether residuals are spread equally along the ranges of input variables (predictor). The assumption of equal variance (**homoscedasticity**) could also be checked with this plot. If we see a horizontal line with randomly spread points, it means that the model is good.
+    
+    *Take a good look at the plot. Do you think linearity and equal variance hold? Add some notes about each assumption to your notebook.*
+    
+    **Answer**: Certainly, equal variance fails to hold. But the linearity can not be verified by the scale-location plot. 
+    
+    In the scale-location plot we still use the fitted values as $x$ coordinates. But another quantity - the square root of absolute value of **standardised residuals**- is used as $y$ coordinates. Standardised residuals are obtained by dividing the residuals by the standard error of residuals as $s_i=e_i/sd_{res}$. An advantange of standardised residuals is that both the variance and standard error are just 1 for this sequence. 
+    
+    The standardised residuals can be readily obtained from the fitted model by the R function `rstandard()`. Otherwise, if you have carefully read the tibble from `augment()` and the R code chunk for the scale-location plot, you should have found the standardised residuals `.std.resid` right following `.resid`.
+    
+    The operation of dividing a sequence by its standard error is called **standardisation** in statistics. It is frequently used in statistics as the data on different scales can be handle with similar measures after the standardisaton. 
+    
+    **Optional Challenge: Modify the R code chunk in Step 1 and perform a simulation study on the scale-location plot.**
+    
+    **Answer**: The following R code chunk can produce the simulation study. We can notice that the scale-location plot is not really a great tool for diagnostics. 
+    
+    ```{r,  fig.width=8, fig.height=3,}
+    set.seed(2020)
+    n <- 100
+    ab <- c(0,2)
+    demo <- tibble(x=(1:n)/n, e= rnorm(n, sd=0.25)) %>% mutate (y=ab[1]+ab[2]*x+e) %>% 
+      mutate (y2=exp(ab[1]+ab[2]*x+e))
+    demo %>% select(x, y, y2) %>% gather(key = "Group", value = "Y", -x) %>%
+      ggplot(aes(x=x,y=Y,col=Group)) + geom_point()
+    g1 <- lm(y~x,data=demo) %>% augment() %>% mutate(.root.abs.std.resid=sqrt(abs(.std.resid))) %>%
+      ggplot(aes(x=.fitted,y=.root.abs.std.resid))  + geom_point() +geom_smooth()+geom_hline(yintercept=0)
+    g2 <- lm(y2~x,data=demo) %>% augment() %>% mutate(.root.abs.std.resid=sqrt(abs(.std.resid))) %>%
+      ggplot(aes(x=.fitted,y=.root.abs.std.resid))  + geom_point() +geom_smooth()+geom_hline(yintercept=0)
+    library(patchwork)
+    g1+g2 
+    ```
+
+
+4. The residuals vs fits plot and scale-location plot are usually sufficient for us to tell the issues on linearity and equal variance. Our next task is to verify the normality. Recall the simulation study in Lab 2 where we make a scatter plot of the residuals versus true random errors which can be approximated by the line $y=x$. Even if we can't observe the true random error in a real problem, we can still make a similar plot called **quantile-quantile plot**, aka **Q-Q plot**, via `geom_qq()` and `geom_qq_line` as follows. 
+
+    ```{r}
+    lm.youtube.fit %>% ggplot(aes(sample=.std.resid)) + geom_qq(alpha=0.3) +  geom_qq_line(color='red')
+    ```
+
+    We are using the standardised residuals again. `geom_qq()` adds the black points while `geom_qq_line()` dispicts the red line. If most points follow the red line, we can feel free to assume the normality of the residuals. However, one must confirm the linearity and equal variance first before thinking about the normality. 
+    
+    Of course, we need to know the appearance of a good Q-Q plot before we make any solid judgement. The normality assumption says the residuals follow normal distribution and the standardised residuals has zero mean and unit variance. We can then simulate a standard normal sample with zero mean and unit variance and check its Q-Q plot as follows.
+    
+    ```{r}
+    set.seed(2020)
+    tibble(e=rnorm(100)) %>% ggplot(aes(sample=e)) + geom_qq(alpha=0.3) +  geom_qq_line(color='red')
+    ```
+    
+    *Take a good look at the above two plots. Do you think the normality hold? Add some notes about the assumption to your notebook.*
+
+    **Answer**: From the Q-Q plot, one can argue that the normality holds. However, one need to first check the linearity and equal variance. If the above two conditions fail to hold, it is non-sense to check the normality. 
+
+5. The last thing to check is slightly different from the above assumptions. We will look at the **outliers** in linear model. Just like we observe some distant points in a boxplot for one variable, we can have some outliers for $x$ and $y$. The trick thing is that, even both $x$ and $y$ look good in their own boxplots, their joint effort may push the point away from the main body in a scatter plot. A possible pitfall in fitting a linear model is that the linear model found by least square method is not very robust against outliers. Only a few outliers can distort the point estimates significantly. So it is essential to spot those bad guys hidden in our data. 
+
+    Of course, even a scatter plot can help us identify the outliers. If we want some more quantitative measurements, there is a specific measure called **Cook's distance**, or just Cook's $D$, for each data point to measure its influence on the regression line. A large Cook's distance suggests that this point may be an outlier which has a big influence on the whole regression line. 
+    
+    This peice of informaiont is readily collected by `augment()` in the column `.cooksd`. The following R code chunk produces a plot of Cook's distance against the index. 
+    
+    ```{r}
+    lm.youtube.fit %>% mutate(.index=1:n()) %>% ggplot(aes(y=.cooksd,x=.index)) + geom_col() 
+    ```
+    
+    Those spikes in the above plot suggests potential outliers. However, one need a cut-off point to distinguish the outliers from those tamed observations. Unfortunately, there is no a golden rule to split these two groups of points for arbitrary data sets. Some people uses 0.5 or 1 as a cut-off point but our Cook's distances here are much smaller. We will see a refined diagnostic plot for outlier detection in the next step. 
+    
+6. **We will skip independence in Lab 3 but revisit it in Lab 4**. Before I conclude this exercise, I would like to give you a handy shortcut to produce all above plots. One can easily generate a set of residuals diagnostic plots via `plot()`, i.e the default plot function in R, as follows.
+
+    ```{r}
+    plot(lm.youtube)
+    ```
+    
+    The last one of above plots is called **the residuals versus leverage plot**. The **leverage** is another measure for identifying outliers and you shall notice that there are several points being flagged already. This plot will also contain a cut-off curve in the red dash line for Cook's distances if there are any points with Cook's $D>0.5$. 
+
+    Besides of the convenience, another advantage of `plot()` is that the indices of potential outliers will be flagged in the plot. You can use the information in these diagnostic plots to locate the untamed outliers in your data. 
+    
+    However, one shall notice that, we can't customise those plots by following the same procedures in `ggplot()`. 
+    
+    *In fact, `plot()` can produce six different diagnostic plots. You can make the individual plot by specifying `which` in `plot()` like `plot(lm.youtube,which=1)` or `plot(lm.youtube,which=4)`. Have a try with `which=1,2,3,4,5,6`  and see which number gives you the desired plot.*
+
+    **Answer**: Just notice that the last one is Cook's distance vs leverage plot, another tool for outlier detection. 
+    
+    ```{r}
+    plot(lm.youtube,which=1) # residuals vs fits
+    plot(lm.youtube,which=2) # Q-Q plot
+    plot(lm.youtube,which=3) # scale-location
+    plot(lm.youtube,which=4) # Cook's distance
+    plot(lm.youtube,which=5) # Residuals vs leverage
+    plot(lm.youtube,which=6) # Cook's distance vs leverage
+    ```
+
+## Exercise 3: Transforming for a better model
+
+
+We have to acknowledge that the residuals plots of `lm.youtube` suggest that the linear model is not a great one for describing the relationship between `sales` and `youtube`. A transformation is one way to deal with the non-linearity and unequal variance of the data. We will try the log transformation in this exercise. 
+
+
+1. Instead of modelling `sales` in terms of `youtube`, we could instead take log transforms of `sales` and `youtube` to see if it is possible to get rid of the curvature in the relationship.
+
+
+    ```{r}
+    lm.youtube.log <- lm(log(sales) ~ log(youtube), data=marketing)
+    summary(lm.youtube)
+    summary(lm.youtube.log)
+    ```
+    
+    *Compare the summary output of the two models you have. Which do you think is better? Why?*
+    
+    **Answer**: Multiple R-squared has been improved a lot. Therefore, the log transformed model is better. 
+
+2. We add the following code to produce the residual vs fitted plot for this new model. 
+
+    ```{r}
+    lm.youtube.log.fit <- augment(lm.youtube.log)
+    lm.youtube.log.fit %>% ggplot(aes(x=.fitted,y=.std.resid)) +
+      geom_point()+geom_smooth(span=1.2)+geom_hline(yintercept=0)
+    ```
+    
+    **What the hell is this curve smoothed by `loess` - the weirdness of it going through the outlier in the bottom left?**
+    
+    **Answer**: `loess` means **LO**cally W**E**ighted **S**catter-plot **S**moother. It is a generalisation of our linear model to the nonlinear function. One potential drawback of `loess` is that it may depend heavily on one (or a small portion of) data point(s) as it smooths the scatter-plot **locally**. This is the root cause of the weirdness. 
+    
+    The $y$-axis is now the standardised residuals. If one fit a linear model with a transformation on $y$, the residuals will not be reported and the standardised residuals will be used thoroughly. *Why do we not use the residuals?* 
+    
+    *How is the assumption of linearity now? What about equal variance? Remember to add comments to your notebook.*
+    
+    **Answer**:  The linearity is getting better if we ignore the bottom left. Equal variance does not hold anyway, but there is a slight improvement. 
+    *Produce other diagnostic plots and add some comments on them.*
+    ```{r}
+      plot(lm.youtube.log)
+    ```
+
+    **Answer**:  Most issues are still there but getting better slightly. A potential outlier (131) can be identified from the residual vs leverage plot. 
+    
+    
+4. Earlier we produced prediction intervals for sales with `youtube` budget equal to zero dollar. *Re-do these using your transformed model. Remember that you'll need to exponentiate the resulting intervals using the `exp()` function (Why?)* 
+
+    *How do these intervals compare with your previous ones? Add some comments to your notebook about this.*
+
+    **Answer**: Sorry that I made a mistake here when preparing this lab. Clearly, we can't take the logarithm of zero. So it is not viable to produce the prediction by using `predict()`. One thing we can notice that the log transformed model is a power law model at the raw scale as $sales=c\times(youtube)^k$. So the sales will be exactly zero given zero budget. Of course, we may not want to use a model like this since the sales should not be zero even we have not advertising budget. A quick remedy is to use a shifted log tranformation as $x^*=\log(x+1)$ as follows. This will fix the problem caused by the logarithm of zero. 
+
+    ```{r}
+    lm.youtube.log1 <- lm(log(sales) ~ log(youtube+1), data=marketing)
+    newdata <- data.frame(youtube=0)
+    exp(predict(lm.youtube.log1,newdata,interval = 'prediction'))
+    ```
+    
+    Now we have a much narrow prediction interval after comparing it with Step 5 of Ex 3 in Lab 2! 
+
+5. Now let's try visualising the second linear model. You should notice that the $x$-axis is on the normal scale (even though we applied a log transformation in the model formula) but the $y$-axis is on the log scale. 
+
+    ```{r}
+    library(visreg)
+    visreg(lm.youtube.log, gg=TRUE)
+    ```
+
+    Nonetheless, the model fit should be a bit better, and will be curved. Notice that we've used a **linear** model to fit a curved relationship. The key is that the linearity of the model is in terms of the coefficients (each term can contain only one $\beta$ as a multiplier, and terms must be added together) not in terms of the way $y$ and $x$ are related. You can apply any transformation you like to $x$ and $y$ as needed to fit the data.
+
+6. You can also visualise the second linear model on the natural scale by applying a transformation in the `visreg` command. Try the following:
+
+    ```{r}
+    visreg(lm.youtube.log, trans=exp, partial=TRUE, gg =TRUE)
+    ```
+
+    The `trans=exp` uses exponentiation to transform the outcome variable. The `partial=TRUE` means that residuals deviated from the line (and thus data values) are plotted as points as well. You may want to change the y-axis label by adding `ylab="Body weight (kg)"` to the above command.
+
+    *Add some comments to your notebook about the model fit and how well you think it does. Notice that the confidence bands at the right end are larger than those at the left end or in the middle. Why is this?*
+    
+    **Answer**: Though the unequal variance is still there, the visualisation suggests a much better fit. The fitted curve traces the trend of sales well with points scatterring around the two sides of the curve evenly. The wider confidence bands is made by the inverse transformation, i.e. the exponential function.
+
+7. **Optional Challenge: Try to find a better transform for this data set!** 
+
+    **Answer**: No standard solution. But I am happy to review your work if you send it to me via email. 

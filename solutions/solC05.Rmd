@@ -1,0 +1,386 @@
+---
+title: "Workshop C05: Multiple Linear Regression, ANOVA, Collinearity"
+output:
+  html_document:
+    toc: yes
+    code_download: true
+---
+  
+```{r}
+library(tidyverse)
+```
+
+# Mutiple Linear Regression
+
+In scientific research and business practise, there are usually multiple covariates $x_1,x_2,...,x_p,p>1$ affecting the response $y$. Obviously, simple linear regression won't be sufficient if we want to model the relationship between $y$ and $x_1,x_2,...,x_p$. A natural generalisation of the simple linear model is 
+$$
+mean[y]=a+b_1x_1+b_2x_2+...+b_px_p.
+$$
+Such model is called **multiple linear regression** or **multivariable linear model**. In essence, the additional predictors are expected to explain the
+variation in the response not explained by a simple linear regression fit. 
+
+Adding more covariates means that we have to estimate more coefficients as $b_1$, $b_2$,...,$b_p$. You may feel that multiple linear regression looks much more complicated than simple linear regression. The amazing fact is that we can still handle such a model with `lm()`. More importantly, most techniques we have learnt for simple linear regression remain valid for the multiple variable case. 
+
+## Exercise 1: Adding more covariates
+
+In this exercise we'll look at modelling `sales` using all the advertising budgets on all the three different platforms. Recall that `sales` is correlated with `youtube`, `facebook` and `newspaper`. 
+
+Load the package `datarium` and the data `marketing`. We further turn the data set to a tidy tibble.
+
+```{r}
+library(datarium)
+data(`marketing`)
+marketing <- marketing %>% tibble()
+marketing
+```
+
+A quick scan on the data set above reveals a critical fact: We have overlook the multivariable nature of the data set. Observations in `sales` are obtained with different combinations of the advertising budgets on three platforms. Therefore, all three variables `youtube`, `facebook` and `newspaper` may contribute to the corresponding sales. There will be an overlap between the audiences from different platforms. How can we quantify the contributions of these three variables? In addition, if we built three separate simple linear models with each of the covariates, we'd end up with three different predictions for sales. Which one should we choose? 
+
+To address the above issues, we have to model the relationship between `sales` and multiple covariates in one step. We'll extend our simple linear model to take into account some of the other variables in the `marketing` data in this exercise.
+
+1. We'll start by adding in `facebook` to our first simple linear model (`lm.youtube`) and produce the model summary of this extended model as follows.
+
+    ```{r}
+    lm.youbook <- lm(sales ~ youtube + facebook, data=marketing)
+    summary(lm.youbook)
+    ```
+    
+    Compare it to the model summary of `lm.youtube` as follows. you'll notice a few things.
+    
+      * The `Estimate` for `youtube` will have changed.
+      * There is a new row for `facebook`.
+      
+    ```{r}
+    lm.youtube <- lm(sales ~ youtube, data=marketing)
+    summary(lm.youtube)
+    ```
+    
+    *Why do you think the `Estimate` (and thus `Std. Error`, `t value`, etc.) for `youtube` changed?  What is the P-value for `facebook` here testing? Add some notes to your notebook about this*.
+    
+    **Answer**: The `Estimate` (and thus `Std. Error`, `t value`, etc.) for `youtube` changes as new information from `facebook` has been added in to the linear model. A certain portion of variablity in `sales` is explained by `facebook`. The P-value for `facebook` here tests if the coefficient of `facebook` is equal to zero or not in this bivariable linear model. This indeedly tests if the covariate `facebook` make sufficient contributions to the explanation of variations in `sales` given the fact that the covariate `youtube` has explained a significant portion of the variability in `sales`. 
+    
+    *What is your conclusion about the relationship between `sales`, `youtube` and `facebook`?*
+    
+    **Answer**: Both `youtube` and `facebook` contribute to the explanation of variablities in `sales` through a bivariate linear function. The regression equation can be written as
+    **`sales`=3.50532+0.04575`youtube`+0.18799`facebook`.**
+
+2. Now add in `newspaper` to the linear model with both `youtube` and `facebook`, and check the model summary as follows
+
+
+    ```{r}
+    lm.youboper <- lm(sales ~ youtube + facebook + newspaper, data=marketing)
+    summary(lm.youboper)
+    ```
+
+    *What is your conclusion about the relationship between `sales` and `newspaper`?*
+
+    **Answer**: After accouting for the contributions of `youtube` and `facebook` to modelling `sales`, `newspaper` does not offer any further improvement for modelling `sales` as the P-value of `newspaper` is insignificant at the level 0.05.
+    
+    *Fit a simple linear model relating `sales` to only `newspaper`. What do you find in the R summary on the significance of `newspaper`. Why?*
+
+    **Answer**: `newspaper` becomes significant in the simple linear model. Without knowing anything on `youtube` and `facebook`, we can still use `newpaper` to explain some uncertainties in `sales`.
+
+    ```{r}
+    lm.newspaper <- lm(sales ~ newspaper, data=marketing)
+    summary(lm.newspaper)
+    ```
+    
+3. The `Multiple R-squared`s in three models, `lm.youtube`, `lm.youbook`, and `lm.youboper` are detailed as follows.
+
+    ```{r}
+    summary(lm.youtube)$r.squared
+    summary(lm.youbook)$r.squared
+    summary(lm.youboper)$r.squared
+    ```
+    *Compare the `Multiple R-squared`s of the above three models. What do you find?*
+
+    **Answer**: `Multiple R-squared` gets larger if we add in more covariates to the linear model which reflects a better goodness of fit.
+ 
+4. Let's take a look at visualising your model with all three variables using `visreg`. You'll notice that it will produce 3 plots, one for each of the variables.
+
+    ```{r}
+    library(visreg)
+    visreg(lm.youboper,gg=TRUE)
+    ```
+
+    These are called **partial** residual plots. What they do is plot the relationship between the response and a single variable after holding all other variables constant (usually at their median). This allows you to see the effect of one variable after accounting for the others. Notice the relationship with `newspaper` isn't very strong. You can choose a particular variable by using the `xvar` variable. e.g. `visreg(lm.youboper, xvar="newspaper")`.
+    
+    *Compare these plots with the visualisation of the simple linear models `lm.youtube`, `lm.facebook`, `lm.newspaper` in Workshop C1. What do you find?*
+    
+    **Answer**: The slopes of each plot have been changed, especially for `newspaper`. This is not amazing since the presence of new covariates updates the relationship between `sales` and rest covarites. 
+
+5. The diagnostics of a multivariable linear model follow the same principles in those of a simple linear model. *Let's take a look at the model diagnostics for the model with all three covariates. Produce 4-in-1 plots using `plot()`. Add some notes to your R notebook as to whether the model assumptions are satisfied*.
+
+    **Answer**: **We use `par(mfrow=c(2,2))` to show all four plots together. It only works for the basic R `plot()` so don't use it for any `ggplot()` stuff.** The residuals vs fitted plot is showing a bowl/bathtub trend while the scale-location plot looks spindle shaped. With the smoothed curves in them, we can say that both linearity and equal variance are highly questionable. The Q-Q plot looks also not very good with some obvious outliers. The residuals vs leverage plot further confirms the existence of outliers.
+    
+    ```{r}
+    par(mfrow=c(2,2))
+    plot(lm.youboper)
+    ```
+    
+
+6. We can take a log of `sales` and refit a multivariable linear model as follows 
+
+    ```{r}
+    lm.youboper.log <- lm(log(sales) ~ youtube + facebook + newspaper, data=marketing)
+    ```
+
+    *Produce 4-in-1 diagnostic plots using `plot()`. Add some notes to your R notebook as to whether the model assumptions are satisfied.*
+
+    **Answer**: All plots are suggesting that there are a few outliers distorting the diagnostics plots. If we ignore those outliers, the residuals vs fitted and scale-location plots will support the linearity and equal variance of the transformed model.You can try to do it by removing the outliers from the data, re-fit the model and, produce the diagnostics plots. 
+    
+    ```{r}
+    par(mfrow=c(2,2))
+    plot(lm.youboper.log)
+    ```
+7. We can still use `predict()` for predicting with a multivariable linear model. The only difference is that we need to specify each covariates in the data frame for `newdata` as 
+
+    ```{r}
+    newbudget <- data.frame(youtube=0,facebook=0)
+    predict(lm.youbook,newdata=newbudget, interval='confidence')
+    ```
+    One can modify `interval` and `level` to get prediction or confidence intervals at different confidence levels. 
+    
+    *Compare the above confidence interval with the confidence intervals of two simple linear models `lm.youtube` and `lm.facebook` at zero budgets. Discuss your findings.*
+    
+    **Answer**: Both the confidence and prediction intervals become narrower in the multivariable linear model. Adding in more covariates in our linear model explains more variabilities in `sales` which yields better uncertainty quantification in prediction.
+    
+    
+## Exercise 2: The more, the better?
+
+In Ex1, we have seen that, by including more covariates in `lm()`, the goodness of fit of our linear models, i.e. $R^2$, can be improved. Even if the new covariate is insignificant in the original model, $R^2$ of `lm.youboper` is slightly higher than `lm.youbook`. It is not hard to conclude that `lm.youbook` is much better than `lm.youtube`. But how can we choose between `lm.youbook` and `lm.youboper`? These two models seem in a dead heat with each other.
+
+An tricky fact is that $R^2$ will always be improved no matter what covariate is added into a linear model. This can be demonstrated by the following simulation study.
+
+1. Let's add in an additional variable to `marketing` as follows
+
+    ```{r}
+    set.seed(2020)
+    marketing.sim <- marketing %>% mutate(noise=rnorm(200))
+    ```
+    
+    This additional variable (`noise`) is simulated from an exponential distribution. Of course, `noise` does not contribute any information to `sales`. But let us add in it to `lm()` and produce a model summary as follows
+  
+    ```{r}
+    lm.youboper.sim <- lm(sales ~ youtube + facebook + newspaper + noise, data=marketing.sim)
+    summary(lm.youboper.sim)
+    ```
+
+    From the R summary, it is not amazing to find that `noise` is insignificant. 
+
+    *Compare the `Multiple R-squared` of `lm.youboper.sim` with those of `lm.youtube`, `lm.youbook`, and `lm.youboper`. What do you find?*
+    
+    **Answer**: The `Multiple R-squared` of `lm.youboper.sim` is larger than all the above models which suggests a (slightly) better goodness of fit.
+
+2. The insignificance of a covariate does not mean that it is certainly not related to the response. In our data set `marketing.sim`, though `noise` is just a redundant variable containing no information, `newspaper` is still correlated with `sales`. The correct interpretation is that, after extracting the information on `sales` from `youtube` and `facebook`, `newspaper` becomes insignificant in explaining the variations in `sales`. 
+
+    The guaranteed improvement in $R^2$ by adding more covariates can be dangerous as it may lead to some over-complicated models. In statistical modelling, an very important practical guideline is **Occam's razor** or the **law of parsimony** which is the problem-solving principle that "entities should not be multiplied without necessity". If two models provide similar fits to the real data set, we tend to keep the more parsimonious one, i.e. the model with less covariates.
+
+    For practitioners, a simple but effective idea is to remove these insignificant covariates from our linear model. In addition, we have `Adjusted R-squared` in the R summary to help us find the most concise model with a sufficient goodness of fit. `Adjusted R-squared` is modified from `Multiple R-squared` by taking the complexity of the linear models (the number of covariates) into the consideration. These numerical indicators can be extracted directly as follows.
+
+    ```{r}
+    summary(lm.youtube)$adj.r.squared
+    summary(lm.youbook)$adj.r.squared
+    summary(lm.youboper)$adj.r.squared
+    summary(lm.youboper.sim)$adj.r.squared
+    ```
+
+    *Find the best model which balances the complexity and the goodness of fit by using `Adjusted R-squared`.*
+    
+    **Answer**: The best model is `lm.youbook`. Not amazing, `noise` does not contribute any information and the information in `newspaper` has been included in `youtube` and `facebook`.
+
+3. Another tool to examine the necessity of including one or more covariates in our model is the **ANalysis Of VAriance**. We can figure out that `lm.youtube` is a model reduced from `lm.youbook` by setting the coefficient of `facebook` at zero. Therefore, just like comparing the linear trend model and quadratic trend model in Workshop C4, `anova()` can test if the reduction in `R^2` is sufficient or not when adding one covariate as follows
+
+    ```{r}
+    anova(lm.youtube,lm.youbook)
+    ```
+
+    The above ANOVA table suggests we shall keep the extended model `lm.youbook`.
+
+    Similarly, `lm.youbook` is a model reduced from `lm.youboper.sim` by setting the coefficient of `facebook` and `noise` at zero. The advantage of `anova()` is that it can check the pros and cons of two or more covariates as a group simulatanously as follows,
+    
+    ```{r}
+    anova(lm.youbook,lm.youboper.sim)
+    ```
+    
+    `Df` in the second row of the ANOVA table is the number of additional coefficients being tested. It is not hard to decide that we shall keep the reduced model `lm.youbook`. 
+      
+    `lm.youbook` is involved in both ANOVA tables. But its roles in the two tables are different. It is the extended model in the first table but becomes the reduced one in the second. Just be careful when using `anova()` and make sure that you are putting a model at its correct position. 
+    
+    *Re-run `anova()` by swapping the reduced model with the extended model. Discuss your findings.*
+    
+    **Answer**: Negative `Df` and `Sum of Sq`, same `F` and P-value. The conclusion will be the same, i.e. keeping the simple model. 
+    ```{r}
+    anova(lm.youboper.sim,lm.youbook)
+    ```
+    
+    We can directly call `anova()` on a fitted linear model without considering the pair of a reduced model and an extended model as
+    
+    ```{r}
+    anova(lm.youboper.sim)
+    ```
+
+    The above ANOVA table is testing the necessities of including each covariate one by one after adding in the previous covarite(s) to the linear model **sequantially**.  
+      
+    The first row corresponding to `youtube` tells us that adding `youtube` makes more sense than including no covariate in modelling `sales` (such a naive model can be fitted by `lm(sales~1, data=marketing)`). The second row corresponding to `facebook` tells us that adding `facebook` still makes more sense even if we have added `youtube` into modelling `sales`. The third (fourth) row suggests that, after considering the previous two (and three) covariates, the covariate `newspaper` (`noise`) contributes little information in modelling `sales`.
+    
+    We can permute the order of covariates in `lm()` and generate the corresponding ANOVA table as follows
+    
+    ```{r}
+    lm.youboper.sim.2 <- lm(sales ~ youtube +  noise + newspaper + facebook,data=marketing.sim)
+    anova(lm.youboper.sim.2)
+    ```
+    
+    *Interpret each row of this ANOVA table and compare it with the previous ANOVA table. Discuss your findings.*
+    
+    **Answer**: `newspaper` becomes significant. It means, after accouting for `youtube` and `noise`, `newspaper` still contains useful information in predicting `sales`. But `facebook` is not yet considered. The summary table can be further used to check the significance of the coefficient. 
+    
+4. The ANOVA table relies heavily on the $F$-test as we have mentioned in Workshop C4. From the R summaries of all above four models, we can access the a row called `F-statistic`. The `F-statistic`s of all four models above are detailed as follows.
+
+    ```{r}
+    summary(lm.youtube)$fstatistic
+    summary(lm.youbook)$fstatistic
+    summary(lm.youboper)$fstatistic
+    summary(lm.youboper.sim)$fstatistic
+    ```
+
+    *Check the `value` and `numdf` of `F-statistic`. Discuss your findings.*
+    
+    **Answer**: The best model has the highest `value` of `F-statistic`. `numdf` is exactly the number of the coefficients (except for the intercept).
+    
+    `F-statistic` reported in the R summary is also from an ANOVA table which tests a null model with all coefficients being zero (the reduced model) against the fitted linear model (the extended model). 
+    
+    $F$-test is called an omnibus test as it tests if all coefficients in a linear model are equal to zero as a group. In a math way, the null hypothesis can be written as
+    $$
+    H_0: b_1=b_2=...=b_p=0. 
+    $$
+    Any $b_i$ being non-zero significantly will reject the null hypothesis and lead to a conclusion that there exist at least one covariate in our data set explaining the variations in the response $y$. 
+    
+    If you get `F-statistic` insignificant in your R summary, you need to double check your data set to make sure that the data set itself makes sense. 
+    
+## Exercise 3: Collinearity (Optional)
+
+**The solution is not provided for the optional exercise.**
+
+In a multivariate data set, we usually have a response $y$ and multiple covariates $x_1$, $x_2$,..., $x_p$. A multivariable linear model aims to model the relationship between $y$ and the $x$'s. We are expecting that the variations in $y$ can be well explained by including a suitable number of covariates as discussed in the previous exercise. 
+
+A side effect of multiple covariates is that there exist correlations between covariates themselves. Even if those correlations are weak, some specific combinations of correlations between several covariates can lead to some ill-posed results in our linear model. 
+
+In this exercise, we will study this critical issue arising from many real data sets, i.e. **collinearity** or **multicollinearity**. 
+
+1. Let’s simulate a dataset as follows.
+
+    ```{r}
+    set.seed(2021)
+    n <- 20
+    demo  <- tibble(x1=1:n,x2=sample(1:n),e=rnorm(n)) %>% mutate(y=0.5*x1+0.5*x2+e) 
+    demo
+    ```
+    
+    It is easy to fit a linear model based on the simulated data set `demo` as 
+    
+    ```{r}
+    lm.demo <-lm(y~x1+x2,data=demo)
+    summary(lm.demo)
+    ```
+    Now let's add in another predictor `x3` which is the sum of the other two predictors to the tibble 
+
+
+    ```{r}
+    demo.e.collin  <- demo %>% mutate(x3=x1+x2) 
+    demo.e.collin
+    ```
+
+
+    Notice that the way we are generating this data, the response `y` only really depends on `x1` and `x2` What happens when we attempt to fit a regression model in R using all of the three predictors?
+    
+    ```{r}
+    lm.demo.e.collin <-lm(y~x1+x2+x3,data=demo.e.collin)
+    summary(lm.demo.e.collin)
+    ```
+
+    We see that R simply decides to exclude the variable `x3`. *Try to add another variable `x4=x2-x1` and re-fit a linear model `y~x1+x2+x4`. Discuss your findings.*
+    
+    What if we do not remove `x3`?
+    
+    This creates a big trouble for R as a bit arithmetics will show that `y=0.5x1+0.5x2` is equivalent to `y=0.5x3`. More crazily, we have `y=408.5x3-408x2-408x1`. There are infinite combinations of coefficients for our underlying linear model.
+    
+    Why is this happening? It is simply because that `x3` can be predicted perfectly from `x1` and `x2` with a linear formula `x3=x2+x1`. The information contained in `x3` is redundant given the information from `x1` and `x2`.
+    
+    When this happens, we say there is **exact** or **perfect** collinearity in the dataset. As a result of this issue, R essentially chose to fit the model `y ~ x1 + x2` which agrees with the true underlying data generation mechanism. 
+
+2.  However notice that two other models would generate different R summaries
+
+    ```{r}
+    lm.demo.e.collin.2 <-lm(y~x1+x3+x2,data=demo.e.collin)
+    summary(lm.demo.e.collin.2)
+    lm.demo.e.collin.3 <-lm(y~x2+x3+x1,data=demo.e.collin)
+    summary(lm.demo.e.collin.3)
+    ```
+
+    The order of covariates in `lm()` matters, just like `anova()`. R fits the model `y ~ x1 + x3` and `y ~ x2 + x3` respectively.
+    
+    Given the fact `x3=x1+x2`, a bit arithmetic calculation will reveal that the above three model fits, `lm.demo.e.collin`, `lm.demo.e.collin.2`, and `lm.demo.e.collin.3`, are essentially equivalent. 
+    
+    *This can be further confirmed by the fitted values and residuals of three models. Extract the fitted values and residuals of the above three models and compare them.*
+
+    This is a result of all of the information contained in `x3` being derived from `x1` or `x2`. As long as one of `x1` or `x2` is included in the model, `x3` can be used to recover the information from the variable not included.
+
+    While their fitted values (and residuals) are all the same, their estimated coefficients are quite different. The sign of `x2` is switched in two of the models! So only `lm.demo.collin` properly explains the relationship between the variables, `lm.demo.e.collin.2` and `lm.demo.e.collin.3` still predict as well as `lm.demo.collin`, despite the coefficients having little to no meaning, a concept we will return to later.
+
+3. Exact collinearity is an extreme example of collinearity, which occurs in multiple regression when predictor variables are highly correlated. From above two steps, it seems that exact collinearity is not a big deal since `lm()` can handle it automatically. 
+
+    Yeah. Exact collinearity can be resolved easily but let us add a bit random perturbation to `x3` as follows
+
+    ```{r}
+    set.seed(2022)
+    demo.collin  <- demo %>% mutate(x3.r=x1+x2+rnorm(n,sd=0.01)) 
+    demo.collin
+    ```
+    
+    Now `x3.r` is no longer a sum of `x1` and `x2`. Without knowing the random pertubation caused by `rnorm(n)`, we won't be able to recover `x2` from `x1` and `x3.r` and vice versa. A tri-variable linear model fitted to this data set is given as follows
+    
+    ```{r}
+    lm.demo.collin <- lm(y~x1+x2+x3.r, data=demo.collin)
+    summary(lm.demo.collin)
+    ```
+    
+    Unlike exact collinearity, here we can still fit a model with all of the predictors, but what effect does this have? All three coefficients become less significant! 
+    
+    One of the first things we should notice is that the $F$-test for the regression tells us that the regression is significant, however each individual predictor is not. Another interesting result is the opposite signs of the coefficients for `x1` and `x3.r`. This should seem rather counter-intuitive. Increasing `x1` increases `y`, but increasing `x3.r` decreases `y`?
+
+    This happens as a result of one or more predictors can be modelled by other predictors with a linear model. For example, the `x1` variable explains a large amount of the variation in `x3.r`. When they are both in the model, their effects on the response are lessened individually, but together they still explain a large portion of the variation of `y`
+    
+    Actually, `Estimate`s for `x1` and `x2` still look ok but their `Std.Error`s are just too large which results in small `t value`s and large P-values. 
+    
+    Including a variable like `x.r` in our linear model is very dangerous for our statistical inference. It distort the model summary by enlarging the value of `Std.Error` which further leads to a false P-value. 
+    
+4.  In some cases, we can identify the collinearity in our data set before fitting a linear model. This can be done via the **pairs plot** produced by `ggpairs()` from the R package `GGally` as 
+
+    ```{r}
+    library(GGally)
+    demo.collin %>% select(-e) %>% ggpairs()
+    ```
+    
+    The diagonal of the pairs plot dispicts the densities of corresponding variables in the data set. The lower triangle collects the scatter plots of different pairs of variables and the upper triangle summarise the corresponding correlation coefficients. The pairs plot provides us an efficient way to visualise a multivariable data set.
+    
+    From the above pairs plot, we can find that `x3.r` is highly linearly correlated with `y`. If two predictors are highly correlated which means one can be predicted by another through a line, they can also be identified from the pairs plot.
+    
+    *Produce the pairs plot for the data set `marketing`. Can you identify any issues in this data set?*
+    
+5. However, it may not be easy to identify the collinearity in the data set with just a pairs plot. For example, in the last step we find that `x.3r` is highly correlated with `y` but it does not really reveal the true collinearity between the covariates. We need a better tool to spot those duplicates hidden in the data set. 
+
+    Notice that `Std.Error`s in the previous summary of `lm.demo.collin` are abnormally large. We use the so-called **Variance Inflation Factor (VIF)** to detect the possible collinearites in a multivariable data set. The variance inflation factor quantifies the effect of collinearity on the variance of our regression estimates. The VIFs for each of the predictors in a  linear model can be calculated by `vif()` from the R package `faraway` as follows.
+    
+    ```{r}
+    library(faraway)
+    vif(lm.demo.collin)
+    ```
+    
+    ```{r}
+    vif(lm.youboper)
+    ```
+    
+    In practice it is common to say that any VIF greater than 5 is cause for concern. So in this example we see there is a huge multicollinearity issue as all three predictors have a VIF greater than 5.
+    
+    *Check the VIFs of `lm.youboper`. Can you identify any issues in this data set?*

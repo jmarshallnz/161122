@@ -1,0 +1,199 @@
+---
+title: "Workshop A06: Grouping and small multiple plots"
+output: html_document
+---
+
+## Introduction
+
+We'll once again be using the student roll data from:
+
+https://www.educationcounts.govt.nz/statistics/school-rolls
+
+```{r setup, message=FALSE}
+library(tidyverse)
+
+roll <- read_csv("http://www.massey.ac.nz/~jcmarsha/161122/data/roll_nomacrons.csv")
+#roll <- read_csv("roll_nomacrons.csv") # for loading from a local copy
+
+clean <- roll %>% mutate(Level = as.numeric(substring(Level, 6)))
+clean
+```
+
+Today we'll be looking at `group_by` and `summarise` functions which are where the real power of `dplyr` lies, and show how to produce 'small multiple' plots with `ggplot2`.
+
+**Make sure you can Knit this document successfully before you make changes.**
+
+## Using `summarise` to summarise across rows
+
+Try the following examples to understand what they do. Notice in the second example that we can use variables we've computed (`Total`) in other summaries.
+
+```{r}
+clean %>% summarise(Rows = n())
+clean %>% summarise(Total = sum(Students), Average = Total/n())
+```
+
+### Try yourself
+
+1. Find the largest (maximum) number of students in any row.
+
+```{r}
+clean %>% summarise(Largest = max(Students))
+```
+
+2. Find the median number of students in a row.
+
+```{r}
+clean %>% summarise(Median = median(Students))
+```
+
+3. What is the lowest and highest year levels in the data?
+
+```{r}
+clean %>% summarise(Lowest = min(Level),
+                    Highest = max(Level))
+```
+
+Find the number of students in years 14 or 15:
+
+```{r}
+clean %>% filter(Level > 13) %>%
+  summarise(Total = sum(Students))
+```
+
+4. Find the number of Maori students in year 9 (hint: `filter` then `summarise`)
+
+```{r}
+clean %>% filter(EthnicGroup == "Maori", Level == 9) %>%
+  summarise(Total = sum(Students))
+```
+
+## Using `group_by` to do operations per group
+
+The true power of `dplyr` comes with the `group_by()` operation, which allows all of the rest of the operations we've learned about (plus more!) to be performed simultaneously on subgroups of the data.
+
+The idea with `group_by()` is to collect rows together to be treated as a unit using one or more variables. All the other commands then operate per-group. For example, we can easily find the number of students per school by grouping by school and then adding up the number of students with `summarise`:
+
+```{r grouping}
+clean %>% group_by(School) %>% summarise(Total = sum(Students))
+```
+
+### Try yourself
+
+1. How many students of each ethnicity are there?
+```{r}
+clean %>% group_by(EthnicGroup) %>% summarise(Total = sum(Students))
+```
+2. How many students are there of each gender?
+
+```{r}
+clean %>% group_by(Gender) %>% summarise(Total = sum(Students))
+```
+
+3. Which school has the most female students in year 13?
+
+```{r}
+clean %>% filter(Gender == "Female", Level == 13) %>%
+  group_by(School) %>%
+  summarise(Total = sum(Students)) %>%
+  arrange(desc(Total))
+```
+
+An alternate using the helper function `slice_max`
+
+```{r}
+clean %>% filter(Gender == "Female", Level == 13) %>%
+  group_by(School) %>%
+  summarise(Total = sum(Students)) %>%
+  slice_max(Total, n=10)
+```
+
+4. Produce a graph of the total number of students by year level. Hint: First get the data frame you want, and then use `ggplot` with `geom_col`.
+
+```{r}
+total_by_level <- clean %>% group_by(Level) %>%
+  summarise(Total = sum(Students))
+
+ggplot(data = total_by_level) +
+  geom_col(mapping = aes(x=Level, y=Total))
+```
+
+5. Alter your graph from 4 so as to include gender.  Hint: You'll need to group by two variables for this.
+
+```{r}
+total_by_level_gender <- clean %>% group_by(Level, Gender) %>%
+  summarise(Total = sum(Students))
+
+ggplot(data = total_by_level_gender) +
+  geom_col(mapping = aes(x=Level, y=Total, fill=Gender),
+           position = 'dodge')
+```
+
+## Small multiple plots
+
+In the last exercise you produced a graph of the total number of students by year level and gender. You should have got something like this:
+
+```{r}
+year_by_gender <- clean %>% group_by(Level, Gender) %>% summarise(Total = sum(Students))
+ggplot(year_by_gender) +
+  geom_col(mapping=aes(x=Level, y=Total, fill=Gender), position='dodge')
+```
+
+This is an interesting graph as it shows that males tend to leave school earlier than females. We might be interested to see if there are any patterns in other variables, such as in ethnicity (or perhaps by region - we'll see how to get that information later).
+
+To do this, we want to produce the same plot for each ethnicity. Now, we could just go ahead and create separate plots by using `filter`
+
+```{r}
+eu_year_by_gender <- clean %>% filter(EthnicGroup == "European") %>% group_by(Level, Gender) %>% summarise(Total = sum(Students))
+ggplot(eu_year_by_gender) +
+  geom_col(mapping=aes(x=Level, y=Total, fill=Gender), position='dodge')
+as_year_by_gender <- clean %>% filter(EthnicGroup == "Asian") %>% group_by(Level, Gender) %>% summarise(Total = sum(Students))
+ggplot(as_year_by_gender) +
+  geom_col(mapping=aes(x=Level, y=Total, fill=Gender), position='dodge')
+```
+
+But that gets quite awkward! Fortunately, `ggplot` can do grouping for us via the `facet_wrap` or `facet_grid` commands. These produce what is known as 'small multiple' plots - basically divide the plot up into subplots, and in each subplot we show a different group with consistent style/axes etc. 
+
+To do this, we'll need to group by EthnicGroup as well as Level and Gender, and then use `facet_wrap`:
+
+```{r}
+ethnicity_by_year_by_gender <- clean %>% group_by(EthnicGroup, Level, Gender) %>% summarise(Total = sum(Students))
+ggplot(ethnicity_by_year_by_gender) +
+  geom_col(mapping=aes(x=Level, y=Total, fill=Gender), position='dodge') +
+  facet_wrap(vars(EthnicGroup))
+```
+
+The `vars` helper function here is there so that `facet_wrap` knows to look for the named column in the data frame.
+
+### Try yourself
+
+1. Try altering the above plot so that it uses a different y-axis for each plot. This can be useful when there's differing numbers of students in each group. Hint: see the help for `facet_wrap`.
+
+```{r}
+ethnicity_by_year_by_gender <- clean %>%
+  group_by(EthnicGroup, Level, Gender) %>%
+  summarise(Total = sum(Students))
+
+ggplot(data=ethnicity_by_year_by_gender) +
+  geom_col(mapping=aes(x=Level, y=Total, fill=Gender), position='dodge') +
+  facet_wrap(vars(EthnicGroup), scales = "free_y")
+```
+
+2. Instead of colouring by gender, produce separate plots by both `Gender` and `Ethnicity` by
+supplying both to `facet_wrap`.
+
+```{r}
+ggplot(data=ethnicity_by_year_by_gender) +
+  geom_col(mapping=aes(x=Level, y=Total, fill=Gender), position='dodge') +
+  facet_wrap(vars(Gender, EthnicGroup), scales = "free_y", ncol=6) +
+  guides(fill = 'none')
+```
+
+3. Try out `facet_grid` instead for the second one.
+
+```{r}
+ggplot(data=ethnicity_by_year_by_gender) +
+  geom_col(mapping=aes(x=Level, y=Total, fill=Gender), position='dodge') +
+  facet_grid(rows = vars(Gender),
+             cols = vars(EthnicGroup)) +
+  guides(fill = 'none')
+```

@@ -1,0 +1,513 @@
+---
+title: "Workshop C06: Factors and Interactions"
+output:
+  html_document:
+    toc: yes
+    code_download: true
+---
+  
+```{r}
+library(tidyverse)
+```
+
+# Categorical variables
+
+In the previous workshops, we have been modelling the relationship between a quantitative (numerical) response $y$ with multiple quantitative predictors $x_1$,$x_2$,...,$x_p$. 
+
+In the scientific research or social study, many predictors are not in a numerical scale, but in a qualitative scale, like gender, ethnicity, breed, blood type, etc. These qualitative variables are usually called **categorical** variables. 
+
+**Sidenote**: In fact, the response $y$ can also be categorical. But modelling categorical responses is beyond the scope of this paper. You will learn the techniques for categorical responses in the **generalised linear model**. 
+
+# Lamb weaning data
+
+In this lab we'll look at a data set from a recent study at Massey investigated the effect of feeding and body condition during late pregnancy and lactation on lamb performance until weaning.
+
+On day 141 of pregnancy, ewes with body condition score (BCS) of 2, 2.5 and 3 were allocated to a 'Low', 'Medium' or 'High' feeding treatment until weaning at day 79 of lactation. Of interest is whether there is a difference in the average weaning weight of their lambs between the treatments, and whether this is dependent on body condition score or other factors.
+
+The data set consists of the following variables from 540 twin lambs from 270 ewes.
+
+Variable                  Description
+--------                  -----------
+`EweTag`                  Identifying number for the ewe.
+`EweFeed`                 The feeding treatment for the ewe (`L`, `M`, `H`).
+`EweBodyConditionScore`   The body condition score of the ewe.
+`LambTag`                 Identifying number for the lamb.
+`DateOfBirth`             Date of birth of the lamb (in days from first birth).
+`Paddock`                 The paddock (`A`-`L`) where the ewes were kept.
+`Sex`                     The sex of the lamb (`Ewe`, `Ram`).
+`WeaningWeight`           The weight of the lamb at weaning (in kg).
+
+The response is `WeaningWeight` and the rest variables in this data set are covariates. Most covariates are categorical except for `DateOfBirth`. 
+
+The following R code chunk loads the data set and deletes the rows with NA values. 
+
+```{r}
+weaning <- read_csv("https://www.massey.ac.nz/~jcmarsha/161122/data/weaning.csv") %>%
+  drop_na() %>% select(-EweTag,-LambTag)
+weaning
+```
+
+We also remove two variables `EweTag` and `LambTag` which are not used in this workshop.
+
+*Perform an exploratory data analysis on `weaning` by producing plots of lamb weaning weight versus sex, feed group, body condition score, and date of birth. You can try the pairs plot by `ggpairs()` from the package `GGally` here.*
+
+**Answer**: The pairs plot is a little hard to read since there are many categorical covariates. You can make individual scatter plots and boxplots to check the details.
+
+```{r}
+library(GGally)
+ggpairs(weaning)
+```
+
+## Exercise 1: Factors in linear models
+
+1. The data set `weaning` contains many categorical variables. A categorical variable actually divides the subjects in our study (cute lambs!) into separate groups. For example, `Sex` splits lambs into two groups `Ewe` and `Ram`. We can investigate the difference of two groups via `group_by()` and `summarise()` as follows.
+
+    ```{r}
+    weaning %>% group_by(Sex) %>% summarise(mean.ww.sex=mean(WeaningWeight))
+    ```
+
+    The boxplots can of course provide us more details.
+
+    ```{r}
+    weaning %>% ggplot(aes(y=WeaningWeight,x=Sex)) + geom_boxplot() + ggtitle('Will Rams be heavier than Ewes?')
+    ```
+
+2. Even if `Sex` is a categorical variable, we can still fit a linear model with `Sex` as a predictor by `lm()` as follows
+
+    ```{r}
+    lm.sex <- lm(WeaningWeight~Sex,data=weaning)
+    summary(lm.sex)
+    ```
+    
+    First of all, `F-statistic` suggests that including `Sex` as a covariate contributes to the explanation on the variations in `WeaningWeight`, although $R^2$ is not high. 
+
+    *Compare two estimates for `(Intercept)` and `SexRam` with the groupwise means obtained via `summarise()`. Discuss your findings.*
+
+    **Answer**: The `(Intercept)` is the mean of ewe weaning weight. The `SexRam` gives the difference between the means of ewe and ram weaning weight.
+
+    Note that there is one coefficient estimated for the `Sex` variable (`SexRam`). The terms `Ram` and `Ewe` won't permit numerical calculations. What's happening here?
+
+    To understand what the coefficient `SexRam` really means, let's go back to the R summary of `lm.sex`. We can write the regression equation as 
+
+    **mean[`WeaningWeight`]= 27.6867 + 2.5590`SexRam`.**
+
+    In the case of quantitative predictors, we're more or less comfortable with the interpretation of the linear model coefficient as a "slope" or a "unit increase in outcome per unit increase in the covariate".  This isn't the right interpretation for categorical variables.  
+    
+    In particular, the notion of a slope or unit change no longer makes sense when talking about a categorical variable.  E.g., what does it even mean to say "unit increase in major" when studying the effect of college major on future earnings?
+
+    When you put a categorical covariate into a linear model, you're allowing a **different $mean[y]$ at each group induced by this covariate**. Essentially you're saying that the cute lambs are broken down into two sex groups, and you want to model their `WeaningWeight` as two groups with different means. As you may have found, `(Intercept)` reports the group mean for `Ewe` and `SexRam` reports the difference between the group means of `Ewe` and `Ram`. 
+    
+    `lm()` won't be able to compute the regression coefficient with the characters `Ewe` or `Ram`. It turns `Ewe` or `Ram` into 0 or 1, respectively, and further computes the regression coefficients. We can mimick this process in `lm()` as 
+    
+    ```{r}
+    weaning.dummy <- weaning %>% mutate(SexRam.dummy=as.numeric(Sex=='Ram'))
+    weaning.dummy
+    lm.sex.dummy <- lm(WeaningWeight~SexRam.dummy,data=weaning.dummy)
+    summary(lm.sex.dummy)
+    ```
+    
+    `Sex=='Ram'` returns `FALSE` for `Ewe` and `TRUE` for `Ram`. `as.numeric` will further maps `FALSE` to 0 and `TRUE` to 1. 
+    
+    *Compare the model summaries of `lm.sex` and `lm.sex.dummy`. Discuss your findings.*
+    
+    **Answer**: They are exactly the same.
+    
+    The binary-valued variable `SexRam.dummy` is called a **dummy variable** in regression models. Transforming **categorical covariates** to dummy variables is the standard way to handle categorical variables in linear models. 
+    
+    *Visualise your fitted linear model by `visreg()` and compare the result with the previous boxplots. Discuss your findings.*
+    
+    **Answer**: They look different. Boxplots visualise the median with interquartiles while `visreg()` visualises the mean with all data points. 
+    
+    ```{r}
+    library(visreg)
+    visreg(lm.sex)
+    ```
+    
+3. We can further investigate the effect of `EweBodyConditionScore` on `WeaningWeight`. The groupwise means and boxplots are given as follows.
+
+    ```{r}
+    weaning %>% group_by(EweBodyConditionScore) %>% summarise(mean.ww.bcs=mean(WeaningWeight))
+    weaning %>% ggplot(aes(y=WeaningWeight,x=factor(EweBodyConditionScore))) + geom_boxplot() + ggtitle('Stronger Ewes, Stronger Lambs?') + xlab('Body Condition Score')
+    ```
+
+    **Sidenote**: One shall notice that the body condition scores of mother ewes, `EweBCS`, can be treated as either qualitative or quantitative variables. In fact, such categorical variable with a natural ordering is called an **ordinal** variable. The other categorical variables without an ordering are **nominal** variables. Nevertheless, we will ignore the order in `EweBCS` and treat it as a nominal categorical variable.
+
+    We use `factor()` to turn `EweBodyConditionScore` to a categorical variable. It was recognised as the numerical variable by R since it has only some numerical values (2,2.5,3). One has to use `factor()` here as `lm()` treats these two kinds of variables in totally different ways. The following R code chunk gives you an illustration.
+    
+    ```{r}
+    lm.bcs.ordinal <- lm(WeaningWeight~EweBodyConditionScore,data=weaning)
+    summary(lm.bcs.ordinal)
+    ```
+    
+    You may feel that the above model looks more concise. But how can we interpret the regression coefficient of `EweBodyConditionScore`. A unit change in the body condition score looks peculier as these scores are some subjective grades. The difference between 2.5 and 3 may not be the same as the difference between 2 and 2.5. Therefore, a more safe choice is to turn `EweBodyConditionScore` to a nominal variable `EweBCS` as follows.
+    
+    ```{r}
+    weaning <- weaning %>% mutate(EweBCS=factor(EweBodyConditionScore))
+    lm.bcs.nominal <- lm(WeaningWeight~EweBCS,data=weaning)
+    summary(lm.bcs.nominal)
+    ```
+    
+    In the light of using `factor()` extensively, the categorical variable is also called the **factor** variable or just factor. The groups or categories implied by the categorical variable is called **levels** of the factor. We will use "factor" extensively in the following exercises.
+    
+    `F-statistic` supports that this factor contributes to the explanation on the variations in `WeaningWeight`. How do we interpret the two `EweBCS` coefficients? Interpretting the model summary of `lm.bcs.nominal` is quite similar to that of `lm.sex`. The key is that we have three levels in the model. For factor variables, the interpretation is relative to the given baseline.  The baseline is just whatever level comes first (here, "EweBCS2"). E.g., the estimate of `EweBCS2.5` means that the mean `WeaningWeight` is `r coef(lm.bcs.nominal)["EweBCS2.5"]` higher among ewes with BCS 2.5 compared to ewes with BCS 2. Similarly, the mean `WeaningWeight` is `r coef(lm.bcs.nominal)["EweBCS3"]` higher among ewes with BCS 3 compared to ewes with BCS 2. 
+    
+    The regression equation is given by
+    
+    **mean[`WeaningWeight`]=27.8396+1.5516`EweBCS2.5`+1.6961`EweBCS3`**
+    
+    `Estimate` of `(Intercept)` 27.8396 is the mean weaning weight of lambs at the level of ewe with body condition score 2.  `EweBCS2.5` denotes the lambs at the level of ewe with body condition score 2.5. It is equal to 1 if the corresponding ewe has a body condition score 2.5 and 0 otherwise. `Estimate` of `EweBCS2.5` is actually the difference between two levels at ewe BCS 2 and ewe BCS 2.5. So the mean weaning weight of lambs at the level of ewe with body condition score 2.5 is given as 27.8396+1.5516 =  29.3912. `EweBCS3` can be interpreted in a similar fashion. Both two regeression coefficients are significant which indicates the potential effects of the BCS of ewe on the weaning weight.
+    
+    *Visualise your fitted linear model by `visreg()` and compare the result with the previous boxplots. Discuss your findings.*
+    
+    **Answer**: They look different just like the plots for `Sex`. An interesting feature is that the median of BCS2.5 is obviously smaller than the median of BCS3, but the mean of BCS2.5 is quite close to the mean of BCS3.
+    
+    ```{r}
+    visreg(lm.bcs.nominal)
+    ```
+    
+    *How many dummy variables do you need here to handle `EweBCS` in `lm()`?*
+    
+    **Answer**: Two (Three minus one). 
+    
+    **Optional Challenge: Transform `EweBCS` into dummy variables and reproduce the model fit and summary.**
+    
+    **The solution is not provided for the optional exercise.**
+    
+4. **Optional Step: Why is one of the levels missing in the linear model?**
+
+    **You must have attempted Exercise 3 of Workshop C5 before you try this step.**
+
+    As you've already noticed, there is no coefficient called "EweBCS2" in the estimated model. This is because this coefficient gets absorbed into the overall (Intercept) term.
+
+    Let's peek under the hood. Using the `model.matrix()` function on our fitted linear model object, we can get the covariates that underlies our regression. Here are the first 20 rows.
+
+    ```{r}
+    model.matrix(lm.bcs.nominal) %>% as_tibble()
+    ```
+
+    Even though we think of the regression `WeaningWeight ~ EweBCS` as being a regression on one (factor) variable (and an intercept), it's actually a regression on two variables (and an intercept).  This is because the `EweBCS` variable gets represented as two dummy variables: one for `EweBCS == 2.5` and the other for `EweBCS == 3`. The above tibble contains essentially the dummy variables with an additional column for estimating the intercept. 
+    
+    **Sidenote**: A linear model with only an intecept is **mean[y]=a**. It is easy to understand such a model which simply averages all responses. $a$ can be directly estimated as the sample mean of *y*. Alternatively, one can fit it by `lm()` as `lm(WeaningWeight~1,data=weaning)`.
+    
+    *Fit the linear model with only an intecept and compare the model summary with the sample mean of `WeaningWeight`.*
+
+    **The solution is not provided for the optional exercise.**
+    
+    Why isn't there a column for representing the indicator of `EweBCS == 2`?  This gets back to our colinearity issue. By definition, we have that 
+
+    **`EweBCS2` + `EweBCS2.5` + `EweBCS3`  =  1  =  `(Intercept)` **
+
+    This is because for every observation, one and only one of the `EweBCS` dummy variables will equal 1. Thus the group of 4 variables {`EweBCS2`, `EweBCS2.5`, `EweBCS3`, `(Intercept)`} is perfectly collinear, and we can't include all 4 of them in the model.  The default behavior in R is to remove the dummy corresponding to the first level of the factor (here, `EweBCS2`), and to keep the rest.  
+    
+    One can also remove the intercept by adding in `-1` to the regression formula as 
+    ```{r}
+    lm.bcs.nointercept <- lm(WeaningWeight~EweBCS-1,data=weaning)
+    summary(lm.bcs.nointercept)
+    ```
+    
+    *Compare the above model summary with the groupwise means of `EweBCS`. Discuss your findings. Why do not we fit a model with no intercept directly?*
+    
+    **The solution is not provided for the optional exercise.**
+    
+5. We can predict `WeaningWeight` given the body condition score of an ewe at 2.5. **Notice that you must write `EweBCS='2.5'`, not `EweBCS=2.5`, as a factor input.**
+
+    ```{r}
+    new.bcs<- data.frame(EweBCS='2.5')
+    predict(lm.bcs.nominal,newdata=new.bcs)
+    ```
+  
+    *Interpret the practical meaning of this prediction.*
+  
+    **Answer**: This prediction is the mean of the weaning weight of a future lambkin with a mother ewe of body condition score 2.5. 
+    
+## Exercise 2: Multiple Factors and Interactions
+
+We have found that there is an effect of `Sex` on `WeaningWeight`, with `Ram` generally being heavier, and also there is an effect of `EweBCS`, with the offspring of those ewes with better body conditions being heavier. 
+
+**A question we couldn't answer is whether the `EweBCS` effect we saw was genuine, or whether it could just be due to more rams in the offspring of those stronger ewes.**
+
+1. We can count how many rams and ewes are in each levels of `EweBCS` by producing a table of `Sex` vs `EweBCS` as follows
+
+    ```{r}
+    table(weaning$Sex, weaning$EweBCS)
+    ```
+
+    Adding two factors variables into `table()` will generate the table of counts in each combination of levels of two factors.  
+    
+    We can further make boxplots of `WeaningWeight` versus `Sex` and `EweBCS` as 
+    
+    ```{r}
+    weaning %>% ggplot(aes(y=WeaningWeight,x=EweBCS,filling=Sex,color=Sex)) + geom_boxplot()
+    ```
+    
+    *Can you answer the above question given the table of counts and boxplots.*
+
+    **Answer**: The table of counts does not say many things. The boxplots seems supporting the `EweBCS` effect we saw was genuine as the medians are higher for higher BCS.
+    
+    
+2. You may have a rough idea. But let us produce a linear model with both `Sex` and `EweBCS` in it as predictors and make the summary.
+
+    ```{r}
+    lm.sex.bcs <- lm(WeaningWeight~Sex+EweBCS,data=weaning)
+    summary(lm.sex.bcs)
+    ```
+
+    Having two factors, i.e `Sex` with two levels and `EweBCS` with three levels, in the linear model, results in a linear model with three regression coefficients (and an intercept). 
+    
+    The intercept is again the baseline corresponding to the first levels of both two factors, i.e. `Sex==Ewe` and `EweBCS==2`. Therefore, both two first levels are absorbed into the baseline. The interpretation of the rest three coefficients are just like what we have done in Exercise 1. We can write down the regression equation as
+
+    **mean[`WeaningWeight`]=26.6438+2.5350`SexRam`+1.4798`EweBCS2.5`+1.6737`EweBCS3`**
+
+    *What is your conclusion from this model? Which group of ewes has the heaviest offspring after accounting for `Sex`?*
+    
+    **Answer**: Both `Sex` and `EweBCS` are significant. `EweBCS3` has the heaviest offspring even if we account for `Sex` first. 
+
+3. *Try visualising your model using `visreg()`. Check that the results make sense. You might want to compare your results from the model containing both `Sex` and `EweBCS` with the one containing just `EweBCS` - how has including `Sex` in the model altered the results?*
+
+
+    **Answer**: Both plots given by `visreg()` show that there are significant differences between different levels of factors `Sex` and `EweBCS`. The general pattern in the differences between the levels of `EweBCS` doesn't change too much. 
+    
+    ```{r}
+    library(visreg)
+    visreg(lm.sex.bcs, gg=TRUE)
+    ```
+    
+4. *Take a look at the model diagnostics. Are the model assumptions satisfied?*
+
+     **Answer**: The residuals plots look OK in general.
+     
+    ```{r}
+    par(mfrow=c(2,2))
+    plot(lm.sex.bcs)
+    ```
+    
+5. The above R summary supports the effects of `EweBCS` even if we control the effect of `Sex`.  This question can be further confirmed by using `anova()` as
+
+    ```{r}
+    anova(lm.sex.bcs)
+    ```
+    
+    The above ANOVA table performs $F$-test as an omnibus test which checks if there exists at least one level in a factor variable being significant. The results in the table confirm the necessity of including `EweBCS` after adding `Sex` into the model. 
+    
+    **For a linear model with multiple factors, we usually first check the ANOVA table then check the model summary.**
+    
+    *Re-fit the linear model by swapping the order of `Sex` and `EweBCS`. Perform an ANOVA on the revised model.*
+    
+    **Answer**: Both two factors are still significant. 
+    
+    ```{r}
+    lm.bcs.sex <- lm(WeaningWeight~EweBCS+Sex,data=weaning)
+    anova(lm.bcs.sex)
+    ```
+    
+    *Add the other factors, `EweFeed` and `Paddock` into the linear model. Examine their effects via ANOVA.*
+    
+    
+    **Answer**: `EweFeed` plays an important role after accounting for the effects of `Sex` and `EweBCS`. `Paddock` is not significant at the level 0.05.     
+    
+    ```{r}
+    lm.all.factor <- lm(WeaningWeight~Sex+EweBCS+EweFeed+Paddock,data=weaning)
+    anova(lm.all.factor )
+    ```
+
+    We can use `summary()` to check a bit more details. 
+    ```{r}
+    summary(lm.all.factor)
+    ```
+
+6. **Another question we couldn't answer is whether the `Sex` effect we saw are the same for all ewes no matter what body conditions they have**. Recall the regression equation 
+
+    **mean[`WeaningWeight`]=26.6438+2.5350`SexRam`+1.4798`EweBCS2.5`+1.6737`EweBCS3`**
+
+    The above formula suggests that the mean `WeaningWeight` of `Ram` tends to be 2.5350 kg larger than the mean `WeaningWeight` of `Ewe` no matter what body conditions of their mother ewes have. This may not be true as a stronger mother `Ewe` may give birth to a much stronger `Ram`.  
+    
+    To address this issue, we can add two additional terms to our regression model as
+    
+     **mean[`WeaningWeight`]=26.6438+2.5350`SexRam`+1.4798`EweBCS2.5`+1.6737`EweBCS3` + 
+    $c$`SexRamEweBCS2.5`+$d$`SexRamEweBCS3`**
+    
+    $c$`SexRamEweBCS2.5` and $d$`SexRamEweBCS3` gives special attentions to rams with stronger mother ewes. The product of `SexRam` and `EweBCS2.5` is equal to 1 if and only if there is a ram with its mother ewe having BCS at 2.5. Similarly, the product of `SexRam` and `EweBCS3` is equal to 1 if and only if there is a ram with its mother ewe having BCS at 3. In either case, mean[`WeaningWeight`] will be increased by either $c$ or $d$ kg. 
+    
+    The above additional terms are called **interaction** terms. Adding interactions between `Sex` and `EweBCS` allows us to assess if the effect of `Sex` differing between the body condition scores of mother ewes. To include **interaction** terms in `lm()`, we add a term `Sex:EweBCS` as follows. We further perform an ANOVA on the resulted linear model.
+    
+    ```{r}
+    lm.sex.bcs.inter <- lm(WeaningWeight ~ Sex + EweBCS + Sex:EweBCS, data=weaning)
+    anova(lm.sex.bcs.inter)
+    ```
+    
+    Notice that the `Sex:EweBCS` variable is treated as a group in the ANOVA table and it is not significant, so we'd conclude there isn't much evidence for the effect of `Sex` differing between the body condition scores of mother ewes. We can see this in the visualisation as well
+
+    ```{r}
+    visreg(lm.sex.bcs.inter, xvar="EweBCS", by="Sex", gg=TRUE)
+    ```
+
+    Here `xvar="EweBCS"` will fix the x-axis as `EweBCS` and `by="Sex"` will group the plots in the left and right panel. 
+    
+    Notice the `Ewe` vs `Ram` differences are about the same in each plot, especially when considering their uncertainties. This confirms what the ANOVA table was telling us. You can also do an overlay plot by turning on `overlay=TRUE` for this which shows the same thing:
+
+    ```{r}
+    visreg(lm.sex.bcs.inter, xvar="EweBCS", by="Sex", overlay=TRUE, gg=TRUE)
+    ```
+
+    The model summary is shown below:
+
+    ```{r}
+    summary(lm.sex.bcs.inter)
+    ```
+    
+    *Peruse the model summary of the model with interactions. Compare it with the model summary without interactions. Discuss your findings.*
+    
+    **Answer**: `Multiple R-squared` increases but many coefficients become insignificant (which indicates the presence of the collinearity). The increase of the `Std. Error` also suggest that we are using a wrong model. We can confirm this with the ANOVA table above.
+    
+7. *Perform residuals diagnostics on the model with interactions.*
+
+    **Answer**: The residuals look OK in general. 
+    
+    ```{r}
+    par(mfrow=c(2,2))
+    plot(lm.sex.bcs.inter)
+    ```
+
+    
+## Exercise 3: Interactions between Factor and Numerical Covariates    
+
+Our data set also contains a numerical variable `DateOfBirth`. The following scatter plot of `DateofBirth` suggests that there is a decreasing relationship between `WeaningWeight` and `DateOfBirth`. We can certainly add this numerical covariate into our linear model for a better goodness of fit. 
+  
+```{r}
+weaning %>% ggplot(aes(y=WeaningWeight,x=DateOfBirth)) + geom_point(col='red',alpha=0.3) +
+      geom_smooth(col='blue') + ggtitle('Birthday affects fatness?')
+```
+
+1. Let's try regressing `WeaningWeight` on `Sex` and `EweBCS` and produce the model summary. 
+
+    ```{r}
+    lm.sex.dob <- lm(WeaningWeight ~ Sex + DateOfBirth, data = weaning)
+    summary(lm.sex.dob)
+    ```
+
+    Again, there is a coefficient estimated for the `Sex` variable (`SexRam`). Its interpretation is similar to the one in Exercise 1. When you put a factor variable into a regression with numerical variables, you're allowing a **different intercept at every level of the factor**.  In the present example, you're saying that you want to model `WeaningWeight` as 
+
+    **mean['WeaningWeight'] = Intercept(based on lamb's `Sex`) + $b$ * `DateOfBirth`**
+
+    We can rewrite this more succinctly as:
+$$
+mean[y] = a_{sex} + b \times Date.of.Birth
+$$
+    
+    Essentially you're saying that your data is broken down into two `Sex` groups, and you want to model your data as having the same slope governing how `WeaningWeight` changes with `DateOfBirth`, but potentially different intercepts corresponding to different `Sex` groups. Here's a picture of what's happening generated by `visreg()`. 
+
+    ```{r}
+    visreg(lm.sex.dob, xvar='DateOfBirth', by='Sex', overlay=TRUE, gg=TRUE)
+    ```
+
+    *Use `anova()` to check the significance of the factor variable `Sex` in the above model.*
+    
+    **Answer**: `Sex` is significant in the ANOVA table.
+    
+    ```{r}
+    anova(lm.sex.dob)
+    ```
+    
+2. We can produce a similar plot by using the `geom_smooth()` function in `ggplot2`. Compare the plot above to the following one.
+
+    ```{r}
+    weaning %>% ggplot(aes(x = DateOfBirth, y = WeaningWeight, color = Sex)) + geom_point() +
+  geom_smooth(method = "lm", fullrange = TRUE)
+    ```
+
+    But wait, `geom_smooth()` with `method = "lm"` are smoothing the scatter plots of `Ram` and `Ewe` separately (as they are in different colors). In this case we have not only `Sex`-specific intercepts, but also **`Sex`-specific slopes**.  The plot above corresponds to the model:
+
+    **mean['WeaningWeight'] = Intercept(based on lamb's `Sex`) + $b$(based on lamb's `Sex`) `DateOfBirth`**
+
+    We can rewrite this more succinctly as:
+    $$
+    mean[y] = a_{sex} + b_{sex}\times Date.Of.Birth
+    $$
+
+    To specify this interaction model in R, we use the following syntax
+
+    ```{r}
+    lm.sex.dob.inter<- lm(WeaningWeight ~ Sex * DateOfBirth, data = weaning)
+    summary(lm.sex.dob.inter)
+    ```
+
+    `Sex * DateOfBirth` is an abbreviation of `Sex+DateOfBirth+Sex:DateOfBirth`. 
+    
+    We now have a new term appearing. The term `SexRam:DateOfBirth` is the deviation from the baseline slope (the coefficient of `DateOfBirth` in the model) in the same way that the term like `SexRam` is the deviation from the baseline intercept. This model says that:
+
+    > On average among lamb ewes, every later date of birth is associated with a 0.29553 kg decrease in the weaning weight of the lamb.
+    
+    To get the slope for lamb rams, we need to add the interaction term to the baseline slope.
+
+    $$
+    b_{SexRam} = b_{DateOfBirth} + b_{SexRam:DateOfBirth}= -0.29553-0.02102= -0.31655.
+    $$
+    
+    Both slope estimates are negative, which agrees with the regression plot above. We can also see that the interaction term is not really significant! This is not amazing that the two straight lines generated by `geom_smooth()` are almost parallel with each other. It is very hard to tell the difference between the slopes from the plot. 
+    
+    *Visualise your fitted model with interactions. Compare it with the visualisation of the model without interactions.*
+    
+    **Answer**: The difference between these two models looks negligible. 
+    
+    ```{r}
+    visreg(lm.sex.dob.inter, xvar='DateOfBirth', by='Sex', overlay=TRUE, gg=TRUE)
+    ```
+
+4. Assessing significance of interaction terms operates on the same principle. We once again ask whether the improvement in model fit is worth the increased complexity of our model.  For instance, consider the example we saw in the last step, where we allowed for a `Sex`-specific slope in addition to the `Sex`-specific intercept from before.
+
+    So, do the lines with different slopes fit the data significantly better than the common slope model? Let's compare the two with the `anova()` function.
+
+    ```{r}
+    anova(lm.sex.bcs, lm.sex.bcs.inter)
+    ```
+
+    This P-value turns out to not be statistically significant. So we don't have enough evidence to conclude that the interaction term (different slopes) is providing significant additional explanatory power over the simpler `Sex + DateOfBirth` model.
+
+5. The testing strategy of `anova()` above applies to any two nested models.  *Try to add in a few more variables (`EweFeed`, `EweBCS`, and `Paddock`) and/or interactions, and see how it compares to the `Sex + DateOfBirth` model and other reduced models from earlier.* 
+
+    *Find a best possible model and perform residual diagnostics on it.*
+    
+    **Answer**: First of all, let's try to fit a full model (with all covariates). This can be done with the formula `WeaningWeight ~.`.
+    
+    ```{r}
+    weaning <- weaning %>% select(-EweBodyConditionScore)
+    lm.all<- lm(WeaningWeight ~., data = weaning)
+    anova(lm.all)
+    summary(lm.all)
+    ```
+    
+    The ANOVA table suggests that `Paddock` is not significant which is further confirmed by the R summary. 
+    
+    Let's remove `Paddock` and refit the model. 
+    
+    ```{r}
+    lm.no.pad<- lm(WeaningWeight ~.-Paddock, data = weaning)
+    anova(lm.no.pad)
+    summary(lm.all)
+    ```
+    
+    Both ANOVA table and summary table suggest that all covariates are significant.
+    
+    **Visualisation and residual diagnostics are also needed as the last step in building this linear model.**
+    
+    **Optional Challenge: `EweTag` can be used to track the mother ewe of twin lambs. Do you think this piece of information will be helpful in modelling `WeaningWeight`? What will happen if we ignore this variable?**
+
+    **Answer**: This piece of information shall be considered since the weaning weight of two lambkins with the same mother ewe will be correlated. 
+    
+Dear 161.122ers:
+
+Bravo! 
+
+You have finished all six workshops in the Part C of 161.122 Statistics. 
+
+Thank you very much for your hard work (and tolerating my verbosity in writing those lab sheets).  
+
+Any of your feedbacks and comments are welcome and I am always looking forward to hearing from you. 
+
+Hope you have enjoyed the study of this part and the whole paper! Good luck with your assignment and final exam!
+
+Cheers
+
+by Xun
+
+

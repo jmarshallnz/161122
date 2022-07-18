@@ -1,0 +1,328 @@
+---
+title: "Workshop C01: Simple Linear Regression and Visualisation"
+output:
+  html_document: 
+    toc: yes
+    code_download: true
+---
+
+## Introduction
+
+From Week 9 to Week 12, we'll study the **linear model**. The linear model forms the basis of much statistical analysis. 
+
+Particularly, in this lab we will start looking at the **simple linear regression** which is the simplest linear model with one dependent variable $y$ and one independent variable $x$. 
+
+It is used to predict a **quantitative outcome** $y$ on the basis of a single predictor variable $x$. The goal is to build a mathematical model (or formula) that defines $y$ as a function of the $x$ variable.
+
+The simplest choice for the math model is a linear function as
+$$
+y=a+b x
+$$
+which describes a perfect line with intercept $a$ and slope $b$.
+
+Interestingly, many real world phenomena can be characterised by such a simple line. However, the line won't be as perfect as the formula $y=a+b x$.
+
+We'll start by taking a look at the `marketing` dataset from `datarium` package. You might first need to install this package using the `Packages` menu in the bottom right. Just click the install button and type in `datarium`, then install. Or you can install the package with R command `install.packages('datarium')`.
+
+## Exercise 1: Exploratory Analysis on `marketing`
+
+1. First of all, let's load the data and turn it into a tidy tibble with `tibble()`.
+
+    ```{r, message=FALSE}
+    library(tidyverse)
+    library(datarium)
+    data('marketing')
+    marketing <- marketing %>% tibble()
+    marketing
+    ```
+
+    The data set contains the impact of three advertising medias (Youtube, Facebook and newspaper) on sales. Data are the advertising budget in thousands of dollars along with the sales. The advertising experiment has been repeated 200 times with different budgets and the observed sales have been recorded.
+    
+2. Visualization - Create a scatter plot displaying the sales units versus Youtube advertising budget. Add a smoothed curve by `geom_smooth()`. *What do you find in the smoothed curve?*
+
+    ```{r}
+    ggplot(marketing, aes(x = youtube, y = sales)) +
+      geom_point() +
+      geom_smooth()
+    ```
+
+    **Answer:** We can find a blue curve to describe the trend of sales given different levels of ad budgets on Youtube which can be regarded as a straight line (more or less). 
+
+3. Now let's compute the correlation between the sales units and Youtube advertising budget by `summarise()` with the R function `cor()`. *What kind of information does the correlation coefficient convey to us?* 
+
+    ```{r}
+    marketing %>% summarise(correlation=cor(youtube,sales))
+    ```
+
+    **Answer:** 0.782 indicates a Strong positive linear correlation! Recall that the correlation coefficient quantifies the *linear* relationship between two variables. 
+
+4. *Now try adding further code blocks that produce plots of the sales units versus Facebook and newspaper with smoothed curve and compute the corresponding correlation coefficients. You might want to try customising the plot a bit as well - remember you can change colour by adding `colour='red'` inside the `geom_point` part.*
+
+    ```{r}
+    ggplot(marketing, aes(x = facebook, y = sales)) +
+      geom_point() +
+      geom_smooth()
+     marketing %>% summarise(correlation=cor(facebook,sales))
+    ```
+
+    ```{r}
+    ggplot(marketing, aes(x = newspaper, y = sales)) +
+      geom_point() +
+      geom_smooth()
+    marketing %>% summarise(correlation=cor(newspaper,sales))
+    ```
+
+5. *Which variable do you think shows the* **strongest** *relationship with the sales? What criteria are you using to determine this? You might want to add a sentence or two to your notebook about this.*
+ 
+    **Answer:** Youtube bests Facebook and Newspaper as it has the highest correlation. 
+ 
+    The criteria we used are correlation coefficient and graphical interpretation. 
+ 
+    Recall that the correlation coefficient measures the level of the **linear** association between two variables $x$ and $y$. Its value ranges between $-1$ (perfect negative correlation: when $x$ increases, $y$ decreases) and $+1$ (perfect positive correlation: when $x$ increases, $y$ increases).
+
+    A value closer to 0 suggests a weak relationship between the variables. A low correlation ($-0.2 < x < 0.2$) probably suggests that much of variation of the outcome variable ($y$) is not explained by the predictor ($x$). In such case, we should probably look for better predictor variables. 
+
+    In our example, the correlation coefficient between youtube and sales is large enough, so we can continue by building a linear model of $y$(`sales`) as a function of $x$(`youtube`).
+
+
+## Exercise 2: Build the linear model 
+
+We'll start by taking a close look at the relationship between `sales` and `youtube`. You should have noticed from Exercise 1 that this was the best variable to use for modelling `sales`.From the smoothed curve, a straight line seems to capture the general trend in `sales` when `youtube` increases, though there is still a huge amount of uncertainties in the scatter plot.
+
+A hint from Part B - let's treat `sales`($y$) as a random variable!
+We therefore revise our perfect line $y=a+bx$ as
+$$
+mean[y]=a+bx.
+$$
+The variance of $y$ will deviate our observations from the perfect line. 
+
+So, in this exercise we'll look at modelling the mean of `sales` using the `youtube`, like we have seen(will see) in the first lecture - modelling the donkey mean body weight using the heart girth.
+
+1. Go back to your plot of `sales` versus `youtube`. Notice it is an increasing relationship, and is reasonably linear. We'll try and fit a straight line to these data. i.e. we'll try and fit a relationship that takes the form
+  $$
+  mean[sales] = a + b \times youtube
+  $$
+where $a$ is the **intercept**, and $b$ is the **slope** of the relationship. We need to figure out what $a$ and $b$ should be. We could do this by guessing using the graph (e.g. we could take a guess at $b$ by figuring out the rise over the run), but we've got a computer, so why not let it do it for us?  You can do this with the R function `lm()`, short for **linear model**. Add a new code block to your notebook to do this, and then request a summary:
+    ```{r}
+    lm.youtube <- lm(sales ~ youtube, data=marketing)
+    lm.youtube
+    ```
+    The first line here fits the linear model, and saves the result in the object `lm.youtube`. The second then gives you some brief information on the fitted linear model object. Run the above.
+    
+2. We can extract the intercept $a$ and the slope $b$  by `coef()` function. 
+
+    ```{r}
+    coef(lm.youtube)
+    ```
+
+    We further write down the equation for the line that relates `sales` to `youtube` as
+    $$
+    mean[sales]=8.439 +0.0475\times youtube
+    $$
+    
+    *Now it is your turn to interpret these two coefficients from a practical marketing viewpoint. Add a few comments to your notebook about this*.
+    
+    
+    **Answer:** The intercept $a$ is 8.44. It can be interpreted as the predicted sales unit for a zero youtube advertising budget. Recall that, we are operating in units of thousand dollars. This means that, for a youtube advertising budget equal zero, we can expect an average sale of 8.44 *1000 = 8440 dollars.
+
+    The regression coefficient $b$ for the variable `youtube`, also known as the slope, is 0.048. This means that, for a youtube advertising budget equal to 1000 dollars, we can expect an increase of 48 units ($0.048\times 1000$) in sales. That is, $mean[sales] = 8.44 + 0.048\times 1000 = 56.44 units$. As we are operating in units of thousand dollars, this represents a sale of 56440 dollars. 
+
+3. Number each pair of `youtube`($x$) and `sales`($y$) as $(x_1,y_1)$, $(x_2,y_2)$,...,$(x_n,y_n)$. 
+
+    For each observed `youtube` $x_i$, you can get the corresponding mean level of `sales` as $[mean(y)]_i=a+bx_i$. 
+
+    The calculated $[mean(y)]_i$ are called fitted values of the linear model and denoted by $\hat y_i$. It quantifies the mean level of `sales` given a fixed `youtube` budget. 
+
+    We can directly calculate the fitted value and add it to our data set `marketing` as
+
+    ```{r}
+    ab <- coef(lm.youtube)
+    ab
+    marketing.fitted <- marketing %>% mutate(fitted = ab[1] + ab[2]*youtube) 
+    marketing.fitted
+    ```
+
+    Alternatively, an easy way to get all fitted values is to use `fitted.values()`.
+  
+    ```{r}
+    marketing %>% mutate(fitted = fitted.values(lm.youtube))
+    ```
+
+4. Since $y$(`sales`) is a random variable and the fitted line only captures the relationship between $mean[y]$ and $x$(youtube). You may want to measure the deviation of $y$ from the regression line, i.e. the magnitude of the points scattering around the line. We rewrite our model $mean[y]=a+bx$ in a more detailed manner as
+$$
+y_1=a+bx_1+e_1,
+$$
+$$
+y_2=a+bx_2+e_2,
+$$
+$$
+...
+$$
+$$
+y_n=a+bx_n+e_n.
+$$
+
+    Now we are getting some new members $e_1,e_2,...,e_n$ added in our linear model. They are called **random error** or **residuals** which reflects the uncertainties in $y$. Once $x_i$ is fixed, all uncertainties in $y_i$ comes from $e_i$.
+    
+    In the other way round，we can also calculate $e_i$ provided $x_i$, $y_i$, $a$ and $b$,
+$$
+e_i=y_i-(a+bx_i)=y_i-\hat y_i.
+$$
+
+    You can directly calculate all $e_i$ using the fitted values and observed `sales` and then integrate them with `marketing.fitted` as
+    
+    ```{r}
+    marketing.fitted.res <-  marketing.fitted %>% mutate(res = sales - fitted) 
+    marketing.fitted.res
+    ```
+
+    Unsurprisingly, we also have an easy way to get all residuals. That is to use `residuals()`.
+    
+    ```{r}
+    marketing.fitted %>% mutate(res = residuals(lm.youtube)) 
+    ```
+
+    We can compute the mean of the residuals as follows
+
+    ```{r}
+    marketing.fitted.res %>% summarise(mean.res=mean(res))
+    ```
+
+    *Compare the mean with zero and discuss your findings.*
+    
+    **Answer:** The mean of residuals is almost zero! In fact, it must be zero and we merely get a very small number due to some numerical errors in our computer. Zero mean is very important as residuals are considered as **random errors** which contributes no information to the mean of sales.They are something beyong the linear model. If residuals have non-zero mean, this non-zero mean must be considered when evaluating the mean of sales, i.e. it contributes to the intercept term in our linear regression model. Such contribution shall be directly modelled by the intercept and the mean of residuals will be kept at zero. 
+    
+5. We further compute the variance of the response variable `sales`($y$) amd the variance of residuals `res`($e$). 
+
+    ```{r}
+      marketing.fitted.res %>% summarise(var.sales=var(sales))
+      marketing.fitted.res %>% summarise(var.res=var(res))
+    ```
+
+    *Compare the two variance you calculated. Have a think about the result.*
+
+    **Answer:** The variance of residuals are much smaller than that of $y$. The reduction in variance is achieved via regressing $y$ on $x$, i.e. attributing a certain portion of variability of $y$ to $x$ through a linear model. 
+
+6. The last step is to compute the correlation between of fitted values $\hat y_i$ with the residuals $e$. 
+
+    ```{r}
+      marketing.fitted.res %>% summarise(cor.fitted.res=cor(fitted,res))
+    ```
+
+    *Compare the correlation coefficient with zero and discuss your findings.*
+    
+    **Answer:** The correlation coefficient is almost zero! In fact, the correlation between the fitted values and residuals must be zero and we get this tiny number just like what we have for the mean of residuals. Zero correlation indicates there is no **linear** relationship between $\hat y_i$ and $e$. This means residuals won't contribute any information in modelling the mean of $y$ as a line. In other words, we obtain the best possible line from `lm()` for modelling $y$ as a line depending on $x$. 
+
+
+7. *Try to fit a linear model to `sales` ($y$) and `facebook` ($x$). Redo Step 1-6. Discuss your findings.*
+    ```{r}
+    lm.facebook <- lm(sales~facebook, data=marketing)
+    lm.facebook
+    coef(lm.facebook)
+    ab <- coef(lm.facebook)
+    ab
+    facebook.fitted <- marketing %>% mutate(fitted = ab[1] + ab[2]*facebook) 
+    facebook.fitted
+    marketing %>% mutate(fitted = fitted.values(lm.facebook))
+    facebook.fitted.res <-  facebook.fitted %>% mutate(res = sales - fitted) 
+    facebook.fitted.res
+    facebook.fitted %>% mutate(res = residuals(lm.facebook))
+    facebook.fitted.res %>% summarise(mean.res=mean(res))
+    facebook.fitted.res %>% summarise(var.sales=var(sales))
+    facebook.fitted.res %>% summarise(var.res=var(res))
+    facebook.fitted.res %>% summarise(cor.fitted.res=cor(fitted,res))
+    ```
+
+    *Try to fit another linear model to `sales` ($y$) and `newspaper` ($x$). Redo Step 1-6. Discuss your findings.*
+    ```{r}
+    lm.newspaper <- lm(sales~newspaper, data=marketing)
+    lm.newspaper
+    coef(lm.newspaper)
+    ab <- coef(lm.newspaper)
+    ab
+    newspaper.fitted <- marketing %>% mutate(fitted = ab[1] + ab[2]*newspaper) 
+    newspaper.fitted
+    marketing %>% mutate(fitted = fitted.values(lm.newspaper))
+    newspaper.fitted.res <-  newspaper.fitted %>% mutate(res = sales - fitted) 
+    newspaper.fitted.res
+    newspaper.fitted %>% mutate(res = residuals(lm.newspaper))
+    newspaper.fitted.res %>% summarise(mean.res=mean(res))
+    newspaper.fitted.res %>% summarise(var.sales=var(sales))
+    newspaper.fitted.res %>% summarise(var.res=var(res))
+    newspaper.fitted.res %>% summarise(cor.fitted.res=cor(fitted,res))
+    ```
+
+    **Answer:** Means of residuals are all zero. Correlations of residuals and fitted values are all zero. All models achieve reductions of variability in *y*.
+
+    *Compare the coefficients $b$ for all three linear models with the corresponding correlation coefficients calculated in Exercise 1. Discuss your findings.*
+    
+    **Answer:** You should find that `lm.facebook` has the largest slope. But the correlation between `sales` and `facebook` is smaller than that between between `sales` and `youtube`. Actually, if we check the range of each variable as follows, we shall notice that the budget on `facebook` is much smaller than the budget on `youtube`.
+    
+    ```{r}
+    marketing %>% summarise(across(everything(),range))
+    ```
+    
+8. `coef()` extracts the coefficients from the fitted linear model but this piece of information is also delivered in Step 1. The `summary()` provides us a more detailed table on the fitted linear model. *Try identify the coefficients $a$ and $b$ from the following output of `summary()`.*
+
+    ```{r}
+    summary(lm.youtube)
+    ```
+
+    **Answer:** You should notice that there are a lot more information delivered by `summary()`. We will investigate the details in the next lab.
+
+9. Either some R arithmetic calculations or `residuals()` and `fitted.values()` can obtain the fitted values and residuals from our fitted linear model `lm.youtube`. However, the results are less organized and we need to build a tidy tibble from scratch. The R package `broom` provides us a standard and efficient routine to take the messy output of `lm()` and turn them into tidy tibbles. 
+
+    ```{r}
+    library(broom)
+    augment(lm.youtube) 
+    ```
+
+    *With the tidy tibble `augment(lm.youtube)`, create a scatter plot displaying the residuals versus the fitted values. Could you identify any pattern from this plot?*
+
+    ```{r}
+    augment(lm.youtube) %>% ggplot(aes(x=.fitted,y=.resid)) + 
+      geom_point() + geom_smooth()
+    ```
+
+    **Answer:** There is no clear trend in this plot but the residuals fan out. The linear model is facing more uncertainties at the higher budgets.  
+
+## Exercise 3: Visualising the model
+
+To investigate the linear model we just obtained, it is natural to make a plot by overlaying the scatter plots of $y$ and $x$ against the fitted line. There is a couple of approaches to complete this job. We will learn two approaches in this exercise. 
+
+1. The easiest way is to reuse the R chunks to make the scatter plot with the smoothed curve even before fitting the linear model. Supplying `method='lm'` to the function `geom_smooth()` yields the desired results. You can further customise the plot as you wish. 
+
+    ```{r}
+    ggplot(marketing, aes(x = youtube, y = sales)) +
+      geom_point() +
+      geom_smooth(method='lm')
+    ```
+
+    By default, the fitted line is presented with a confidence band around it. The confidence band reflects the uncertainty about the line. If you don’t want to display it, specify the option `se = FALSE` in the function `geom_smooth()`.
+
+2. After fitting our model `lm.youtube`, a more neat way to visualise our linear model fits is to use the `visreg` package. If you're using your own computer, you might first need to install this package using the `Packages` menu in the bottom right. Just click the install button and type in `visreg`, then install. Or you can install the package directly by running the R command. `install.packages('visreg')`.
+
+3. Once you've installed and loaded the `visreg` package, start by visualising our first model. As we only have a single variable in the model (`youtube`) we can just call `visreg` directly on the model object:
+
+    ```{r}
+    # Visualise the model fit using the `visreg` package.
+    library(visreg)
+    visreg(lm.youtube, gg=TRUE)
+    ```
+
+    The argument `gg=TRUE` will call `ggplot()` to visualise our model and you can then adjust the plot by following anything what you have learnt from part A. **Alway remember to include `gg=TRUE` in `visreg()`!**
+    
+    *Have a think about the implication of this plot and add a comment to your notebook about this*.
+    
+    **Answer:** You should see that the fit is pretty good at capturing a general trend in most part of the plot. However, at the very beginning part of `youtube` the fit is rather poor as the line is beyond most of observations. Furthermore, when `youtubde` increases, most of the observations tend to deviate from the line more seriously. 
+
+4. *Try to visualise another two linear models, i.e. `lm.facebook` and `lm.newspaper`. Comment on your plot*
+
+    ```{r}
+    # Visualise the model fit using the `visreg` package.
+    library(visreg)
+    visreg(lm.facebook, gg=TRUE)
+    visreg(lm.newspaper, gg=TRUE)
+    ```
+
+    **Answer:** There are higher uncertainties in the above two plots. `lm.facebook` has a relaitively clear trend but `lm.newspaper` only shows an obscure trend with a lot of variabilities. **You may add more comments on the details!**

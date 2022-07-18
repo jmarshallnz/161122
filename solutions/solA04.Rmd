@@ -1,0 +1,96 @@
+---
+title: 'Workshop A04: RMarkdown and grouped numeric variables'
+author: 'Jonathan M'
+date: 'Today!'
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+
+## Introduction
+
+In this exercise we have an example of R Markdown - a way to combine narrative writing with code and output from analyses to create reproducible reports.
+
+This is a markdown document. You'll notice as you read through it that it combined plain text writing (like this sentence) as well as various embellishments **like this**, or like the Introduction heading above.
+
+The embellishments allow the text to be formatted - the two asterixes around words signifies **bold** while one asterix signifies *italics*.
+
+We can also format text up by using bullet points, lists, headings, subheading etc. The document is then 'rendered' to produce an HTML report or to produce reports in other formats (PDF, Microsoft Word).
+
+In this markdown document, we'll learn about:
+
+ - some basic markdown formatting
+ - how to 'knit' a document to create an HTML
+ - how R 'code chunks' can be included
+ - plotting options for comparing a numeric variable across groups.
+
+## Headings
+
+Headings in Markdown are prefaced by one or more hash characters. The more hash characters, the smaller the heading, such as these:
+
+### Subheadings
+
+Three stars create a smaller sub heading
+
+#### Sub, sub headings
+
+Four stars create an even smaller one etc. You can have up to 6 layers of headings (If you know HTML, this corresponds to `<h1>` through `<h6>`).
+
+## Some R code
+
+We can include R code using a **code chunk** which you can add using the `Insert` button on the toolbar, or alternatively using `Alt`-`Ctrl`-`I` (`Option`-`Command`-`I` on Mac). You get something that looks like this:
+
+```{r}
+library(tidyverse)
+
+data(quakes)
+head(quakes)
+```
+
+Notice there's a small Play button in the top right. Clicking on this will run all the code in the chunk, which in this case will mean the top 6 rows of the `quakes` data will be output inline in the document. **Do this now.**
+
+We can also do plotting, which again is shown inline. In the chunk below we create a new dataset `quakes_cat` with a new variable `how_deep`, categorising the depth into shallow (less than 300 m) or deep, and then produce a boxplot of the magnitude by depth. Try running this code chunk.
+
+```{r}
+quakes_cat <- mutate(quakes, how_deep = if_else(depth < 300, "shallow", "deep"))
+
+ggplot(quakes_cat) +
+  geom_boxplot(mapping=aes(x=how_deep, y=mag))
+```
+
+This plot shows us that the shallow quakes tend to have higher magnitudes compared to the deep quakes (center + box shifted up). The shapes and spreads are somewhat similar.
+
+Once we've finished our document, we can `Knit` it (with the button on the toolbar) which:
+
+1. Creates a new R session with a clean slate (no variables, data or packages loaded)
+2. Executes each R chunk in turn.
+3. Converts the markdown formatted text to HTML.
+4. Combines everything into a single HTML document.
+
+Try this now!
+
+### Your turn
+
+1. Go through and have a play with the markdown syntax to get various things **bolded** or in *italics* ***bolditalics*** (or written in `code` font). There's an R Markdown cheat sheet available under the `Help` menu.
+
+2. Try altering the plot as well. Experiment with using a histogram for this, or perhaps density plots. You might use `fill=how_deep` or `col=how_deep` to show the groups. You might need to experiment with the `position` argument for the histogram (e.g. try `position="identity"`), or `alpha` argument for densities if you use `fill` to colour them.
+
+```{r}
+ggplot(quakes_cat) +
+  geom_boxplot(mapping=aes(x=how_deep, y=mag, colour=how_deep)) +
+  guides(colour = 'none')
+```
+```{r}
+ggplot(quakes_cat) +
+  geom_histogram(mapping=aes(x=mag, fill=how_deep), bins=12, position='identity',
+                 alpha=0.5)
+```
+```{r}
+ggplot(quakes_cat) +
+  geom_density(mapping=aes(x=mag, fill=how_deep), alpha=0.5)
+```
+
+3. The block of code at the top of the markdown file (with the title and output mode defined) is called a "metadata" block. This is where you can add things like the author or date, as well as control how the final document is created in finer detail. Try adding an author field here with your name.
+
+4. Go back through your previous labs and copy some of the analyses across into new code blocks in this file.

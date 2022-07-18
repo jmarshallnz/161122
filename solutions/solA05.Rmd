@@ -1,0 +1,216 @@
+---
+title: "Workshop A05: Data wrangling"
+output: html_document
+---
+
+## Introduction
+
+The data we'll be using is the count of students of each gender, ethnic group and year level among schools in New Zealand in 2020 from:
+
+https://www.educationcounts.govt.nz/statistics/school-rolls
+
+We'll start by reading the data in. If you're on a slower internet connect, you might want to download the data from the URL and load it locally.
+
+```{r message=FALSE}
+library(tidyverse)
+
+roll <- read_csv("http://www.massey.ac.nz/~jcmarsha/161122/data/roll_nomacrons.csv")
+#roll <- read_csv("roll_nomacrons.csv") # for loading from a local copy
+
+roll
+```
+
+You should see there are 103,598 rows for 5 different variables (`School`, `Gender`, `EthnicGroup`, `Level`, `Students`)
+
+*Notice how we've added `message=FALSE` to the R code chunk above - this will stop R from putting messages in the resulting document - messages are output given by R about what it's doing that isn't actually output, such as the messages about which tidyverse version is being loaded*
+
+We'll be using the `dplyr` package in the `tidyverse` to manipulate the data.
+
+**Make sure you can Knit this document successfully before you make changes.**
+
+## Using `filter` to select rows
+
+The `filter` command from `dplyr` allows you to select rows that satisfy one or more conditions. This is useful for quickly obtaining subsets of interest (indeed, the `subset` command from base R works similarly).
+
+This next code block filters all rows where `EthnicGroup` is set to `Maori`. Notice the use of two equals for 'is equal to'
+
+```{r}
+filter(roll, EthnicGroup == "Maori")
+```
+
+More than one row may be selected by separating different conditions with commas (for AND) or the vertical pipe symbol (for OR). e.g. compare the following:
+
+```{r}
+filter(roll, EthnicGroup == "Maori", Gender == "Female")
+filter(roll, EthnicGroup == "Maori" | Gender == "Female")
+```
+
+A helper function for 'one of these options' is `%in%`. e.g. these two are equivalent:
+
+```{r}
+filter(roll, Level == "Year 1" | Level == "Year 2")
+filter(roll, Level %in% c("Year 1", "Year 2", "Year 3"))
+```
+
+### Try yourself:
+
+1. Find all rows corresponding to Queen Elizabeth College students in Year 9.
+
+```{r}
+filter(roll, School == "Queen Elizabeth College", Level == "Year 9")
+```
+
+2. Find all rows where there are more than 100 Year 9 Asian students.
+
+```{r}
+filter(roll, EthnicGroup == "Asian", Level == "Year 9", Students > 100)
+```
+
+3. Find all rows where the school name starts with the letter 'G' (hint: you can use School > 'G' for this, but using `str_starts` might be better!)
+
+```{r}
+filter(roll, School > 'G', School < 'H')
+filter(roll, str_starts(School, "G"))
+```
+
+## Using `arrange` to change row order.
+
+You can arrange (sort) row output based on the values in each column, and can arrange by more than one column at once. The first column specified will be sorted first, and then all entries that are the same on that column will then be sorted by the second and multiple columns.
+
+You can use `desc()` to sort in descending order.
+
+```{r}
+arrange(roll, Gender, EthnicGroup, Level)
+arrange(roll, desc(Students))
+```
+
+### Try yourself
+
+1. Arrange the roll rows by number of students.
+
+```{r}
+arrange(roll, Students)
+```
+
+2. Find all rows where the ethnicity is Pacific, arranging them by decreasing number of students. (Hint: First filter down to Pacific students, then arrange)
+
+```{r}
+pacific = filter(roll, EthnicGroup == "Pacific")
+arrange(pacific, desc(Students))
+```
+
+3. Which school has the highest number of International fee paying students at Year 13? (Hint: 'International fee paying' is an option for `EthnicGroup`)
+
+```{r}
+internationals = filter(roll, EthnicGroup == 'International fee paying', Level == "Year 13")
+arrange(internationals, desc(Students))
+```
+
+## The pipe
+
+In the last set of exercises you combined `filter` and `arrange` together. It is very common when data wrangling to have to combine multiple functions like this to get a 'pipeline' that goes from the original data frame to the subset, arranged how you like.
+
+For example, your answer for finding which school has the highest number of international fee paying students at year 13 might look like
+
+```{r}
+internationals = filter(roll, EthnicGroup == "International fee paying")
+y13internationals = filter(internationals, Level == "Year 13")
+arrange(y13internationals, desc(Students))
+```
+
+The data frames `internationals` and `y13internationals` here are really only temporary - we only use them to make our code look a little more readable. We could instead do:
+
+```{r}
+arrange(filter(filter(roll, EthnicGroup == "International fee paying"), Level == "Year 13"), desc(Students))
+```
+
+But this is hard to read! Instead, we could use the pipe operator, `%>%` (insertable via `Ctrl`-`Shift`-`M`) What this does is takes what you provide on the left hand side and "pipes" it as the first argument into the function you provide on the right hand side. Any other arguments to the function then just get placed in the function as usual. So the above could be written:
+
+```{r}
+roll %>%
+  filter(EthnicGroup == "International fee paying") %>%
+  filter(Level == "Year 13") %>%
+  arrange(desc(Students))
+```
+
+And be read "Take roll, filter so that EthnicGroup is International fee paying, then filter to Year 13 students and arrange by descending number of students."
+
+### Try yourself
+
+Try doing a few of the above exercises utilising the pipe instead. i.e. all statements should start `roll %>%`
+
+```{r}
+roll %>%
+  filter(EthnicGroup == "Pacific") %>%
+  arrange(desc(Students))
+```
+
+## Using `select` to select columns
+
+The `select` command from `dplyr` allows you to select columns you wish to keep based on their name.
+ 
+- Ranges can be used using `A:C` to pick columns A through C
+- Columns can be removed through negation `-A`.
+- `everything()` will return all remaining columns.
+- `starts_with()` can be handy if you have several columns with a common prefix.
+
+Try the following examples to understand what they do:
+
+```{r}
+roll %>% select(School, EthnicGroup, Students)
+roll %>% select(-School, Number=Students)
+roll %>% select(Students, Level, everything())
+roll %>% relocate(Students, Level) # An alternate way to rearrange columns
+```
+
+**Try yourself**
+
+1. Rearrange the `roll` data set so that `Students` and `Level` are first.
+```{r}
+roll %>% select(Students, Level, everything())
+```
+2. Rename the `School` column to `Name` keeping all other columns.
+```{r}
+roll %>% select(Name = School, Gender, EthnicGroup, Level, Students)
+```
+3. Try part 2 using `rename` instead of `select`.
+
+```{r}
+roll %>% rename(Name = School, Ethnicity = EthnicGroup)
+```
+
+## Using `mutate` to add or change column
+
+`mutate()` adds new variables using functions of existing columns. You can overwrite columns as well.
+
+```{r}
+roll %>% mutate(Proportion = Students/sum(Students))
+clean = roll %>% mutate(Level = as.numeric(substring(Level, 6)))
+```
+
+### Try yourself
+
+1. Using the `clean` dataset, create a new column combining ethnicgroup and gender with `paste`.
+
+```{r}
+clean %>% mutate(EthnicGender = paste(EthnicGroup, Gender))
+```
+
+2. Redo part 1, so that the original two columns are removed.
+
+```{r}
+clean %>% mutate(EthnicGender = paste(EthnicGroup, Gender)) %>%
+  select(-EthnicGroup, -Gender)
+```
+
+3. Create a new variable "Age" with the typical age of students in each year level (Year 1 students are typically 5 years old).
+
+```{r}
+clean %>% mutate(Age = Level + 5)
+```
+
+4. Investigate using the `unite` function from `tidyr` to do what you did in part 1 and 2.
+
+```{r}
+clean %>% unite(EthnicGender, EthnicGroup, Gender, sep=" ")
+```
