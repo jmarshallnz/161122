@@ -1,0 +1,901 @@
+---
+title: 'Lecture 4'
+subtitle: 'Relationships between quantitative and qualitative data'
+output:
+  xaringan::moon_reader:
+    css: [default, default-fonts, "custom.css"]
+    mathjax: "https://cdn.bootcss.com/mathjax/2.7.3/MathJax.js?config=TeX-MML-AM_CHTML"
+    nature:
+      highlightStyle: tomorrow
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: "16:9"
+      slideNumberFormat: |
+        <div class="progress-bar-container">
+          <div class="progress-bar" style="width: calc(%current% / %total% * 100%);">
+          </div>
+        </div>
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(palmerpenguins)
+penguins = na.omit(penguins)
+#data(package = 'palmerpenguins')
+knitr::opts_chunk$set(echo = TRUE, comment = "")
+knitr::opts_chunk$set(fig.dim=c(4.8, 4.5), fig.retina=2, out.width="100%")
+
+vacc_years_to_use <- c(2012,2021)
+```
+
+class: middle, inverse
+
+## Learning outcomes
+
+- Relationships between quantitative data
+
+- Qualitative data summaries
+
+- Relationships between qualitative data
+
+---
+
+## Data today
+
+We'll use the penguins data again today.
+
+A reminder that the penguin data is available by installing the `palmerpenguins` package, or from here: https://github.com/allisonhorst/palmerpenguins
+
+In addition, we'll use immunisation data from the Ministry of Health.
+
+The data is originally from: https://www.health.govt.nz/our-work/preventative-health-wellness/immunisation/immunisation-coverage/national-and-dhb-immunisation-data
+
+It has been cleaned up, and we'll only be dealing with a small subset of the data. In particular, the number of 2 year olds immunised
+in `r vacc_years_to_use[1]` versus `r vacc_years_to_use[2]` by ethnicity.
+
+---
+
+## Data today
+
+We have the number of 2 year olds immunised in `r vacc_years_to_use[1]` and `r vacc_years_to_use[2]` by ethnicity:
+
+```{r, include=FALSE}
+library(lubridate)
+all_vacc <- read_csv("https://www.massey.ac.nz/~jcmarsha/data/immunisation/vaccinations_all.csv") |>
+  filter(DHB == "National") |>
+  mutate(Year = year(Date)) |>
+  filter(Year %in% vacc_years_to_use) |>
+  filter(Ethnicity != "Total") |>
+  filter(Age == "24 months") |>
+  pivot_longer(Immunised:Eligible, names_to = "Item", values_to = "value") |>
+  group_by(Year, Ethnicity, Item) |>
+  summarise(value = sum(value)) |>
+  ungroup() |>
+  mutate(Ethnicity = str_replace(Ethnicity, "Maori", "Māori"),
+         Ethnicity = str_replace(Ethnicity, "NZE", "NZ European")) |>
+  mutate(Year = factor(Year))
+vacc <- all_vacc |>
+  filter(Item == "Immunised") |>
+  rename(Number = value) |>
+  select(Year, Ethnicity, Number)
+vacc_rates <- all_vacc |>
+  pivot_wider(names_from = Item, values_from=value) |>
+  mutate(Percent = round(Immunised/Eligible * 100,1)) |>
+  select(Year, Ethnicity, Percent)
+```
+
+```{r}
+vacc
+```
+
+---
+
+class: middle,inverse
+
+# Relationships between quantitative variables
+
+---
+
+## Relationships between quantitative variables
+
+- A **scatter plot** is usually the best display for comparing quantitative variables.
+
+- We're interested in what the trend is.
+
+- Is it going up? Is it going down?
+
+- Is it straight or curved?
+
+- How closely do points cluster around the trend? Do they cluster tightly around the trend (a strong relationship)? Is the amount of clustering consistent?
+
+
+---
+
+.left-code[
+## Example: Penguins
+
+```{r peng_scatter1, eval=FALSE}
+ggplot(data = penguins) +
+  geom_point(
+    mapping = aes(
+      x = flipper_length_mm,
+      y = body_mass_g
+      )
+    )
+```
+
+As expected, increasing flipper length means
+increasing body mass.
+
+A straight line would fit OK.
+
+There's still quite a bit of scatter around
+the line.
+
+Flipper length doesn't explain all of body mass - other things
+affect body mass too.
+]
+
+.right-plot[
+```{r, ref.label="peng_scatter1", echo=FALSE, message=FALSE}
+```
+]
+
+---
+
+## Relationship between qualitative variables
+
+We treat one variable as the **response**. This goes on the y axis.
+
+We treat the other variable as **explanatory**. This goes on the x axis.
+
+The response is often referred to as the **dependent** variable - indicating that it's value might depend on the value of the explanatory variable in some way, at least potentially.
+
+The explanatory variables are referred to as being **independent** - we assume it doesn't depend on the response.
+
+Choosing which is which is somewhat arbitrary, but there's often ways that make more sense than others. e.g. having body mass be determined
+by flipper size means that we could add in other independent variables later (e.g. like height) which would also affect body mass.
+
+---
+
+## Scatterplot examples
+
+```{r, echo=FALSE, fig.dim=c(8, 4.)}
+set.seed(5)
+x1 <- rnorm(100)
+y1 <- x1 + rnorm(100, sd=0.5)
+y1[13] <- 1.2
+x2 <- x1
+y2 <- (x2+2.5)^3 + rnorm(100, sd=10)
+set.seed(7)
+x3 <- rnorm(100)
+y3 <- -x3 + rnorm(100, sd=0.2)
+set.seed(13)
+x4 <- rnorm(100)
+y4 <- rnorm(100)
+d <- data.frame(x=c(x1, x2, x3, x3), y=c(y1,y2,y3,y4), g=rep(1:4, each=100))
+ggplot(d, aes(x=x, y=y)) + geom_point(alpha=0.6, size=2) + facet_wrap(~g, ncol=2, scales='free') +
+  theme_bw() +
+  theme(axis.title=element_blank(),
+        axis.text=element_blank(),
+        axis.ticks=element_blank(),
+        strip.background = element_blank(),
+        strip.text = element_blank()
+        )
+```
+
+---
+
+## Extreme observations (Outliers)
+
+Outliers on scatter plots can be points that have extreme `x` or `y` values. These will be outliers when you look at `x` or `y` separately.
+
+Or they could have normal `x` and `y` values, but are still extreme compared to the rest of the data due to the pairing being unusual.
+
+The only way to see the second kind is from a scatterplot.
+
+---
+
+## Covariance and correlation
+
+Just like there are numeric summaries for single quantiative variables, there are similar summaries for two variables.
+
+The concepts of center are the same (i.e. the 'center' of a scatterplot is likely $(\bar{x}, \bar{y})$)
+
+But we have different concepts of spread. We have $\sigma_x$ and $\sigma_y$ for the standard deviation of $x$ and $y$ but
+that doesn't convey how $y$ changes with $x$ and vice-versa.
+
+There are two additional measures we can use: **covariance** and **correlation**.
+
+---
+
+## Covariance
+
+Recall that the **variance** of a single variable $x$ is given by:
+
+$$
+\mathsf{var}(x) = \frac{1}{n}\sum_{i=1}^n (x_i - \bar{x})^2.
+$$
+
+The **covariance** of $x$ and $y$ is given by
+
+$$
+\mathsf{cov}(x,y) = \frac{1}{n}\sum_{i=1}^n (x_i - \bar{x})(y_i - \bar{y}).
+$$
+
+In RStudio, we use the `cov()` function for this.
+
+---
+
+## Correlation
+
+The **correlation** of $x$ and $y$ is given as
+
+$$
+\mathsf{cor}(x,y) = \frac{\mathsf{cov}(x,y)}{\mathsf{sd}(x)\mathsf{sd}(y)}
+$$
+
+The division by the standard deviations ensures that correlation is not affected by scale: Multiply $x$ by 5 and you'll get the same correlation.
+
+The correlation is also not affected by center: Add 1000 to $y$ and you'll get the same correlation.
+
+It is also symmetric:
+
+$$
+\mathsf{cor}(x,y) = \mathsf{cor}(y,x).
+$$
+
+In RStudio, we use the `cor()` function for this.
+
+---
+
+.left-code[
+## Example: Penguins
+
+```{r peng_corr1}
+summarise(penguins,
+          cov = cov(
+            flipper_length_mm,
+            body_mass_g
+          ),
+          r = cor(
+            flipper_length_mm,
+            body_mass_g
+          )
+        )
+```
+
+]
+
+.right-plot[
+```{r echo=FALSE, message=FALSE}
+ggplot(data = penguins) +
+  geom_point(
+    mapping = aes(
+      x = flipper_length_mm,
+      y = body_mass_g
+      )
+    )
+```
+]
+
+
+---
+
+## Correlation
+
+The correlation coefficient is sometimes represented by $\rho$ or $r$.
+
+It measures the amount that $y$ depends on $x$ through a **straight-line relationship**.
+
+It is always in the range -1 to 1.
+
+ - A value of 1 indicates a perfect, positive straight line relationship.
+
+ - A value of -1 indicates a perfect, negative straight line relationship.
+
+ - A value of 0 indicates no relationship at all.
+
+If the data don't look as though a straight line would be appropriate, then the correlation coefficient might not be what you want.
+
+**Always look at your data**
+
+---
+
+```{r, echo=FALSE, fig.dim=c(8,4.8), fig.retina=3}
+library(mvtnorm)
+library(tidyverse)
+rho <- data.frame(rho = c(0.95, 0.9, 0.6, 0.3, 0, -0.3, -0.6, -0.9, -0.95))
+mu <-c(0,0)
+rcorr <- function(rho, n) {
+  dat <- rmvnorm(n, sigma = matrix(c(1, rho, rho, 1),2))
+  while (abs(cor(dat[,1], dat[,2])-rho) > 0.01) {
+    dat <- rmvnorm(n, sigma = matrix(c(1, rho, rho, 1),2))
+  }
+  data.frame(x = dat[,1], y = dat[,2])
+}
+dat <- rho |> mutate(data = map(rho, rcorr, n=100)) |>
+  unnest(data)
+
+ggplot(dat) +
+  geom_point(aes(x=x, y=y)) +
+  facet_wrap(~rho, scales='free', labeller = function(x) { lapply(x, function(x) { paste0('r = ', x) }) }) +
+  theme_bw() +
+  theme(axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank())
+```
+
+---
+
+.left-code[
+## Beware, Dinosaurs!
+
+All these datasets have the same
+correlation.
+
+And the same means for $x$ and $y$
+
+And the same standard deviations!
+
+**`r` only makes sense for straight-line data**
+]
+
+.right-plot[
+<img src="graphics/datasaurus.gif" width="100%" />
+]
+
+---
+
+class: middle, inverse
+
+# Qualitative data
+
+---
+
+## Qualitative data
+
+Qualitative data are categorical.
+
+They may have an order associated with them. In which case, when you summarise, keep them in order.
+
+Or they may be have no order, where you are free to order them as makes sense.
+
+- If ordered, you need to use a `factor` in RStudio.
+
+Small counts (e.g. number of legs) can be considered qualitative, and are ordered (**ordinal**).
+
+---
+
+## Summarising qualitative data
+
+The important thing is the number or proportion of observations of each type.
+
+- Present as a table of counts (or proportions/percentages).
+
+- Present a bar chart.
+
+- Present as a pie chart?
+
+---
+
+## Which summary is best?
+
+A table has the advantage of showing actual counts or proportions.
+
+A bar chart will typically allow faster visual comparison of groups. Bars should **always** start at zero.
+
+Pie charts can be useful in some cases (but are so hard to do in `ggplot` that we won't bother)<sup>1</sup>.
+
+Usual charting rules apply:
+  - Keep tables and charts free of noise.
+  
+  - Make the data the key focus.
+
+.footnote[[1] The trick is to create a stacked barchart and switch to polar coordinates...]
+
+---
+
+## Summaries of eye colour
+
+There are two main ways categorical data comes:
+- summarised into counts (one row per category)
+- or individual rows per observation.
+
+```{r}
+eyes <- tibble(colour = c("blue", "grey", "green", "amber", "brown"),
+               n = c(32, 15, 12, 16, 25))
+eyes
+```
+
+---
+
+## Unsummarising data
+
+.pull-left[
+The `uncount` function in `tidyr` is useful:
+
+```{r}
+long_eyes <- uncount(eyes, n)
+long_eyes
+```
+]
+
+.pull-right[
+The `count` function in `dplyr` does the reverse:
+
+```{r}
+short_eyes <- count(long_eyes, colour)
+short_eyes
+```
+
+Notice that the order has changed! We'd need to impose an order to stop this by using a `factor`
+]
+
+---
+
+## Factors for categories
+
+```{r}
+colours <- c("blue", "grey", "green", "amber", "brown")
+```
+
+.pull-left[
+```{r}
+eyes <- tibble(colour = colours, #<<
+               n = c(32, 15, 12, 16, 25))
+eyes
+eyes$colour
+```
+]
+
+.pull-right[
+```{r}
+eyes <- tibble(colour = as_factor(colours), #<<
+               n = c(32, 15, 12, 16, 25))
+eyes
+eyes$colour
+```
+]
+
+---
+
+.left-code[
+## Bar charts in RStudio
+
+For summarised data (i.e. counts) use `geom_col()`.
+
+```{r bar1, eval=FALSE}
+ggplot(data = eyes) +
+  geom_col(mapping = aes(
+    x = colour,
+    y = n)
+    )
+```
+]
+
+.right-plot[
+```{r, ref.label="bar1", echo=FALSE}
+```
+]
+
+---
+
+.left-code[
+## Bar charts in RStudio
+
+For unsummarised data use `geom_bar()`.
+
+```{r bar2, eval=FALSE}
+long_eyes <- uncount(eyes, n)
+ggplot(data = long_eyes) +
+  geom_bar(mapping = aes(
+    x = colour
+    )
+  )
+```
+
+The `y` is computed by `geom_bar()`.
+]
+
+.right-plot[
+```{r, ref.label="bar2", echo=FALSE}
+```
+]
+
+---
+
+.left-code[
+## Bar charts in RStudio
+
+Use `fill` to change colours.
+
+```{r bar3, eval=FALSE}
+long_eyes <- uncount(eyes, n)
+ggplot(data = long_eyes) +
+  geom_bar(mapping = aes(
+    x = colour,
+    fill = colour
+    )
+  )
+```
+]
+
+.right-plot[
+```{r, ref.label="bar3", echo=FALSE}
+```
+]
+
+---
+
+.left-code[
+## Bar charts in RStudio
+
+```{r bar4, eval=FALSE}
+long_eyes <- uncount(eyes, n)
+ggplot(data = long_eyes) +
+  geom_bar(mapping = aes(
+    x = colour,
+    fill = colour
+    )
+  ) +
+  scale_fill_manual(
+    values = c(
+      blue = "#1D91C0",
+      grey = "#A6BDDB",
+      green = "#006837",
+      amber = "#885404",
+      brown = "#552005"
+    )
+  )
+```
+
+These 'Hex codes' are red, green, blue values in hexadecimal (base 16).
+
+Google 'colour picker' and Copy/Paste.
+]
+
+.right-plot[
+```{r, ref.label="bar4", echo=FALSE}
+```
+]
+
+---
+class: middle, inverse
+
+# Relationships between qualitative data
+
+---
+
+## Relationships between qualitative data
+
+Use cross-tabulation. A table with one variable down the rows and the other across columns.
+
+Use a bar chart with one variable on the `x`-axis, and the other used for `fill` or `colour`.
+
+Compare using proportions instead of counts is useful if group sizes are very different.
+
+A stacked bar chart may be useful for comparing proportions.
+
+---
+
+## Example: Vaccinations
+
+Compare number of 2 year olds immunised in `r vacc_years_to_use[1]` and `r vacc_years_to_use[2]` by ethnicity:
+
+```{r}
+vacc
+```
+
+---
+
+## Example: Vaccinations
+
+```{r}
+vacc_wide = pivot_wider(vacc, names_from = Year, values_from = Number)
+knitr::kable(vacc_wide, format='html')
+```
+
+---
+
+.left-code[
+## Example: Vaccinations
+```{r vacc_bar1, eval=FALSE}
+ggplot(data = vacc) +
+  geom_col(mapping = aes(
+    x = Year,
+    y = Number
+    )
+  )
+```
+]
+
+.right-plot[
+```{r, ref.label="vacc_bar1", echo=FALSE}
+```
+]
+
+---
+
+.left-code[
+## Example: Vaccinations
+```{r vacc_bar2, eval=FALSE}
+ggplot(data = vacc) +
+  geom_col(mapping = aes(
+    x = Year,
+    y = Number,
+    fill = Ethnicity #<<
+    )
+  )
+```
+By default the bars are stacked.
+
+This is equivalent to using `position='stack'`
+]
+
+.right-plot[
+```{r, ref.label="vacc_bar2", echo=FALSE}
+```
+]
+
+---
+
+.left-code[
+## Example: Vaccinations
+```{r vacc_bar4, eval=FALSE}
+ggplot(data = vacc) +
+  geom_col(mapping = aes(
+    x = Year,
+    y = Number,
+    fill = Ethnicity
+    ),
+    position = "fill" #<<
+  ) +
+  labs(y="Proportion") #<<
+```
+Or we can convert to proportions by filling the
+space on the y-axis.
+]
+
+.right-plot[
+```{r, ref.label="vacc_bar4", echo=FALSE}
+```
+]
+
+---
+
+.left-code[
+## Example: Vaccinations
+```{r vacc_bar3, eval=FALSE}
+ggplot(data = vacc) +
+  geom_col(mapping = aes(
+    x = Year,
+    y = Number,
+    fill = Ethnicity
+    ),
+    position = "dodge" #<<
+  )
+```
+Use `dodge` to have the bars side by side.
+]
+
+.right-plot[
+```{r, ref.label="vacc_bar3", echo=FALSE}
+```
+]
+
+---
+
+.left-code[
+## Example: Vaccinations
+```{r vacc_bar5, eval=FALSE}
+ggplot(data = vacc) +
+  geom_col(mapping = aes(
+    x = Ethnicity,
+    y = Number,
+    fill = Year
+    ),
+    position = "dodge"
+  )
+```
+Swapping the role of the qualitative variables can help answer different questions.
+]
+
+.right-plot[
+```{r, ref.label="vacc_bar5", echo=FALSE}
+```
+]
+
+---
+
+## Example: Vaccinations
+
+Be careful here though!
+
+We just have counts of immunised children.
+
+What we really want is the **rates** of immunisation within each ethnic group (i.e. percent immunised).
+
+At the moment we're **assuming** that the total number of children of each ethnicity (including those not immunised) is similar. This may not be the case!
+
+---
+
+## Example: Vaccination rates
+
+It turns out we have that information:
+
+```{r}
+vacc_rates_wide <- pivot_wider(vacc_rates, names_from = Year, values_from = Percent)
+knitr::kable(vacc_rates_wide, format="html")
+```
+
+---
+
+.left-code[
+## Example: Vaccinations
+```{r vacc_bar6, eval=FALSE}
+ggplot(data = vacc_rates) +
+  geom_col(mapping = aes(
+    x = Ethnicity,
+    y = Percent,
+    fill = Year
+    ),
+    position = "dodge"
+  )
+```
+Using the right data is important!
+]
+
+.right-plot[
+```{r, ref.label="vacc_bar6", echo=FALSE}
+```
+]
+
+---
+
+## Example: COVID-19 testing
+
+A study of 4653 close contacts of cases in Guangzhou, China who were quarantined and tested every 48 hours. The results of the first
+test, and whether they were later confirmed to be a case are as follows:
+
+```{r, echo=FALSE}
+covid <- tibble::tribble(~Confirmed, ~Test, ~Count,
+                         "Yes", "Negative",36,
+                         "Yes", "Positive", 92,
+                         "No", "Negative",4523,
+                         "No", "Positive",2)
+pivot_wider(covid, names_from = Test, values_from=Count) |>
+  janitor::adorn_totals(where=c("row", "col")) |>
+  knitr::kable(format='html')
+```
+
+Data from Table S3 here: https://www.medrxiv.org/content/10.1101/2020.03.24.20042606v1
+
+---
+
+## Example: COVID-19 testing
+
+Using proportions in this case is probably more useful, as the row and column totals differ a bunch, so hard to compare.
+
+Proportions by row tell us about test performance:
+```{r, echo=FALSE}
+covid |> group_by(Confirmed) |> mutate(Count = round(Count/sum(Count),4)) |>
+  pivot_wider(names_from = Test, values_from=Count) |>
+  knitr::kable(format='html')
+```
+
+Proportions by column tell us what to do after a test:
+```{r, echo=FALSE}
+covid |> group_by(Test) |> mutate(Count = round(Count/sum(Count),4)) |>
+  pivot_wider(names_from = Test, values_from=Count) |>
+  knitr::kable(format='html')
+```
+
+---
+
+.left-code[
+## COVID-19 testing
+```{r covid_bar1, eval=FALSE}
+ggplot(data = covid) +
+  geom_col(mapping = aes(
+    x = Confirmed,
+    y = Count,
+    fill = Test
+    ),
+    position = "stack"
+  )
+```
+
+A stacked (or side by side) plot isn't useful
+as the counts are very different.
+]
+
+.right-plot[
+```{r, ref.label="covid_bar1", echo=FALSE}
+```
+]
+
+---
+
+.left-code[
+## COVID-19 testing
+```{r covid_bar2, eval=FALSE}
+ggplot(data = covid) +
+  geom_col(mapping = aes(
+    x = Confirmed,
+    y = Count,
+    fill = Test
+    ),
+    position = "fill" #<<
+  ) +
+  labs(y="Proportion")
+```
+
+The sensitivity (true positives) of the test
+isn't high (around 70%).
+
+The specificity (true negatives) is very high.
+]
+
+.right-plot[
+```{r, ref.label="covid_bar2", echo=FALSE}
+```
+]
+
+---
+
+.left-code[
+## COVID-19 testing
+```{r covid_bar3, eval=FALSE}
+ggplot(data = covid) +
+  geom_col(mapping = aes(
+    x = Test,
+    y = Count,
+    fill = Confirmed
+    ),
+    position = "fill"
+  ) +
+  labs(y="Proportion")
+```
+
+A positive test suggests you're likely to have COVID-19.
+
+A negative test though allows a few cases to slip through.
+
+In the proportion plot, this doesn't look too bad.
+]
+
+.right-plot[
+```{r, ref.label="covid_bar3", echo=FALSE}
+```
+]
+
+---
+
+.left-code[
+## COVID-19 testing
+```{r covid_bar4, eval=FALSE}
+cases <- filter(covid,
+                Confirmed == "Yes")
+ggplot(data = cases) +
+  geom_col(mapping = aes(
+    x = Test,
+    y = Count
+    )
+  )
+```
+
+But if we look at the number of cases we're letting through
+it could be quite bad - we've missed 36!
+
+Thus the reason we isolate for 14 days at the border,
+even if a day 0 or day 3 test returns negative.
+]
+
+.right-plot[
+```{r, ref.label="covid_bar4", echo=FALSE}
+```
+]
+

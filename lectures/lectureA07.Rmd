@@ -1,0 +1,1024 @@
+---
+title: 'Lecture 7'
+subtitle: 'Small multiple plots, joining datasets'
+output:
+  xaringan::moon_reader:
+    css: [default, default-fonts, "custom.css"]
+    mathjax: "https://cdn.bootcss.com/mathjax/2.7.3/MathJax.js?config=TeX-MML-AM_CHTML"
+    nature:
+      highlightStyle: tomorrow
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: "16:9"
+      slideNumberFormat: |
+        <div class="progress-bar-container">
+          <div class="progress-bar" style="width: calc(%current% / %total% * 100%);">
+          </div>
+        </div>
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(lubridate)
+library(palmerpenguins)
+#data(package = 'palmerpenguins')
+knitr::opts_chunk$set(echo = TRUE, comment = "")
+knitr::opts_chunk$set(fig.dim=c(4.8, 4.5), fig.retina=2, out.width="100%")
+hrc <- read_csv("https://www.massey.ac.nz/~jcmarsha/data/hrc/horizons_river_ecoli.csv")
+
+xaringanExtra:::use_freezeframe()
+```
+
+class: middle, inverse
+
+## Learning outcomes
+
+- Small multiple plots (facetting) with `ggplot2`
+
+- Putting plots together using `patchwork`
+
+- Changing the look of plots with `theme`
+
+- Joining datasets with `dplyr`.
+
+---
+
+class: middle, inverse
+
+# Small multiple plots
+
+---
+
+## Small multiple plots
+
+With `dplyr` we can use `group_by()` to do summarising and filtering by subgroups of the data.
+
+We can do the same thing when we produce plots with `ggplot2`.
+
+The idea is that often we want to see trends or patterns between some variables, but often those trends
+or patterns may vary by subgroup.
+
+In that case we might want to plot them separately for each subgroup so
+we can compare and contrast.
+
+---
+
+## Small multiple plots
+
+One way to do this is to use `dplyr` to filter down to the subgroup that we want to compare and then
+produce separate plots.
+
+e.g. suppose we want to compare two sites on the Manawatu river for their E.coli counts over time. The river at Site80 (down by Waitoetoe park, opposite where the Turitea Stream comes out) and the river at Site15 (by the old teacher's college in Hokowhitu):
+
+```{r}
+waitoetoe <- hrc |>
+  filter(Site == "manawatu at u/s pncc stp",
+         Date >= "2008-01-01") |>
+  select(Site, Date, Value)
+
+hokowhitu <- hrc |>
+  filter(Site == "manawatu at teachers college",
+         Date >= "2008-01-01") |>
+  select(Site, Date, Value)
+```
+
+---
+
+## Comparing sites
+
+.pull-left[
+```{r}
+waitoetoe |>
+  summarise(Median = median(Value),
+            Max = max(Value))
+```
+]
+
+.pull-right[
+```{r}
+hokowhitu |>
+  summarise(Median = median(Value),
+            Max = max(Value))
+```
+]
+
+In terms of the median and maximum these sites are quite similar, which makes sense - they're only about 3km from each other.
+
+We could do a plot of each one and compare.
+---
+
+.pull-left[
+```{r}
+ggplot(data=waitoetoe) +
+  geom_line(aes(x=Date, y=Value)) +
+  scale_y_log10(
+    labels=scales::label_comma()
+    )
+```
+]
+
+.pull-right[
+```{r}
+ggplot(data=hokowhitu) +
+  geom_line(aes(x=Date, y=Value)) +
+  scale_y_log10(
+    labels=scales::label_comma()
+    )
+```
+]
+
+---
+
+## Combining plots
+
+The problem here is that each uses different scale. So while the patterns look kinda similar, it's hard to really
+know the level as the y-axis scales are a bit different.
+
+We could change the axes to force them to be the same using the `limits` argument to `scale_y_log10()`, but there's
+quite a lot of repetition.
+
+And, if we want them on the same scale anyway, why do we need separate y-axis scales? We could just place them side
+by side and remove the additional axis space.
+
+---
+
+.pull-left[
+```{r}
+ggplot(data=waitoetoe) +
+  geom_line(aes(x=Date, y=Value)) +
+  scale_y_log10(
+    labels=scales::label_comma(),
+    limits = c(1,20000)
+    )
+```
+]
+
+.pull-right[
+```{r}
+ggplot(data=hokowhitu) +
+  geom_line(aes(x=Date, y=Value)) +
+  scale_y_log10(
+    labels=scales::label_comma(),
+    limits = c(1,20000)
+    )
+```
+]
+
+---
+
+## Combining plots
+
+The better way to do it is to combine the two datasets and let `ggplot2` split out the two groups for us when it creates the plot.
+
+Essentially we work the same way as we would with `dplyr` to summarise: leave the data in a single data.frame.
+
+```{r}
+two_sites <- hrc |>
+  filter(Site %in% c("manawatu at u/s pncc stp", "manawatu at teachers college"),
+         Date >= "2008-01-01")
+
+two_sites |> group_by(Site) |>
+  summarise(Median = median(Value), Max = max(Value))
+```
+
+---
+
+.left-code[
+## Combining plots
+
+```{r facet1, eval=FALSE}
+ggplot(data=two_sites) +
+  geom_line(
+    mapping = aes(x=Date, y=Value,
+                  col=Site)
+    ) +
+  scale_y_log10(
+    labels = scales::label_comma()
+  )
+```
+
+We could use colour to distinguish the sites
+]
+
+.right-plot[
+```{r, ref.label="facet1", echo=FALSE}
+```
+]
+
+---
+
+.left-code[
+## Combining plots
+
+```{r facet2, eval=FALSE}
+ggplot(data=two_sites) +
+  geom_line(
+    mapping = aes(x=Date, y=Value)
+    ) +
+  scale_y_log10(
+    labels = scales::label_comma()
+  ) +
+  facet_wrap(vars(Site)) #<<
+```
+
+But having separate plots is better.
+]
+
+.right-plot[
+```{r, ref.label="facet2", echo=FALSE}
+```
+]
+
+---
+
+.left-code[
+## Combining plots
+
+```{r facet3, eval=FALSE}
+ggplot(data=two_sites) +
+  geom_line(
+    mapping = aes(x=Date, y=Value),
+    alpha=0.5
+    ) +
+  geom_smooth(
+    mapping = aes(x=Date, y=Value)
+  ) +
+  scale_y_log10(
+    labels = scales::label_comma()
+  ) +
+  facet_wrap(vars(Site))
+```
+
+The trend shows that the site at Waitoetoe park used to be
+worse than at Hokowhitu, but now is more similar.
+
+They're now both worse?
+]
+
+.right-plot[
+```{r, ref.label="facet3", echo=FALSE}
+```
+]
+
+---
+
+## Combining plots
+
+We can now easily generalise to more plots. e.g. what is happening with the turitea stream which flows into the Manawatu near Waitoetoe Park?
+
+Unfortunately this was measured only since 2013, but nonetheless might be interesting
+
+```{r}
+three_sites <- hrc |> filter(
+  Site %in% c("manawatu at u/s pncc stp",
+              "manawatu at teachers college",
+              "turitea at no1 dairy"),
+  Date >= "2008-01-01"
+)
+three_sites |> group_by(Site) |>
+  summarise(Median = median(Value), Max = max(Value))
+```
+
+A higher median but lower maximum.
+
+---
+
+.left-code[
+## Combining plots
+
+```{r facet4, eval=FALSE}
+ggplot(data=three_sites) +
+  geom_line(
+    mapping = aes(x=Date, y=Value),
+    alpha=0.5
+    ) +
+  geom_smooth(
+    mapping = aes(x=Date, y=Value)
+  ) +
+  scale_y_log10(
+    labels = scales::label_comma()
+  ) +
+  facet_wrap(vars(Site))
+```
+
+We can't tell if the Turitea stream is the
+reason for the increased counts pre 2013 as
+we don't have the measures then.
+
+The counts post 2013 are higher in the Turitea
+stream than in the river (more dilution in the river?)
+]
+
+.right-plot[
+```{r, ref.label="facet4", echo=FALSE}
+```
+]
+
+---
+
+.left-code[
+## Combining plots
+
+```{r facet5, eval=FALSE}
+ggplot(data=three_sites) +
+  geom_line(
+    mapping = aes(x=Date, y=Value),
+    alpha=0.5
+    ) +
+  geom_smooth(
+    mapping = aes(x=Date, y=Value)
+  ) +
+  scale_y_log10(
+    labels = scales::label_comma()
+  ) +
+  facet_wrap(vars(Site), ncol=1) #<<
+```
+
+Can specify the number of rows or columns.
+
+This allows us to see the correlation in the two Manawatu measures.
+
+But is harder to assess overall levels.
+]
+
+.right-plot[
+```{r, ref.label="facet5", echo=FALSE}
+```
+]
+
+---
+
+.left-code[
+## Combining plots
+
+```{r peng1, eval=FALSE}
+ggplot(penguins) + 
+  geom_density(aes(x=body_mass_g),
+               fill='light blue') +
+  facet_grid( #<<
+    rows = vars(sex), #<<
+    cols = vars(species) #<<
+  ) #<<
+```
+
+If we have two variables that we'd like to use to split the data, we can use a grid
+of small plots, with rows representing one variable and columns the other.
+
+The `NA` for `sex` though is a bit odd!
+]
+
+.right-plot[
+```{r, ref.label="peng1", echo=FALSE, message=FALSE}
+```
+]
+
+---
+
+.left-code[
+## Combining plots
+
+```{r peng2, eval=FALSE}
+penguins |> #<<
+  filter(!is.na(sex)) |> #<<
+ggplot() + 
+  geom_density(aes(x=body_mass_g),
+               fill='light blue') +
+  facet_grid(
+    rows = vars(sex),
+    cols = vars(species)
+  )
+```
+
+For densities, where the `x` axis is our comparator, we can
+easily assess down columns.
+
+i.e. Males are heavier than females for each species, less pronounced in Chinstrap?
+]
+
+.right-plot[
+```{r, ref.label="peng2", echo=FALSE}
+```
+]
+
+---
+
+.left-code[
+## Combining plots
+
+```{r peng3, eval=FALSE}
+penguins |>
+  filter(!is.na(sex)) |>
+ggplot() + 
+  geom_density(aes(x=body_mass_g),
+               fill='light blue') +
+  facet_grid(
+    rows = vars(species), #<<
+    cols = vars(sex) #<<
+  )
+```
+
+For densities, where the `x` axis is our comparator, we can
+easily assess down columns.
+
+Switching roles of variables means we can easily compare within
+males and females separately.
+
+e.g. we see that male Adelie and Chinstraps have similar weight distributions,
+while females differ.
+]
+
+.right-plot[
+```{r, ref.label="peng3", echo=FALSE}
+```
+]
+
+---
+
+.left-code[
+## Combining plots
+
+```{r peng4, eval=FALSE}
+penguins |>
+  filter(!is.na(sex)) |>
+ggplot() + 
+  geom_density(aes(x=body_mass_g,
+                   fill=species),
+               alpha=0.5) + #<<
+  facet_wrap(vars(sex), #<<
+             ncol=1) #<<
+```
+
+In this example the small number of groups allows overlapping
+densities to be a little better perhaps.
+]
+
+.right-plot[
+```{r, ref.label="peng4", echo=FALSE}
+```
+]
+
+---
+
+## Combining different kinds of plot
+
+Sometimes we want to combine different types of plot. e.g. perhaps we want
+to compare the body mass distribution of penguins as well as show the correlation
+between bill length and depth.
+
+We can do the separate plots and can combine them using the `patchwork` library
+
+---
+
+.pull-left[
+```{r, warning=FALSE}
+ggplot(penguins) +
+  geom_density(
+    aes(x=body_mass_g,
+        fill=species),
+    alpha=0.5)
+```
+]
+
+.pull-right[
+```{r, warning=FALSE}
+ggplot(penguins) +
+  geom_point(aes(x=bill_length_mm,
+                 y=bill_depth_mm,
+                 col=species),
+               alpha=0.5)
+```
+]
+
+---
+
+## Combining plots with `patchwork`
+
+With `patchwork` we first **save** the plots into separate variables, then use `+` or `/` to combine them together.
+
+When you save a `ggplot2` plot, you can 'print' it out by just typing the name. So your code will look like:
+
+```{r, eval=FALSE}
+g1 = ggplot(data1) + ...
+g2 = ggplot(data2) + ...
+
+g1 # To look at the first plot
+g2 # To look at the second plot
+
+library(patchwork)
+g1 + g2 # To put graphs side by side
+g1 / g2 # To put graphs top and bottom
+```
+
+---
+
+.left-code[
+## Combining plots with `patchwork`
+
+```{r patch1, eval=FALSE}
+library(patchwork)
+g1 = ggplot(penguins) +
+  geom_density(
+    aes(x=body_mass_g,
+        fill=species),
+    alpha=0.5)
+
+g2 = ggplot(penguins) +
+  geom_point(
+    aes(x=bill_length_mm,
+        y=bill_depth_mm,
+        col=species),
+    alpha=0.5)
+
+g1 / g2
+```
+]
+
+.right-plot[
+```{r, ref.label="patch1", echo=FALSE, warning=FALSE}
+```
+]
+
+---
+
+## Combining plots with `patchwork`
+
+Use `+` to put things side by side:
+
+```{r, warning=FALSE, fig.dim=c(8,3), fig.retina=3}
+g1 + g2
+```
+
+---
+
+## Combining plots with `patchwork`
+
+The `plot_layout()` function is useful to control things a little.
+
+```{r, warning=FALSE, fig.dim=c(8,3), fig.retina=3}
+g1 + g2 + plot_layout(guides = 'collect')
+```
+
+---
+
+The `plot_annotation()` function allows adding titles, subtitles to the total layout.
+
+```{r, warning=FALSE, fig.dim=c(8,3), fig.retina=3}
+g1 + g2 + plot_layout(guides = 'collect') +
+  plot_annotation(title = "Gentoo penguins are chonky and have long, narrow beaks")
+```
+
+---
+
+Lots more can be done. See https://patchwork.data-imaginist.com/index.html for more!
+
+```{r, echo=FALSE, warning=FALSE}
+g0 = ggplot(penguins) + geom_density(aes(x=flipper_length_mm, fill=species), alpha=0.5)
+```
+
+```{r, warning=FALSE, fig.dim=c(8,3.5), fig.retina=3}
+(g0 / g1 | g2) + plot_layout(guides = 'collect') +
+  plot_annotation(title = "Gentoo penguins are chonky and have long, narrow beaks")
+```
+
+---
+
+class: middle,inverse
+
+# Theming
+
+---
+
+## Theming
+
+The entire layout of a `ggplot2` chart can be customised by the `theme`:
+
+- Background colours
+- Size of panel
+- All text size, font, style, placement, justification, angle etc
+- Space between facets, facet header styles
+
+Basically everything you see on the plot can be customised.
+
+The **easiest** way to customise the plot is to choose a pre-made theme. (Let someone else do the work!)
+
+---
+
+.left-code[
+## Themes
+
+```{r theme1, warning=FALSE, eval=FALSE}
+ggplot(penguins) +
+  geom_density(
+    aes(x=body_mass_g,
+        fill=species),
+    alpha=0.5)
+```
+
+The standard theme is `theme_grey`.
+]
+
+.right-plot[
+```{r, ref.label="theme1", warning=FALSE, echo=FALSE}
+```
+]
+
+---
+
+.left-code[
+## Themes
+
+```{r theme2, warning=FALSE, eval=FALSE}
+ggplot(penguins) +
+  geom_density(
+    aes(x=body_mass_g,
+        fill=species),
+    alpha=0.5) +
+  theme_bw()
+```
+
+]
+
+.right-plot[
+```{r, ref.label="theme2", warning=FALSE, echo=FALSE}
+```
+]
+
+---
+
+.left-code[
+## Themes
+
+```{r theme3, warning=FALSE, eval=FALSE}
+ggplot(penguins) +
+  geom_density(
+    aes(x=body_mass_g,
+        fill=species),
+    alpha=0.5) +
+  theme_light()
+```
+]
+
+.right-plot[
+```{r, ref.label="theme3", warning=FALSE, echo=FALSE}
+```
+]
+
+---
+
+.left-code[
+## Themes
+
+```{r theme4, warning=FALSE, eval=FALSE}
+ggplot(penguins) +
+  geom_density(
+    aes(x=body_mass_g,
+        fill=species),
+    alpha=0.5) +
+  theme_dark()
+```
+]
+
+.right-plot[
+```{r, ref.label="theme4", warning=FALSE, echo=FALSE}
+```
+]
+
+---
+
+.left-code[
+## Themes
+
+```{r theme5, warning=FALSE, eval=FALSE}
+ggplot(penguins) +
+  geom_density(
+    aes(x=body_mass_g,
+        fill=species),
+    alpha=0.5) +
+  theme_minimal()
+```
+]
+
+.right-plot[
+```{r, ref.label="theme5", warning=FALSE, echo=FALSE}
+```
+]
+
+---
+
+.left-code[
+## Themes
+
+```{r theme6, warning=FALSE, eval=FALSE}
+ggplot(penguins) +
+  geom_density(
+    aes(x=body_mass_g,
+        fill=species),
+    alpha=0.5) +
+  theme_minimal(base_size=16)
+```
+
+The `base_size` argument sets the default text size.
+]
+
+.right-plot[
+```{r, ref.label="theme6", warning=FALSE, echo=FALSE}
+```
+]
+
+---
+
+.left-code[
+## Themes
+
+```{r theme7, warning=FALSE, eval=FALSE}
+ggplot(penguins) +
+  geom_density(
+    aes(x=body_mass_g,
+        fill=species),
+    alpha=0.5) +
+  theme_minimal() +
+  theme(legend.position = 'bottom')
+```
+
+The `theme()` function is how you alter elements of an existing theme.
+]
+
+.right-plot[
+```{r, ref.label="theme7", warning=FALSE, echo=FALSE}
+```
+]
+
+---
+
+class: middle,inverse
+
+# Combining data
+
+---
+
+## Combining data through joins
+
+It is common to receive data in several different spreadsheets.
+
+e.g. if doing a study where samples are taken from animals across farms, you might have a samples spreadsheet, an animals spreadsheet, and a farms spreadsheet.
+
+For final analyses on samples, however, you might want to assess animal or farm-level effects on outcomes at the sample level.
+
+Thus, you'll need to combine the data from these spreadsheets together into a single `data.frame`.
+
+In RStudio, we do this using **joins** in `dplyr`.
+
+---
+
+## Data sets
+
+We'll use a couple of datasets from the Star Wars movies for this.
+
+```{r, message=FALSE}
+characters <- read_csv("https://www.massey.ac.nz/~jcmarsha/161122/data/sw_characters.csv")
+characters
+```
+
+---
+
+## Data sets
+
+We'll use a couple of datasets from the Star Wars movies for this.
+
+```{r, message=FALSE}
+films <- read_csv("https://www.massey.ac.nz/~jcmarsha/161122/data/sw_films.csv")
+films
+```
+
+---
+
+## Joining with `dplyr`
+
+There are two main types of join in dplyr: **mutating joins** and **filtering joins**.
+
+- Mutating joins add new columns from the additional dataset.
+
+- Filtering joins filter out existing columns based on information in the additional dataset.
+
+For both, we need a set of 'primary' or 'key' columns: these are columns that share the same
+information so we can merge the datasets together.
+
+e.g. The `films` and `characters` datasets share the `name` column, so that will be our key.
+
+---
+
+## Mutating joins
+
+There are four separate mutating joins:
+
+- `left_join(x,y)` returns all rows in x, and all rows that match these in y. If y doesn't have a match, `NA` will be used.
+
+- `right_join(x,y)` returns all rows in y and all rows that match these in x. If x doesn't have a match in y, `NA` will be used.
+
+- `inner_join(x,y)` returns only rows in x and y that have a match.
+
+- `full_join(x,y)` returns all rows in x and all rows in y. Anything in x or y that don't have a match will be filled with `NA`.
+
+---
+
+.left-code[
+## Left join
+
+`left_join(x, y)` returns:
+- all rows in x
+- all rows that match these in y.
+- If y doesn't have a match, `NA` is used.
+
+Rows in y that do not match rows in x are dropped.
+]
+
+.right-plot[
+![](graphics/dplyr_joins/left-join.gif)
+]
+
+---
+
+.left-code[
+## Left join
+
+`left_join(x, y)` returns:
+- all rows in x
+- all rows that match these in y.
+- If y doesn't have a match, `NA` is used.
+
+If more than one row in y matches a row in x then you duplicate the x information.
+]
+
+.right-plot[
+![](graphics/dplyr_joins/left-join-extra.gif)
+]
+
+---
+
+`left_join(x, y)` returns all rows in x, and all rows that match these in y. If y doesn't have a match, `NA` will be used.
+
+```{r}
+characters |> left_join(films)
+```
+
+---
+
+.left-code[
+## Right join
+
+`right_join(x, y)` returns:
+ - all rows in y
+ - all rows that match these in x.
+ - If x doesn't have a match, `NA` is used.
+
+Rows in x that don't have a match in y are dropped.
+]
+
+.right-plot[
+![](graphics/dplyr_joins/right-join.gif)
+]
+
+---
+
+`right_join()` returns all rows in the 'right' data set and anything that matches in the left.
+
+```{r}
+characters |> right_join(films)
+```
+
+---
+
+.left-code[
+## Inner join
+
+`inner_join(x, y)` returns:
+ - only rows that match in x and y.
+ - there is no `NA` from the join.
+
+Rows that don't have a match in either x or y are dropped.
+]
+
+.right-plot[
+![](graphics/dplyr_joins/inner-join.gif)
+]
+
+---
+
+`inner_join()` returns only rows in both data sets. No `NA` from the join.
+
+```{r}
+characters |> inner_join(films)
+```
+
+---
+
+.left-code[
+## Full join
+
+`full_join(x, y)` returns:
+ - all rows in both data sets.
+ - anything that doesn't match gets `NA`.
+
+No rows are dropped.
+]
+
+.right-plot[
+![](graphics/dplyr_joins/full-join.gif)
+]
+
+---
+
+`full_join()` returns all rows in both data sets. Anything that doesn't match gets `NA`.
+
+```{r}
+characters |> full_join(films)
+```
+
+---
+
+## Mutating joins
+
+The `left_join()` is the one I use the most.
+
+Reason is you almost always start with the dataset that has the outcomes you want
+in it, and are joining back to explanatory things.
+
+---
+
+## Filtering joins
+
+The two filtering joins only return columns in x. They are:
+
+- `semi_join(x,y)` returns rows in x with a match in y.
+
+- `anti_join(x,y)` returns rows in x that don't have a match in y.
+
+i.e. `semi_join` is for keeping things in, `anti_join` is to filter things out.
+
+---
+
+.left-code[
+## Filtering joins
+
+`semi_join(x, y)` returns:
+ - rows in x that have a match in y.
+ - only information from x.
+]
+
+.right-plot[
+![](graphics/dplyr_joins/semi-join.gif)
+]
+
+---
+
+## Filtering joins
+
+`semi_join` will return the characters which are in one or more of our films.
+
+```{r}
+characters |> semi_join(films)
+```
+
+---
+
+.left-code[
+## Filtering joins
+
+`anti_join(x, y)` returns:
+ - rows in x that don't match y.
+ - only information from x.
+]
+
+.right-plot[
+![](graphics/dplyr_joins/anti-join.gif)
+]
+
+---
+
+## Filtering joins
+
+`anti_join` will return the characters which aren't in any of our films.
+
+```{r}
+characters |> anti_join(films)
+```
+
+Remember we used `anti_join` to filter out the "stop words" (a, the, of etc) when we did the "Three words" and "Twitter sentiment" analyses.
+
+---
+
+## Summary
+
+- Use `facet_wrap()` or `facet_grid()` for when you want repeated graphs on subgroups.
+
+- Use the `patchwork` library for combining multiple, different plots.
+
+- Alter the look of plots with the various `theme_*()` functions, and use `theme()` to fine tune.
+
+- Think about which rows you want to keep in the final dataset when joining.
+
+- If you start with the dataset that has all the rows you want in it already, and just want to add some columns from another dataset, use `left_join()`.
+
+- The main case for `anti_join()` and `semi_join()` is a more efficient way to do filtering. It's likely you can do the same job with `filter()` anyway.

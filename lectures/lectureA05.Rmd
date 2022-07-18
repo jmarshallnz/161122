@@ -1,0 +1,681 @@
+---
+title: 'Lecture 5'
+subtitle: 'Reproducible analyses and data wrangling'
+output:
+  xaringan::moon_reader:
+    css: [default, default-fonts, "custom.css"]
+    mathjax: "https://cdn.bootcss.com/mathjax/2.7.3/MathJax.js?config=TeX-MML-AM_CHTML"
+    nature:
+      highlightStyle: tomorrow
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: "16:9"
+      slideNumberFormat: |
+        <div class="progress-bar-container">
+          <div class="progress-bar" style="width: calc(%current% / %total% * 100%);">
+          </div>
+        </div>
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(palmerpenguins)
+#data(package = 'palmerpenguins')
+knitr::opts_chunk$set(echo = TRUE, comment = "")
+knitr::opts_chunk$set(fig.dim=c(4.8, 4.5), fig.retina=2, out.width="100%")
+```
+
+class: middle, inverse
+
+## Learning outcomes
+
+- Reproducibility
+
+- Data wrangling with dplyr
+
+---
+
+## Data today
+
+We'll use the data from Horizons Regional council on river quality again today.
+
+```{r, echo=FALSE, message=FALSE}
+hrc <- read_csv("https://www.massey.ac.nz/~jcmarsha/data/hrc/horizons_river_ecoli.csv")
+hrc
+```
+
+These data are available from Land, Air, Water Aoteoroa, https://www.lawa.org.nz/download-data/
+
+---
+
+class: middle,inverse
+
+# Reproducibility
+
+---
+
+## Reproducibility
+
+A really important concept in science in general is of reproducibility.
+
+We want to make sure that our findings are able to be replicated by:
+ 1. Ourselves using our data
+ 2. Others using our data
+ 3. Others using new data
+
+In science, this is usually done by publishing our work with enough detail in the methods to allow replication by others.
+
+But, often this is just replication in theory: In practice others will need much more than what most science teams provide in their publication.
+
+---
+
+## Open data
+
+A big push in recent years by scientific bodies and publishers is to ensure that the data used in a piece of research is (as much as possible) published and freely available alongside the methods.
+
+This helps replication, in that it's now possible for others to replicate using our data.
+
+But, it's not everything! Often the methods used are not summarised in full detail, and typically there's a lot of reinventing the wheel that
+needs to be done. e.g.
+
+ - What data cleaning is required?
+ 
+ - Were there missing data? How was it handled?
+ 
+ - If some charts were produced, how were they generated? Was there manual manipulation (like adding labels/tidying plots by hand?)
+ 
+ - What about statistical modelling? What was the exact formulation of the model? Are enough details given to allow replication?
+ 
+---
+ 
+## Principles of reproducible analyses
+
+- Input data is documented and provided, and comes in whatever form it comes (i.e. we don't alter the data if it comes from another source).
+
+- All analyses are scripted. i.e. run script(s) to produce all necessary tables/charts.
+
+- No manual steps if at all possible.
+
+- Ensure any scripting is useful for new data as much as possible.
+
+https://github.com/jmarshallnz/dirichlet_island
+
+https://royalsocietypublishing.org/doi/full/10.1098/rsif.2018.0534
+
+---
+
+class: middle, inverse
+
+# Demo: NZ politics twitter sentiment by Kate Newton
+
+https://www.rnz.co.nz/news/national/421955/bad-vibes-rating-political-scandals-by-twitter-toxicity
+
+---
+
+## Data wrangling
+
+You'll have noticed in the last demo that it contained a bunch of code to wrangle data into a form that is usable for charting or tables.
+
+Much of the data wrangling I do daily (and it is daily!) can be done using only a handful of functions, the majority taken from the package `dplyr`, with a few extras from other packages such as `tidyr`.
+
+Essentially, the `dplyr` package provides a bunch of "verbs" (functions) for transforming data. It is similar to SQL if you have done any database work.
+
+It is part of the `tidyverse` set of packages: https://www.tidyverse.org
+
+---
+
+class: middle, inverse
+
+# `dplyr`
+
+---
+
+## `dplyr`
+
+Just like `ggplot2` is a grammar of graphics, `dplyr` is a grammar of data manipulation.
+
+It consists of a set of verbs that help us solve the most common data manipulation challenges:
+
+- `select` to choose variables (columns) by name.
+- `filter` to choose observations (rows) by value.
+- `mutate` to add new variables based of existing variables.
+- `summarise` to reduce multiple values down to a single summary.
+- `arrange` changes the order of rows.
+
+All of these combine with `group_by` to do all the above operation on subgroups of the data.
+
+---
+
+## `dplyr`
+
+One of the nice things about `dplyr` is it abstracts the language of data processing across the implementation of where the data exist.
+
+It works with `data.frame`'s loaded into memory, as well as remote databases (via SQL, or Apache Spark) using the same set of R commands.
+
+The other nice thing is the consistency:
+ - All verbs take in as their first argument a `data.frame`.
+ - Then all other arguments describe what to do with the `data.frame`.
+ - The result is then a new `data.frame`.
+
+```{r eval=FALSE}
+new_data <- do_something(old_data, other, stuff)
+```
+ 
+---
+
+## Filtering rows with `filter`
+ 
+Let's look again at the river data:
+ 
+```{r}
+hrc
+```
+
+---
+
+## Filtering rows with `filter`
+ 
+What if we just wanted the rows from 2017 onwards?
+ 
+```{r}
+filter(hrc, Date >= '2017-01-01')
+```
+
+---
+
+## Filtering rows with `filter`
+ 
+What if we wanted rows with large counts?
+
+```{r}
+filter(hrc, Value > 100000)
+```
+
+---
+
+## Filtering rows with `filter`
+ 
+What if we wanted really low counts before 2010?
+
+```{r}
+filter(hrc, Value < 100, Date <= '2010-12-31')
+```
+
+---
+
+## Filtering rows with `filter`
+ 
+What if we wanted the extreme low or high counts?
+
+```{r}
+filter(hrc, Value < 3 | Value > 100000)
+```
+
+---
+
+## Logical expressions in R
+
+The `filter` argument is a logical expression. i.e. it's something that evaluates to `TRUE` or `FALSE`.
+
+For convenience, filter can take more than one logical expression, separated by a comma. In this case they're AND'd together (i.e. rows must satisfy both criteria), but anything within each expression is done first.
+
+If we want to use OR rather than AND, we use the vertical bar `|` character.
+
+i.e. `filter(hrc, Value < 3 | Value > 100000, SiteID == "00081")`
+
+will return rows where the value is very small or very large from Site 00081.
+
+---
+
+## Logical expressions in R
+
+Notice that for 'is equal to' we've been using `==`. The single `=` is for assignment of parameters instead. `dplyr` will warn you about this:
+
+```{r, error=TRUE}
+filter(hrc, Value = 4)
+```
+
+**This is rare** - usually error messages are rather more opaque!
+
+Reading carefully, and searching the error on google can sometimes help.
+
+---
+
+## Logical expressions in R
+
+Other operations are `!=` (not equal to) and `%in%` (in). e.g.
+
+```{r}
+filter(hrc, Value %in% c(3,5))
+```
+
+---
+
+## Dealing with missing values
+
+Notice the `Symbol` column is full of `NA` which means "missing". Maybe there are some that aren't missing? We might try:
+
+```{r}
+filter(hrc, Symbol != NA)
+```
+
+This seems like it might have worked?? It says there are no rows returned...
+
+--
+
+```{r}
+filter(hrc, Symbol == NA)
+```
+
+Hmm, that doesn't seem right??
+
+---
+
+## Dealing with missing values
+
+.left-code[
+The key thing to remember is if a value is missing, then comparing it is senseless:
+
+```{r}
+2 == NA
+NA == NA
+```
+
+Is 2 equal to something missing?
+
+Maybe! We don't know! So the answer is missing.
+]
+
+--
+.right-plot[
+We use `is.na()` instead for this.
+
+```{r}
+is.na(2)
+is.na(NA)
+```
+]
+
+RStudio will remind you about this with a yellow warning in the margin, as it's a common problem.
+---
+
+## Dealing with missing values
+
+Notice the `Symbol` column is full of `NA` which means "missing". Maybe there are some that aren't missing?
+
+```{r}
+filter(hrc, !is.na(Symbol))
+```
+
+Ok, it seems like we have a few (`r hrc |> filter(!is.na(Symbol)) |> nrow()`) numbers where the count actually means less than or greater than the value given, rather than equal to the value given.
+
+---
+
+## Arranging rows with `arrange`
+
+Rather than pick rows out, we can sort the data instead.
+
+```{r}
+arrange(hrc, Value)
+```
+
+---
+
+## Arranging rows with `arrange`
+
+Selecting more than one variable to arrange on will first arrange on the first, then use later variables for ties:
+
+```{r}
+arrange(hrc, Value, Date)
+```
+
+---
+
+## Arranging rows with `arrange`
+
+To arrange descending rather than ascending, we can use `desc`
+
+```{r}
+arrange(hrc, Value, desc(Date))
+```
+
+Interestingly, no value of 1 after 2012... This suggests a change in the way things were measured.
+
+---
+
+## Combining `filter` and `arrange`
+
+Let's look at post-2012 values:
+
+```{r}
+after2012 <- filter(hrc, Date >= '2013-01-01')
+arrange(after2012, Value)
+```
+
+It seems some of the values recorded as 4 actually mean "less than 4".
+
+---
+
+## Combining `filter` and `arrange`
+
+```{r}
+large_values <- filter(hrc, Value > 50000)
+arrange(large_values, Site, Date)
+```
+
+---
+
+## A pipeline of verbs
+
+Each of the verbs in `dplyr` take a dataset in as the first parameter, and return a data frame out again.
+
+Often, an analyses will consist of a bunch of verbs called one after the other, with each one feeding into the next.
+
+```{r, eval=FALSE}
+large_values <- filter(hrc, Value > 50000)
+arrange(large_values, Site, Date)
+```
+
+The temporary dataset `large_values` is really only used here to feed to the `arrange()` verb. We don't really need it.
+
+We could do:
+
+```{r, eval=FALSE}
+arrange(filter(hrc, Value > 50000), Site, Date)
+```
+
+But you have to read that 'inside out'!
+
+---
+
+class: middle, inverse
+
+# The pipe `|>`
+
+---
+
+## The pipe `|>`
+
+The pipe operator, `|>` is specifically designed to improve this. It takes the item on the left of the pipe and places it
+as the first argument of the function on the right.
+
+```{r, eval=FALSE}
+hrc |> filter(Value > 5000)
+```
+
+Is equivalent to:
+
+```{r, eval=FALSE}
+filter(hrc, Value > 5000)
+```
+
+But, the pipe version is readable as "Take the dataset `hrc` and filter it so that rows with Value > 5000 remain"
+
+To enter a pipe in RStudio, you can use Ctrl-Shift-M (Command-Shift-M on a Mac).
+
+---
+
+## The pipe `|>`
+
+This extends naturally:
+
+```{r, eval=FALSE}
+hrc |>
+  filter(Value > 5000) |>
+  arrange(Site, Date)
+```
+
+reads "Take the dataset `hrc`, filter it so that rows with Value > 5000 remain, then arrange by Site and Date"
+
+When constructing pipelines like this, make sure the `|>` symbol is at the end of intermediate lines.
+
+.left-code[
+Use this:
+
+```{r, eval=FALSE}
+hrc |>
+  filter(Value > 5000) |>
+  arrange(Site, Date)
+```
+]
+
+.right-plot[
+Not this:
+
+```{r, eval=FALSE}
+hrc
+ |> filter(Value > 5000)
+ |> arrange(Site, Date)
+```
+]
+
+---
+
+## The magittr pipe `%>%`
+
+Prior to R version 4.1, the `|>` (base) pipe didn't exist. Instead, people used a pipe from the `magittr` package which uses `%>%`.
+
+Generally, these are basically the same. You will see `%>%` used 'in the wild' when googling - that's OK, it'll work just fine.
+
+In RStudio, by default the keyboard combination Ctrl-Shift-M (Cmd-Shift-M on Mac) inserts the magittr pipe `%>%`.
+
+**We suggest you change this in RStudio**
+
+See Tools->Global Options->Code and select the 'use native pipe operator, |>' option.
+
+---
+
+## Selecting and renaming columns
+
+Just like we can select rows with `filter`, we can choose columns with `select`.
+
+This is useful for getting rid of columns we don't need, for rearranging columns, and for changing names to
+something more convenient.
+
+```{r}
+hrc |> select(Site, Date, Value)
+```
+
+---
+
+## Selecting columns with `select`
+
+We can select a range of columns with a colon `:`
+
+```{r}
+hrc |> select(Council, Site:RawValue)
+```
+
+---
+
+## Selecting columns with `select`
+
+We can select by column number instead of column name if you like:
+
+```{r}
+hrc |> select(Council, 3:6)
+```
+
+Generally it's better to use names though, as the order of columns might be different to what you expect.
+
+---
+
+## Selecting columns with `select`
+
+The `everything()` helper function is useful if you want one column first, then everything else:
+
+```{r}
+hrc |> select(Symbol, Value, everything())
+```
+
+---
+
+## Selecting columns with `select`
+
+The `starts_with()` helper is useful if you have a bunch of columns that start similarly:
+
+```{r}
+hrc |> select(Date, Value, starts_with("Site"))
+```
+
+---
+
+## Selecting columns with `select`
+
+You can rename a column just by changing it's name in the `select`:
+
+```{r}
+hrc |> select(Site, Date, EColi = Value)
+```
+
+---
+
+## Dropping columns
+
+To drop a column use `-` in front of the name:
+
+```{r}
+hrc |> select(-Indicator, -RawValue, -Symbol)
+```
+
+---
+
+## Renaming columns with `rename`
+
+If you want to rename a column but don't want to specify all the other columns, then `rename()` does this:
+
+```{r}
+hrc |> rename(Name = Site)
+```
+
+---
+
+## Adding new columns: `mutate`
+
+We can add new columns based on existing ones with `mutate`:
+
+```{r}
+hrc |> select(SiteID, Date, Value) |>
+  mutate(Log10Value = log10(Value))
+```
+
+---
+
+## Adding new columns: `mutate`
+
+We can add new columns based on existing ones with `mutate`:
+
+```{r, message=FALSE}
+library(lubridate)
+hrc |> select(SiteID, Date, Value) |>
+  mutate(Year = year(Date), Month = month(Date, label=TRUE))
+```
+
+---
+
+.left-code[
+## Seasonality?
+```{r, label='hrc_season', eval=FALSE}
+hrc |>
+  mutate(
+    Month = month(Date, label=TRUE)
+    ) |>
+  ggplot() +
+  geom_boxplot(
+    aes(
+      x = Month,
+      y = Value)
+    ) +
+  scale_y_log10(
+    labels = scales::label_comma()
+  )
+```
+
+We can pipe the result of wrangling into
+`ggplot()` as it takes a data.frame as first
+argument.
+
+Remember to switch from `|>` to `+` !!
+]
+
+.right-plot[
+```{r, ref.label='hrc_season', echo=FALSE, eval=TRUE}
+```
+]
+
+---
+
+## Adding new columns: `mutate`
+
+We can change existing columns by overwriting them:
+
+```{r}
+library(lubridate)
+hrc |> select(SiteID, Date, Value) |>
+  mutate(SiteID = as.numeric(SiteID))
+```
+
+---
+
+## Adding new columns: `mutate`
+
+We can change existing columns by overwriting them:
+
+```{r}
+hrc |> select(SiteID, Site, Date, Value) |>
+  mutate(SiteID = as.numeric(SiteID),
+         Site = str_to_title(Site))
+```
+
+---
+
+## How I extracted value, symbol
+
+.left-code-wide[
+```{r, label="hrc_extract", eval=FALSE}
+hrc |> select(SiteID, RawValue) |>
+  mutate(
+    Symbol = str_extract(RawValue, '[<>]'),
+    Value = str_extract(RawValue, '[0-9]+'),
+    Value = as.numeric(Value)
+    ) |>
+  arrange(Symbol)
+```
+
+The patterns `[<>]`, `[0-9]+` are **regular expressions**.
+
+They're a way of specifying how to match parts of text.
+
+Don't worry about these - you won't have to come up with them yourselves!
+]
+
+.right-out-narrow[
+```{r, ref.label="hrc_extract", echo=FALSE, eval=TRUE}
+```
+]
+
+---
+
+## To summarise
+
+Today we've learnt about:
+
+- `filter()` to pick rows based on value.
+
+- `arrange()` to change the order of rows based on value.
+
+- `select()` to pick columns based on column name.
+
+- `rename()` to rename columns while keeping others.
+
+- `mutate()` to add new columns based on existing ones.
+
+--
+
+The real power in `dplyr` comes from the ones we'll look at next time:
+
+- `summarise()` to reduce all rows down to a summary statistic.
+
+- `group_by()` to do all of the above operations within subgroups of the data all at once.
