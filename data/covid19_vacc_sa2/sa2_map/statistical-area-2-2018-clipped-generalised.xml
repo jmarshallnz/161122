@@ -1,0 +1,118 @@
+<gmd:MD_Metadata xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:gts="http://www.isotc211.org/2005/gts" xmlns:gco="http://www.isotc211.org/2005/gco" xmlns:gml="http://www.opengis.net/gml" xmlns="http://www.isotc211.org/2005/gmd">
+  <gmd:fileIdentifier>
+    <gco:CharacterString>479ab184-fb30-8b19-892b-a0dba6db2374</gco:CharacterString>
+  </gmd:fileIdentifier>
+  <gmd:language>
+    <gco:CharacterString>eng</gco:CharacterString>
+  </gmd:language>
+  <gmd:hierarchyLevel>
+    <gmd:MD_ScopeCode codeList="./resources/codeList.xml#MD_ScopeCode" codeListValue="005"/>
+  </gmd:hierarchyLevel>
+  <gmd:hierarchyLevelName>
+    <gco:CharacterString>dataset</gco:CharacterString>
+  </gmd:hierarchyLevelName>
+  <gmd:dateStamp>
+    <gco:DateTime>20180517</gco:DateTime>
+  </gmd:dateStamp>
+  <gmd:metadataStandardName>
+    <gco:CharacterString>ISO 19115:2003/19139</gco:CharacterString>
+  </gmd:metadataStandardName>
+  <gmd:metadataStandardVersion>
+    <gco:CharacterString>1.0</gco:CharacterString>
+  </gmd:metadataStandardVersion>
+  <gmd:spatialRepresentationInfo>
+    <gmd:MD_VectorSpatialRepresentation>
+      <gmd:topologyLevel>
+        <gmd:MD_TopologyLevelCode codeList="./resources/codeList.xml#MD_TopologyLevelCode" codeListValue="001"/>
+      </gmd:topologyLevel>
+      <gmd:geometricObjects>
+        <gmd:MD_GeometricObjects>
+          <gmd:geometricObjectType>
+            <gmd:MD_GeometricObjectTypeCode codeList="./resources/codeList.xml#MD_GeometricObjectTypeCode" codeListValue="002"/>
+          </gmd:geometricObjectType>
+          <gmd:geometricObjectCount>
+            <gco:Integer>2171</gco:Integer>
+          </gmd:geometricObjectCount>
+        </gmd:MD_GeometricObjects>
+      </gmd:geometricObjects>
+    </gmd:MD_VectorSpatialRepresentation>
+  </gmd:spatialRepresentationInfo>
+  <gmd:identificationInfo>
+    <gmd:MD_DataIdentification>
+      <gmd:citation>
+        <gmd:CI_Citation>
+          <gmd:title>
+            <gco:CharacterString>SA22018_V1_00_Clipped</gco:CharacterString>
+          </gmd:title>
+          <gmd:presentationForm>
+            <gmd:CI_PresentationFormCode codeList="./resources/codeList.xml#CI_PresentationFormCode" codeListValue="005"/>
+          </gmd:presentationForm>
+        </gmd:CI_Citation>
+      </gmd:citation>
+      <gmd:abstract>
+        <gco:CharacterString>SA22018_V1_00_Clipped is a major released version of the annually released statistical area 2 (SA2) pattern as at 1 January 2018, clipped to the coastline.Statistical area 2 (SA2) is a new output geography that provides higher aggregations of population data than can be provided at the statistical area 1 (SA1) level. The SA2 geography aims to reflect communities that interact together socially and economically. In populated areas, SA2s generally contain similar sized populations.The SA2 should:form a contiguous cluster of one or more SA1sexcluding exceptions below, allow the release of multivariate statistics with minimal data suppression capture a similar type of area, such as high-density urban areas, farmland, wilderness areas, and water areas be socially homogeneous and capture a community of interest. It may have, for example: a shared road network shared community facilities shared historical or social links, or socio-economic similarity form a nested hierarchy with statistical output geographies and administrative boundaries. It must: be built from SA1s either define or aggregate to define urban rural areas, territorial authorities, and regional councils.SA2s in city council areas generally have a population of 2,000–4,000 residents while SA2s in district council areas generally have a population of 1,000–3,000 residents. In rural areas, many SA2s have fewer than 1,000 residents because they are in conservation areas or contain sparse populations that cover a large area, for example, Fiordland. SA2s have been created in urban areas for areas that contain significant business and industrial activity, for example ports, airports, industrial, commercial, and retail areas. These areas have fewer than 1,000 residents and are useful for analysing business demographics, labour markets, and travel-to-work patterns. In major urban areas, an SA2 or a group of SA2s often approximates a single suburb. A small urban area containing up to 5,000 residents may be represented by a single SA2. In rural areas, rural settlements are included in their respective SA2 with the surrounding rural area. Some SA2s with nil or nominal populations have been created to ensure that the SA2 geography covers all of New Zealand and aligns with New Zealand’s topography and local government boundaries. These types of SA2s are described below. SA2s with nil or nominal resident populations are created to represent inland water, inlets or oceanic areas and include: inland lakes larger than 50 km2 (lakes smaller than 50 km2are included with the surrounding land SA2)harbours larger than 40 km2major ports other non-contiguous inlets and harbours defined by territorial authoritycontiguous oceanic areas defined by regional council. Stewart Island and Chatham Islands are represented by separate SA2s. To minimise suppression of population data, small islands with nil or low populations close to the mainland are generally included with their adjacent land-based SA2. SA2s have been created for populated single islands or groups of islands which are some distance from the mainland, or to separate large unpopulated islands from urban areas. These SA2s are: Three Kings Islands Barrier Islands (includes Great Barrier and Little Barrier Islands, and other nearby islands) Gulf Islands (includes Motutapu, Rangitoto, and other islands in the Hauraki Gulf) Islands Thames Coromandel District Islands Bay of Plenty Region (Motiti Island, Mayor Island, Moutohora Island, and White Island) Bare Island (in the Bay of Plenty region but outside the territorial authority area) Matanaka Island Kapiti Island Mana Island Islands Tasman District (Best Island, Bell Island, and Rabbit Island) In rural areas where territorial authority boundaries straddle regional council boundaries, SA2s have been created to maintain the statistical geography and administrative area hierarchy. These SA2s each have fewer than 200 residents and are: Arahiwi, Tiroa, Rangataiki, Kaimanawa, Taharua, Te More, Ngamatea, Whangamomona, and Mara. The SA2 classification is a flat classification. As at 2018, there are 2,253 SA2s, including 2,237 digitised SA2s and 16 non-digitised SA2s. Each SA2 is a single geographic entity with a name and a numeric code. The name refers to a geographic feature or a recognised place name or suburb. In some instances where place names are the same or very similar, the SA2s are differentiated by their urban area or territorial authority, for example, Gladstone (Invercargill) and Gladstone (Carterton District). SA2 codes have six digits. North Island SA2 codes start with a ‘1’ or ‘2’ and South Island SA2 codes start with a ‘3’. They are numbered approximately north to south within their respective territorial authorities. In 2018, the last two digits of each code is 00, and when SA2 boundaries change in the future, only the last two digits of the code will change to ensure the north-south pattern is maintained. Digital boundary data became freely available on 1 July 2007.</gco:CharacterString>
+      </gmd:abstract>
+      <gmd:purpose>
+        <gco:CharacterString>Statistical Area 2 2018 Clipped is a major released version of the annually released statistical area 2 (SA2) pattern as at 1 January 2018, clipped to the coastline. This clipped version has been created for map creation/cartographic purposes and may not fully represent the official full extent boundaries. This version contains 2,171 SA2s.</gco:CharacterString>
+      </gmd:purpose>
+      <gmd:spatialRepresentationType>
+        <gmd:MD_SpatialRepresentationTypeCode codeList="./resources/codeList.xml#MD_SpatialRepresentationTypeCode" codeListValue="001"/>
+      </gmd:spatialRepresentationType>
+      <gmd:language>
+        <gco:CharacterString>eng</gco:CharacterString>
+      </gmd:language>
+      <gmd:environmentDescription>
+        <gco:CharacterString>Version 6.2 (Build 9200) ; Esri ArcGIS 10.3.1.4959</gco:CharacterString>
+      </gmd:environmentDescription>
+      <gmd:extent>
+        <gmd:EX_Extent>
+          <gmd:geographicElement/>
+        </gmd:EX_Extent>
+      </gmd:extent>
+      <gmd:extent>
+        <gmd:EX_Extent>
+          <gmd:geographicElement>
+            <gmd:EX_GeographicBoundingBox>
+              <gmd:westBoundLongitude>
+                <gco:Decimal>166.262032582</gco:Decimal>
+              </gmd:westBoundLongitude>
+              <gmd:eastBoundLongitude>
+                <gco:Decimal>-175.905725579</gco:Decimal>
+              </gmd:eastBoundLongitude>
+              <gmd:southBoundLatitude>
+                <gco:Decimal>-47.2230467565</gco:Decimal>
+              </gmd:southBoundLatitude>
+              <gmd:northBoundLatitude>
+                <gco:Decimal>-34.1296346494</gco:Decimal>
+              </gmd:northBoundLatitude>
+            </gmd:EX_GeographicBoundingBox>
+          </gmd:geographicElement>
+        </gmd:EX_Extent>
+      </gmd:extent>
+    </gmd:MD_DataIdentification>
+  </gmd:identificationInfo>
+  <gmd:distributionInfo>
+    <gmd:MD_Distribution>
+      <gmd:transferOptions>
+        <gmd:MD_DigitalTransferOptions>
+          <gmd:onLine>
+            <gmd:CI_OnlineResource>
+              <gmd:linkage>
+                <gmd:URL>https://datafinder.stats.govt.nz/layer/92213-statistical-area-2-2018-clipped-generalised/</gmd:URL>
+              </gmd:linkage>
+            </gmd:CI_OnlineResource>
+          </gmd:onLine>
+        </gmd:MD_DigitalTransferOptions>
+      </gmd:transferOptions>
+    </gmd:MD_Distribution>
+  </gmd:distributionInfo>
+  <gmd:metadataConstraints>
+    <gmd:MD_LegalConstraints>
+      <gmd:useLimitation>Attribution 4.0 International</gmd:useLimitation>
+      <gmd:useLimitation>https://creativecommons.org/licenses/by/4.0/</gmd:useLimitation>
+      <gmd:useConstraints>
+        <gmd:MD_RestrictionCode codeList="http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/resources/Codelist/gmxCodelists.xml#MD_RestrictionCode" codeListValue="license">license</gmd:MD_RestrictionCode>
+      </gmd:useConstraints>
+    </gmd:MD_LegalConstraints>
+  </gmd:metadataConstraints>
+</gmd:MD_Metadata>

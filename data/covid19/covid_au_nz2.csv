@@ -1,0 +1,13 @@
+country,month,type,count
+Australia,March-April,cases,6881
+Australia,March-April,tests,563641
+New Zealand,March-April,cases,1134
+New Zealand,March-April,tests,139598
+Australia,May-June,cases,1067
+Australia,May-June,tests,1892341
+New Zealand,May-June,cases,39
+New Zealand,May-June,tests,262102
+Australia,July-August,cases,13386
+Australia,July-August,tests,2462564
+New Zealand,July-August,cases,41
+New Zealand,July-August,tests,94606
