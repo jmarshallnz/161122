@@ -1,0 +1,254 @@
+---
+title: "Workshop C02: Inference and Prediction"
+output:
+  html_document: 
+    toc: yes
+---
+
+```{r}
+library(tidyverse)
+```
+
+## Exercise 1: Discover the truth hidden by errors
+
+In Workshop C1, we've learnt to build a linear model as
+\[
+y_i=a+bx_i+e_i, i=1,2,...,n
+\]
+with the observed data $(x_i,y_i)$, $i=1,...,n$. Even if we know nothing about the intercept $a$ and the slope $b$, `lm()` can find some reasonable values for them based on the data. 
+
+A natural question arises: Are these values found by `lm()` the true values of $a$ and $b$? 
+
+We are now going to do some **simulation** experiments to investigate this issue. Simulation is an important tool for statistician to evaluate various statistics methods. The key is to generate some artificial data following a known probabilistic law (the ground truth) and then perform statistical analysis on the artificial data. Statistician will pretend that the ground truth is unknown and try to gauge it based on the artificial data. The guess of statistician is then compared with the ground truth and we will know if we are guessing in a right way. 
+
+In our case, we first fix $n=10$ independent variables $x_1=1,x_2=2,...,x_{10}=10$. 
+
+We further introduce the random errors $e_i,i=1,...,10$ following a standard normal distribution with mean zero and unit variance. 
+
+Suppose the intercept is known as $a=1$ and the slope is known as $b=1$. For each $x_i$, we can then calculate the response variable $y_i=a+bx_i+e_i$. 
+
+The following R chunk generates the desired sequences of `x`, `e` and `y` and organize them into a tidy tibble. 
+
+```{r}
+    set.seed(2020)
+    n <- 10
+    ab <- c(1,1)
+    demo <- tibble(x=1:n,e=rnorm(n)) %>% mutate(y=ab[1]+ab[2]*x+e)
+    demo
+```
+
+$x$ is generated in R by calling `1:n` provided $n=10$. Particularly, `1:n` generate a sequence of successive integers starting from 1 and ending by $n$ as $1,2,...,n$.
+
+The R function `rnorm(n)` generates a sample of the standard normal random variables with size $n$. `rnorm()` will give your different numbers as it is designed to generate random numbers. However, we can fix its output by specifying a random seed `2020` in the R function `set.seed()`. Setting seed is important in simulation as it ensures the reproducibility of your random numbers. You can change the random seed if you want to see some different results.
+
+`a+b*x+e` completes the arithmetic operations and gets all $y_i$ ready. Notice that in R you can multiply a sequence `x` by a number `b` with the symbol `*`. Same things work for `+`, `-`, `/` and most basic functions.  
+
+1. Our simulated `x` and `y` in `demo` are ready now. Let's make a scatter plot of `y` against `x` with the true line $y=1+x$.
+
+    ```{r}
+    demo %>% ggplot(aes(x=x,y=y)) + 
+      geom_point() +
+      geom_abline(intercept=ab[1],slope=ab[2]) +
+      ylim(0,12) +
+      xlim(0,10)
+    ```
+
+    `geom_abline()` is used to add a line to the scatter plot. We  adjust the range of the plot by `ylim()` and `xlim()` for better visualization. You can further customise the plot according to your own preferences. 
+
+    *Do all the points follow the line well?*
+
+2. Try to fit a linear model `y~x`. 
+
+    ```{r}
+      lm.demo <- lm(y~x,data=demo)
+      lm.demo
+      tibble(ab.fitted=coef(lm.demo),ab.true=ab) %>% mutate(difference = ab.fitted - ab)
+    ```
+
+    We further retrieve the coefficients from the fitted linear model via `coef()` and compare these coefficients with the true values ($a=b=1$) by computing their differences. 
+    
+    *What do you think about the results?*
+
+3. Let's make a summary of your fitted model by `summary()`. 
+
+    ```{r}
+      summary(lm.demo)
+    ```
+
+    *Find `Std. Error` and compare it with the differences you found in Step 2. *
+    
+4. Use the function `augment()` from the package `broom` to extract the residuals from the fitted linear model `lm.demo`. 
+Investigate the mean and variance of the residuals via `summarise()`.
+
+    ```{r}
+      library(broom)
+      lm.demo.fit <- augment(lm.demo)
+      lm.demo.fit %>% summarise(mean.res=(mean(.resid)),var.res=var(.resid))
+    ```
+    *Compare `mean.res` and `mean.res` with the true mean and variance of `e`. Do you find anything?*
+
+5. After adding the true random error `e` to our tibble `lm.demo.fit` by joining `lm.demo.fit` with `demo`, let's make a scatter plot of the residuals against the true random errors `e`. 
+
+    ```{r}
+      lm.demo.fit %>% left_join(demo) %>% ggplot(aes(x=e,y=.resid)) + 
+        geom_point() +
+        xlim(-3,3) +
+        ylim(-3,3)
+    ```
+
+    *What you can conclude from the above scatter plot?*
+
+6. The final step is to visualize our fitted linear model with `geom_smooth()`. Again, we add the true line $y=1+x$. 
+
+    ```{r}
+    ggplot(demo, aes(x = x, y = y)) +
+      geom_point() +
+      geom_smooth(method='lm') +
+      geom_abline(intercept=ab[1],slope=ab[2],color='red')
+    ```
+
+    Ok, we fail to catch the exact same line. But the result is not bad as the red line is not too far from the blue one. 
+
+7. *Change `2020` in `set.seed()` to any integer number you like. Generate another set of simulated data and re-do the analysis from Step 1-5.*
+
+```{r}
+    set.seed(2021)
+    n <- 10
+    ab <- c(1,1)
+    demo2 <- tibble(x=1:n,e=rnorm(n)) %>% mutate(y=ab[1]+ab[2]*x+e)
+```
+
+8. *Change the sample size from $n=10$ to $n=50$. Generate another set of simulated data and re-do the analysis from Step 1-5.*
+
+```{r}
+    set.seed(2020)
+    n <- 50
+    ab <- c(1,1)
+    demo3 <- tibble(x=1:n,e=rnorm(n)) %>% mutate(y=ab[1]+ab[2]*x+e)
+```
+
+9. *You may feel free to change other things in the simulation, like either coefficients in `ab`, or `mean` and `sd` in `rnorm()`. Try to change one at a time and explore your results.* **Make sure that each time you change only one value.**
+
+## Exercise 2: Inference based on linear model
+
+In this exercise we'll look at again modelling `sales` using `youtube`, like we saw in the first lab. We will have a closer look at the model summary.
+
+1. Load the package `datarium` and the data `marketing`. Fit the linear model, and saves the result in the object `lm.youtube` again. Then, request a summary:
+    ```{r}
+    library(datarium)
+    data(`marketing`)
+    lm.youtube <- lm(sales ~ youtube, data=marketing)
+    summary(lm.youtube)
+    ```
+    
+    Notice the summary command gives quite a lot of information. We'll go through some of it here. **You might want to add some notes to your notebook about what the various bits are telling you**. 
+
+2. We will skip `Call:` and `Residuals:` as their meanings are very clear. Our major focus is on `Coefficients:`. 
+
+    * We have two rows, one for the `Intercept`, and one labelled `youtube` - this is the slope.
+    * The `Estimate` column gives us the values of each of these parameters, i.e. **point estimates**, same as `coef()`. *Are these point estimates the true values in the population?*  
+    * The `Std. Error` column is a measure of how much out we might be in the estimation. In the simulation study of Exercise 1, we should have identified that the differences between the point estimates and true values seem to agree with `Std. Error` in some level. 
+    
+    The reason we have this error in estimation is we have just a sample of data - we haven't tried all possible Youtube promotion budget and observed the corrsponding sales! So, just like a sample mean might be a bit out, the estimates of the intercept and slope might also be a bit out. `Std. Error` is the standard deviation of those estimates. 
+      
+    Ok, there will always be some errors in our point estimates if we can't observe all the possible data. We have to accept this fact that we can't know the true value of the regression coefficients in the real world (An exception is the simulation study in Exercise 1!) 
+      
+    Statistician who can't forgive the eternal error proposes an alternative way to consolate themselves, i.e. the **interval estimation** or **confidence interval**. Rather than guessing a point for the unknown coefficient, they propose that constructing an interval based on the data to contain the true coefficient with a high probability, say 95%. This probability is called **confidence level** in statistics. 
+      
+    A 95% confidence interval for the slope would be:
+$$
+0.0475 \pm 2 \times 0.0027,
+$$
+where 0.0475 is from `Estimate` and 0.0027 is from `Std. Error`. The multiple 2 comes from the fact that the point estimate follows a normal distribution. It can trace back to **$3\sigma$ rule** of normal distribution you've learnt from part B. *Recall the probability of a normal random variable falling into $2\sigma$ region.* The following R chunk helps you find the right multiple factor given arbitrary confidence level between 0 and 1.
+
+    ```{r}
+    conf.level <- 0.95
+    qnorm(1-(1-conf.level)/2)
+    ```
+
+      We can easily see that zero is not falling into this interval. So it is very unlikely that the coefficient of `youtube` is zero as this confidence interval shall contain the true value with a high probability 95%. 
+      
+    *Could 0.05 be a candidate for the true value of the coefficient of `youtube`? *
+
+    *Construct your 95% confidence interval for `Intercept`.*
+
+3. Continue reading `Coefficients:`
+
+    * The `t value` column is giving the number of standard deviations away from 0 the slope and intercept estimates are (i.e. `t value = (Estimate-0)/Std. Error`, $17.67 =  0.047537 / 0.002691$).      
+    
+    The confidence interval only gives us a rough idea that zero is not likely to be the true value of the `youtube` coeffcient. `t value` provides us a more quantitative measurement on how far zero is from the true value.
+    
+    Actually, `t value` here is  a **$T$-statistic** to check if the `youtube` coefficient is equal to zero, i.e. a hypothesis $b=0$. In statistics, this hypothesis is called the **null hypotheis** denoted $H_0$. 
+    
+    The bigger `t value` is, the more unlikely zero is the true coefficient. With a sufficient big `t value`, we can say we reject the null hypothesis $H_0:b=0$ and the corresponding regression coefficient is non-zero. If `t value` is small enough, we can say that we accept the null hypothesis.
+      
+    Need a cut-off point to make the decision on accept or reject! P-values will finish this task.
+     
+    * The `Pr(>|t|)` column is the P-values of $T$-statistics for each of these estimates given the null hypothesis is true - the slope (or intercept) is exactly zero.
+    
+    From a nonrigorous perspective, P-values is the probability of getting the point estimates reported in the summary under the condition of the null hypothesis being true. 
+    
+    As a probability, `Pr(>|t|)` will be confined between 0 and 1. Provided `t value`, the corresponding `Pr(>|t|)` can be calculated by the following R chunk
+    ```{r}
+    t.value <- 17.67
+    2*(1-pnorm(t.value))
+    ```
+    
+    If `Pr(>|t|)` is very small (close to 0), it seems that we meet some unusual phenomenon which goes against the condition - the null hypothesis being true. 
+    
+    A typical used cut-off point is 0.05. This cut-off point is called the *significance level* when testing a hypothesis. 
+
+    *Think about the line `Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1`. What does these codes mean? What would be your conclusion for the codes reported in `summary()`? Write some notes about this into your notebook. If you're not sure, discuss with those around you, or with Xun.*
+
+4. Following Exercise 2 in LabC1, we use `broom` to sweep `lm.youtube` and get the tidy tibble. We compute the ratio between the variance of residuals `.resid`($e$) and the variance of the response variable `sales`($y$) with `summarise()`. 
+
+    ```{r}
+    library(broom)
+    augment(lm.youtube) %>% summarise(ratio.var = var(.resid)/var(sales))
+    ```
+
+    *Compare this ratio with the `Multiple R-squared:`($R^2$) value (at the bottom of the summary output) by summing them together.*
+    
+    *Think about what the `Multiple R-squared:`($R^2$) value means for the relationship between `sales` and `youtube`.*
+
+5. Retrieve another two linear models fitted in Workshop C1, i.e. `lm.facebook` and `lm.newspaper`. Peruse their summaries by following Step 1-4 in this exercise. 
+
+
+**Point Estimation**, **Interval Estimation**, and **Hypothesis Testing** are three fundamental inference tools in statistics. 
+
+## Exercise 3: Prediction based on linear model
+
+**Inference** focuses on examining the observed data with some statistical models. Another important part in statistics is **prediction**, i.e. gauging the unknown values of $y$ provided some values of $x$. Linear model is one of the most powerful model for **prediction** in statistics!
+
+1. Suppose you wanted to predict the sales given a particular amount of the advertising budget on Youtube. Unprecedentedly, your advertising budget will be 400 thousands of dollars. What is your best guess as to the sales?  *Hint: Use the equation to work this out.*
+
+2. Let's re-do the prediction using R. We do this by creating a data frame with the data to predict on, and then use the `predict` function. Add a new code block to your notebook to do this:
+    ```{r}
+    # predict the sales with the advertising budget 400 thousands of dollars on Youtube
+    new_data <- data.frame(youtube=400)
+    predict(lm.youtube, new_data)
+    ```
+    
+3. We can improve this prediction by taking into account how much variation we expect this prediction to have. The variation comes from two sources:
+    * The potential error in the line itself (Our slope and intercept contain some error as they are point estimates, not true values).
+    * The variation of individuals about the line (i.e. variation not explained by our linear model).
+
+    We can account for either the first or both of these in our predictions. Try the following:
+    
+    ```{r}
+    predict(lm.youtube, new_data, interval="confidence")
+    predict(lm.youtube, new_data, interval="prediction")
+    ```
+    
+    The first accounts only for the error in the line itself. That is, it is a *confidence* interval for the **average** sales with 400 thousands of dollars advertising budget on Youtube. The second accounts for the error in the line plus the variation of different situations of sales with 400 thousands of dollars budget about the line. Thus, it gives a *prediction* interval for the sales of an **individual** advertising trial with 400 thousands of dollars budget. This is the range we expect the sales of a single trial to be in.
+ 
+4. By default, `predict()` reports a confidence interval with 95% confidence level. We can get different confidence intervals under other confidence levels, say 90% or 99% by adjusting `level` as follows. 
+
+    ```{r}
+    predict(lm.youtube, new_data, interval="confidence", level = 0.90)
+    predict(lm.youtube, new_data, interval="confidence", level = 0.99)
+    ```
+    
+    *Compare the confidence intervals at confidence level 90%, 95% and 99%. Discuss your findings.*
+    
+5. Unfortunately, due to Covid-19, your company decides to cut the advertising budget on Youtube to zero dollars. *Use your linear model to predict the sales with a prediction interval. Do you think this prediction is a good one? State your reasoning.*

@@ -1,0 +1,18 @@
+---
+title: "Workshop C01: Simple Linear Regression and Visualisation"
+output: html_document
+---
+
+In this workshop we start looking at the linear model.
+
+Start by downloading `labC01.Rmd` and load it into RStudio.
+
+https://www.massey.ac.nz/~jcmarsha/161122/labs/labC01.Rmd
+
+Read through this document and work on the exercises therein.
+
+## General Guidelines
+
+*Any italic text reminds you that you need to have a think or complete some tasks by R. The first task is to read the following bold text to ensure that you know the ways to seek help!*
+
+**The bold text highlights some important concepts in our learning process and some essential steps in R programming. Missing them may hamper your study progress!**
