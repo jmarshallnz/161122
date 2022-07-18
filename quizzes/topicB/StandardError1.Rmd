@@ -1,0 +1,43 @@
+```{r data generation, echo = FALSE, results = "hide"}
+SampleSize=sample(100,1)+50
+SampleMean=sample(100,1)+60
+SampleSD=sample(10,1)+20
+## QUESTION/ANSWER GENERATION
+questions <- character(5)
+questions[1] <- round(SampleSD/sqrt(SampleSize), 2)
+questions[2] <- round(SampleSD, 2)
+questions[3] <- round(sqrt(SampleSD/SampleSize), 2)
+questions[4] <- round(SampleSD^2/(SampleSize), 2)
+questions[5] <- round(SampleSD/SampleSize, 2)
+solutions <- c(TRUE, FALSE, FALSE, FALSE, FALSE)
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+```
+
+Question
+========
+
+Let $x_1,x_2, \ldots ,x_{`r SampleSize`}$ be a random sample from a population with mean of `r SampleMean` and a
+standard deviation of `r SampleSD`. Then the standard deviation of $\bar{x}$ is closest to...
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+The standard error is the standard deviation `r SampleSD` divided by the square root of the sample size, so we could use <code>`r SampleSD`/sqrt(`r SampleSize`)</code>.
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

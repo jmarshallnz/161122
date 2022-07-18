@@ -1,0 +1,39 @@
+```{r, echo=FALSE, results = "hide"}
+questions <- character(5)
+    questions[1] <- sample(c("Standard deviation.", "Mean", "Variance", "Range"),1)
+    questions[2] <- sample(c("Upper quartile.", "Lower quartile"),1)
+    questions[3] <- "Inter-quartile range."
+    questions[4] <- sample(c("Median.", "60th percentile."),1)
+    questions[5] <- "Trimmed mean."
+    solutions <- c(TRUE, FALSE, FALSE, FALSE,FALSE)
+
+explanations <- rep("Anything that is computed based on the values of the data (mean, standard deviation, variance) in addition to the extreme values (minimum, maximum, range) are susceptible to outliers.", 5)
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+Which of the following statistics is **not** robust to outliers?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple choice

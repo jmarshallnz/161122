@@ -1,0 +1,57 @@
+```{r data generation, echo = FALSE, results = "hide"}
+library(masseystat)
+# created MBJ, confirmed JG
+
+lambda<-round(abs(rnorm(1,3,2)),2)
+x<-rpois(1, lambda)+1
+
+## QUESTION/ANSWER GENERATION
+questions <- numeric(5)
+questions[1] <-  round(ppois(x-1, lambda, lower=FALSE),4)
+questions[2] <- round(dpois(x, lambda), 4)
+questions[3] <-  round(ppois(x, lambda, lower=FALSE), 4)
+questions[4] <-  round(ppois(x-1, lambda, lower=FALSE)+0.05,4)
+questions[5] <- round(ppois(x, lambda),4) 
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE,FALSE)
+questions <- make_unique(questions, solutions, tolerance=0.01)
+questions <- as.character(questions)
+
+explanations <- character(5)
+explanations[1] <- ""
+explanations[2] <- ""
+explanations[3] <- ""
+explanations[4] <- ""
+explanations[5] <- ""
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+$X$ has a Poisson distribution with rate `r lambda`.  Find the probability that $X \ge `r x`$.
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+For the probability that $X$ is greater than **or equal to** `r x`, we can't just use `ppois()` directly with `lower.tail=FALSE`, as that gives the probability that $X$ is greater than `r x`. We could use <code>ppois(`r x-1`, lambda=`r lambda`, lower.tail=FALSE)</code>, or use <code>dpois(`r x`, lambda=`r lambda`) + ppois(`r x`, lambda=`r lambda`, lower.tail=FALSE)</code>.
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

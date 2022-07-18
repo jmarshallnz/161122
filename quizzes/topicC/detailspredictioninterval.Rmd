@@ -1,0 +1,53 @@
+
+```{r data_generation, echo=FALSE, results='hide'}
+library(exams)
+
+questions <- character(5)
+questions[1] <- "confidence interval"
+questions[2] <- "prediction interval"
+questions[3] <- "credible interval"
+questions[4] <- "fiducial interval"
+questions[5] <- "tolerance interval"
+
+solutions <- c(FALSE,TRUE,FALSE,FALSE,FALSE)
+explanations <- character(5)
+explanations[1] <- ""
+explanations[2] <- ""
+explanations[3] <- ""
+explanations[4] <- ""
+explanations[5] <- ""
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+  
+For a given value of *x*, the estimation interval for an individual *y* observation is called the:
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+Individuals are estimated with a prediction interval, which combines uncertainty
+in the linear model fit (uncertainty in coefficients) with the variation of
+individuals around the model fit.
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+  
+  extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice
+

@@ -1,0 +1,78 @@
+```{r data generation, echo = FALSE, results = "hide"}
+## DATA GENERATION
+AX= sample(5,1)+19
+AY= sample(5,1)+18
+AZ= sample(5,1)+27
+AT=AX+AY+AZ
+BX= sample(5,1)+14
+BY= sample(5,1)+12
+BZ= sample(5,1)+14
+BT=BX+BY+BZ
+CX= sample(5,1)+22
+CY= sample(5,1)+19
+CZ= sample(5,1)+33
+CT=CX+CY+CZ
+XT=AX+BX+CX
+YT=AY+BY+CY
+ZT=AZ+BZ+CZ
+GT=AT+BT+CT
+
+## QUESTION/ANSWER GENERATION
+questions <- character(5)
+    questions[1] <- round(BZ/BT,4)
+    questions[2] <- round(BZ/ZT,4)
+    questions[3] <- round(BZ/GT,4)
+    questions[4] <- round(ZT/GT,4)
+    questions[5] <- round(BT/GT,4)
+    solutions <- c(TRUE,FALSE,FALSE,FALSE, FALSE)
+
+explanations <- character(5)
+explanations[1] <- ""
+explanations[2] <- ""
+explanations[3] <- ""
+explanations[4] <- ""
+explanations[5] <- ""
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+Joint problems are common in older dogs. To ease the problem, vets recommend a combination of certain types of food and supplements. In order to gauge the popularity of prescribed combination of food and supplement types, one study classified the options chosen by the owners of `r GT` randomly selected older dogs with joint problems, according to their food and supplement intake. The data are summarised in the following frequency table.
+
+
+```{r, echo=FALSE}
+foods <- data.frame(` ` = c(paste("Food", c("A", "B", "C")), "Total"), `Supplement X` = c(AX, BX, CX, XT), `Supplement Y` = c(AY, BY, CY, YT), `Supplement Z` = c(AZ, BZ, CZ, ZT), Total = c(AT, BT, CT, GT), check.names=FALSE)
+foods %>%
+  knitr::kable(format='html', booktabs=TRUE, align='lrrrrr') %>%
+  kableExtra::kable_styling(bootstrap_options = "bordered", full_width = FALSE, position = "center") %>%
+  kableExtra::column_spec(column = 1, bold = TRUE)
+```
+
+If a dog is known to be on a diet consisting of food type B, then the probability that it will be given supplement Z is closest to:
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+As we know the dog is on the diet with food type B, we need only use the Food B row, so we have `r BT` dogs to consider. Of these, `r BZ` dogs were given supplement Z.
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice
+

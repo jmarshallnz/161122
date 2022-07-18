@@ -1,0 +1,71 @@
+```{r data generation, echo = FALSE, results = "hide"}
+library(exams)
+PA=0.85+sample(10,1)/100
+PB=0.92+sample(7,1)/100
+
+## QUESTION/ANSWER GENERATION
+questions <- character(5)
+questions[1] <- round(PA*PB,4)
+questions[2] <- round((PA+PB)/2, 4)
+questions[3] <- round((1-PA)*(1-PB), 4)
+questions[4] <- round(1-(1-PA)*(1-PB), 4)
+questions[5] <- max(PA,PB)
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE,FALSE)
+explanations <- character(5)
+explanations[1] <- ""
+explanations[2] <- ""
+explanations[3] <- ""
+explanations[4] <- ""
+explanations[5] <- ""
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+A system has two components, $A$ and $B$, which are connected in
+series. The probability that component $A$ works is `r PA`, and the
+probability that component $B$ works is `r PB`. Suppose that the
+components work independently. What is the probability that the system
+works?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+As the components are in series, the system will only work if both components are working, so that $P(\mbox{System}) = P(A\mbox{ and }B)$. As $A$ and $B$ are independent,
+
+$$
+\begin{aligned}
+P(\mbox{System}) = P(A\mbox{ and }B) &= P(A) \times P(B)\\
+&= `r PA` \times `r PB`.
+\end{aligned}
+$$
+
+In RStudio:
+
+```
+PA = `r PA`
+PB = `r PB`
+PA * PB
+```
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

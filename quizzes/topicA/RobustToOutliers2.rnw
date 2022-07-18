@@ -1,0 +1,57 @@
+
+<<echo=FALSE, results=hide>>=
+## DATA GENERATION
+## QUESTION/ANSWER GENERATION
+questions <- character(5)
+    questions[1] <- "the variance."
+    questions[2] <- "the inter-quartile range."
+    questions[3] <- "the trimmed mean."
+    questions[4] <- "the median."
+    questions[5] <- "the lower quartile."
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE,FALSE)
+explanations <- character(5)
+explanations[1] <- "The variance is dependent on outliers as it is computed from the values of the data."
+explanations[2] <- "The interquartile range largely depends on the order in the data, and on values within the data, so is not susceptible to outliers."
+explanations[3] <- "The trimmed mean has any extreme values removed prior to calculation, so is not susceptible to outliers."
+explanations[4] <- "The median is the middle observation when sorted, so is not susceptible to outliers."
+explanations[5] <- "The lower quartile relies on order, and is the value of an observation within the main body of the data, so is not susceptible to outliers."
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+@
+
+
+\begin{question}
+One of the following summary measures is not robust to outliers.
+Which one is it?
+
+%%%make no adjustments past this point!!!
+\begin{answerlist}
+  \item \Sexpr{questions[1]}
+  \item \Sexpr{questions[2]}
+  \item \Sexpr{questions[3]}
+  \item \Sexpr{questions[4]}
+  \item \Sexpr{questions[5]}
+\end{answerlist}
+\end{question}
+
+%% SOLUTIONS
+\begin{solution}
+\begin{answerlist}
+  \item \Sexpr{mchoice2text(solutions[1])}: \Sexpr{explanations[1]}
+  \item \Sexpr{mchoice2text(solutions[2])}: \Sexpr{explanations[2]}
+  \item \Sexpr{mchoice2text(solutions[3])}: \Sexpr{explanations[3]}
+  \item \Sexpr{mchoice2text(solutions[4])}: \Sexpr{explanations[4]}
+  \item \Sexpr{mchoice2text(solutions[5])}: \Sexpr{explanations[5]}
+\end{answerlist}
+\end{solution}
+
+%% META-INFORMATION
+%% \extype{schoice}
+%% \exsolution{\Sexpr{mchoice2string(solutions)}}
+%% \exname{Multiple choice}
+

@@ -1,0 +1,55 @@
+% created by MBJ, confirmed by JG
+<<echo=FALSE, results=hide>>=
+
+
+## QUESTION/ANSWER GENERATION
+questions <- character(5)
+    questions[1] <- "See Also"
+    questions[2] <- "Description"
+    questions[3] <- "Usage"
+    questions[4] <- "Arguments"
+    questions[5] <- "Details."
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE,FALSE)
+explanations <- rep("The 'See Also' help section is useful for finding similar functions", 5)
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+@
+
+
+\begin{question}
+I know how to use the ``median" function in R but I have forgotten the
+function to compute the quartiles.  I know the process is similar to
+that for the median and would like to look at a list of related
+functions. I might find something useful in which section of the help page
+for ``median"?  (Type ?median at the Console). 
+%%%make no adjustments past this point!!!
+\begin{answerlist}
+  \item \Sexpr{questions[1]}
+  \item \Sexpr{questions[2]}
+  \item \Sexpr{questions[3]}
+  \item \Sexpr{questions[4]}
+  \item \Sexpr{questions[5]}
+\end{answerlist}
+\end{question}
+
+%% SOLUTIONS
+\begin{solution}
+\begin{answerlist}
+  \item \Sexpr{mchoice2text(solutions[1])}: \Sexpr{explanations[1]}
+  \item \Sexpr{mchoice2text(solutions[2])}: \Sexpr{explanations[2]}
+  \item \Sexpr{mchoice2text(solutions[3])}: \Sexpr{explanations[3]}
+  \item \Sexpr{mchoice2text(solutions[4])}: \Sexpr{explanations[4]}
+  \item \Sexpr{mchoice2text(solutions[5])}: \Sexpr{explanations[5]}
+\end{answerlist}
+\end{solution}
+
+%% META-INFORMATION
+%% \extype{schoice}
+%% \exsolution{\Sexpr{mchoice2string(solutions)}}
+%% \exname{Multiple choice}
+

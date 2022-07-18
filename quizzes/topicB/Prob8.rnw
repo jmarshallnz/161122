@@ -1,0 +1,64 @@
+% created MBJ, JG says too hard for MT1, used in MT3
+<<echo=FALSE, results=hide>>=
+## DATA GENERATION
+Which=sample(3,1)
+What=c("wine", "beer", "whisky")[Which]
+
+## QUESTION/ANSWER GENERATION
+questions <- character(5)
+    questions[1] <- paste("No glasses of", What, "are correctly assigned")
+    questions[2] <- "All glasses are correctly assigned"
+    questions[3] <- "Exactly two glasses are correctly assigned"
+    questions[4] <- paste("The third and fourth glasses of", What, "tasted are correctly assigned")
+    questions[5] <-  paste("The third and fourth glasses of", What, "tasted are incorrectly assigned")
+    solutions <- c(TRUE, FALSE, FALSE,FALSE,FALSE)
+
+explanations <- character(5)
+explanations[1] <- "Yes, we can't both correctly assign two glasses while incorrectly assigning all glasses."
+explanations[2] <- "No, the events 'two correct' and 'all correct' can both occur."
+explanations[3] <- "No, the events 'two correct' and 'exactly two correct' can both occur."
+explanations[4] <- "No, the event describing the assignment of the third and fourth glasses can occur alongside the event describing the assignment of the first two glasses."
+explanations[5] <- "No, the event describing the assignment of the third and fourth glasses can occur alongside the event describing the assignment of the first two glasses."
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+@
+
+
+\begin{question}
+A panel of \Sexpr{What} enthusiasts are given 4 labelled bottles, and 4
+unlabelled glasses of \Sexpr{What}. They are asked to match each \Sexpr{What} with the
+correct bottle. Consider the event that the first two glasses tasted are
+correctly assigned to their bottles. Which of the following events are
+mutually exclusive with (disjoint from) this event?
+
+%%%make no adjustments past this point!!!
+\begin{answerlist}
+  \item \Sexpr{questions[1]}
+  \item \Sexpr{questions[2]}
+  \item \Sexpr{questions[3]}
+  \item \Sexpr{questions[4]}
+  \item \Sexpr{questions[5]}
+\end{answerlist}
+\end{question}
+
+%% SOLUTIONS
+\begin{solution}
+Mutually exclusive means two events cannot happen at the same time.
+\begin{answerlist}
+  \item \Sexpr{mchoice2text(solutions[1])}: \Sexpr{explanations[1]}
+  \item \Sexpr{mchoice2text(solutions[2])}: \Sexpr{explanations[2]}
+  \item \Sexpr{mchoice2text(solutions[3])}: \Sexpr{explanations[3]}
+  \item \Sexpr{mchoice2text(solutions[4])}: \Sexpr{explanations[4]}
+  \item \Sexpr{mchoice2text(solutions[5])}: \Sexpr{explanations[5]}
+\end{answerlist}
+\end{solution}
+
+%% META-INFORMATION
+%% \extype{schoice}
+%% \exsolution{\Sexpr{mchoice2string(solutions)}}
+%% \exname{Multiple choice}
+

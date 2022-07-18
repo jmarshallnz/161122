@@ -1,0 +1,46 @@
+```{r data generation, echo = FALSE, results = "hide"}
+## QUESTION/ANSWER GENERATION
+questions <- character(5)
+questions[1] <- "Exponential and Poisson."
+questions[2] <- "Exponential and binomial."
+questions[3] <- "Normal and binomial."
+questions[4] <- "Poisson and binomial."
+questions[5] <- "Only complex distributions like the Weibull."
+solutions <- c(TRUE, FALSE, FALSE, FALSE, FALSE)
+
+explanations <- character(5)
+explanations[1] <- "Correct. When events occur at a given rate, the exponential distribution describes the time to next event, while the Poisson describes how many events are likely to occur in a given time period."
+explanations[2] <- "While the exponential uses a rate, the binomial instead uses a probability."
+explanations[3] <- "The binomial uses a probability, while the normal is used for continuous measures. Neither use rates."
+explanations[4] <- "While the Poisson uses a rate, the binomial instead uses a probability."
+explanations[5] <- "Two of the simplest distributions (the exponential and Poisson) use a rate."
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+The notion of a rate is used by which pair of related distributions?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

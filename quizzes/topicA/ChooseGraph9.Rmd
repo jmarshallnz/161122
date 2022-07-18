@@ -1,0 +1,43 @@
+```{r, data_generation, echo=FALSE, results="hide"}
+questions <- character(5)
+questions[1] <- "Because both variables are discrete, with a small number of values, the points have plotted on top of each other."
+questions[2] <- "I should have put the 'aes' part inside 'ggplot()'"
+questions[3] <- "The only explanation is a data entry error."
+questions[4] <-  "The `geom_point()` function can only plot up to 50 data points."
+questions[5] <- "The variables are categorical so a bar chart should be used."
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE,FALSE)
+explanations <- character(5)
+explanations[1] <- "With a small number of discrete values there will be overplotting. Adding some jitter might help."
+explanations[2] <-  "The `aes` mapping can go either in `ggplot()` or in the `geom_*()` function."
+explanations[3] <- "Data entry error is unlikely to be the case 490 times!"
+explanations[4] <- "The `geom_point()` function can take as many data points as you like."
+explanations[5] <- "The variables could be interpreted as categorical as the counts are low, so a barchart is an option (e.g. number of households by number of children, coloured by number of cars). However, this is not the problem with the scatter plot."
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+I take a sample of 500 households, observe the number of children and the number of cars in each household, and make a scatter plot, using the command `ggplot(data) + geom_point(aes(x=cars, y=children))`.  My scatter plot appears to have only 10 points on it.  What has gone wrong?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple choice

@@ -1,0 +1,49 @@
+```{r data_generation, echo=FALSE, results='hide'}
+library(exams)
+
+questions <- character(5)
+questions[1] <- "Residuals are the differences between the actual *y* values and the mean of *y*."
+questions[2] <- "Residuals are the differences between the actual *y* values and the predicted *y* values."
+questions[3] <- "Residuals are the squared differences between the actual *y* values and the predicted *y* values."
+questions[4] <- "Residuals can be directly observed from the data."
+questions[5] <- "Least square estimation minimises the sum of absolute values of residuals."
+
+solutions <- c(FALSE,TRUE,FALSE,FALSE,FALSE)
+explanations <- character(5)
+explanations[1] <- ""
+explanations[2] <- ""
+explanations[3] <- ""
+explanations[4] <- ""
+explanations[5] <- ""
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+Which of the following statements is true about residuals *e*?
+  
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+Residuals are the difference between actual $y$ and predicted $y$ (given $x$ and the linear model equation).
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+  
+  extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

@@ -1,0 +1,47 @@
+```{r data_generation, echo=FALSE, results='hide'}
+library(exams)
+
+questions <- character(5)
+questions[1] <- "Residual diagnostics of multivariable linear models are different from those of simple linear models."
+questions[2] <- "A regression coefficient corresponding to a covariate in a multivariable linear model can be interpreted only if we hold all other covariates fixed."
+questions[3] <- "Multiple $R^2$ is the key measure for selecting the best multivariable linear model."
+questions[4] <- "A multivariable linear model can characterise the relationship between multiple responses and multiple predictors."
+questions[5] <- "An insignificant regression coefficient suggests that the corresponding covariate is not important in explaining variations in the response."
+
+solutions <- c(FALSE,TRUE,FALSE,FALSE,FALSE)
+explanations <- character(5)
+explanations[1] <- "Residual diagnostics are the same regardless of model complexity."
+explanations[2] <- "The model equation makes this clear - only if we hold all the other parts of the equation constant can we see how changing a covariate changes the output."
+explanations[3] <- "Multiple $R^2$ only assesses model fit - as you add more variables it will typically always increase, so it will favour complex models. We instead want to favour models that balance complexity and fit."
+explanations[4] <- "The multivariable refers to predictors. There is still only one response varible."
+explanations[5] <- "An insignificant regression coefficient suggests the corresponding covariate is not important **given other variables in the model**. This does not mean the covariate is unimportant, only that other variables in the model might be explaining things, or that the variation in the residuals is too large to assess the contribution of the covariate. We might find that adding additional covariates to explain that variation might mean that we can see the importance of the covariate."
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+Which one of the following statements is true for multivariable linear models?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+  
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+  
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

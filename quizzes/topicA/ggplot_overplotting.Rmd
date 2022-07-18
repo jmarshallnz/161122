@@ -1,0 +1,48 @@
+
+```{r data generation, echo = FALSE, results = "hide"}
+
+correct <- sample(c("Use `geom_jitter()` in place of `geom_point()`.",
+                    "Set `alpha=0.2` in `geom_point()` to allow some transparency."),1)
+questions <- character(5)
+    questions[1] <- correct
+    questions[2] <- "downsample the dataset so fewer points are shown."
+    questions[3] <- "make the points smaller by specifying a small value for `size` in `geom_point()`."
+    questions[4] <- "make the points a different colour by specifying `colour` in `geom_point()`."
+    questions[5] <- "remove the duplicated points before plotting."
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE,FALSE)
+explanations <- character(5)
+explanations[1] <- "Either using jitter or some transparency is a good idea to reduce overplotting."
+explanations[2] <- "Ideally we would continue to use all the data if possible."
+explanations[3] <- "When the data has been rounded, changing the size of the points plotted is often not the solution to overplotting."
+explanations[4] <- "A different colour doesn't solve overplotting."
+explanations[5] <- "It is useful to know how many points are on top of each other as that tells us about density."
+
+# permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+A scatterplot of a large dataset where the values have been rounded may be subject to overplotting. To solve this in `ggplot`, you might:
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple choice

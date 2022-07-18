@@ -1,0 +1,55 @@
+
+```{r data generation, echo = FALSE, results = "hide"}
+adjust <- sample(c(seq(0.5,0.9,by=0.1), seq(1.2,2,by=0.2)), 1)
+
+# Density plot bandwidth
+# 
+
+# smooths more
+# smooths less
+# moves the curve right by XX
+# scales the y axis by XX
+# moves the y axis up by XX
+
+questions <- character(5)
+    questions[1] <- "It will smooth the data more."
+    questions[2] <- "It will smooth the data less."
+    questions[3] <- paste0("It moves the curve right by ", adjust, " units.")
+    questions[4] <- paste0("It scales the `y` axis by ", adjust,".")
+    questions[5] <- paste0("It moves the `y` axis up by ", adjust, " units.")
+
+solutions <- c(adjust > 1, adjust < 1,FALSE,FALSE,FALSE)
+explanations <- character(5)
+explanations[1] <- "An `adjust` value greater than one smooths the data more."
+explanations[2] <- "An `adjust` value less than one smooths the data less."
+explanations[3] <- "The `adjust` value changes the amount of smoothing."
+explanations[4] <- "The `adjust` value changes the amount of smoothing."
+explanations[5] <- "The `adjust` value changes the amount of smoothing."
+
+# permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+If you add `adjust = `r adjust` ` to `geom_density` what effect will it have?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple choice

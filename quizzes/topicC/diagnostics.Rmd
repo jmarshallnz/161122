@@ -1,0 +1,85 @@
+```{r data generation, echo = FALSE, results = "hide"}
+library(tidyverse)
+library(exams)
+
+Linearity <- sample(c(TRUE,FALSE),1)
+EqualVar <- sample(c(TRUE,FALSE),1)
+n <- 100
+d <- data.frame(x = sort(runif(n, -2, 2)))
+a <- sample(c(0, 1), 1)
+b <- sample(c(-1, 1), 1)
+Var.Factor<-1
+if(EqualVar==FALSE) Var.Factor <- (1:n)/20
+e <- rnorm(n, sd = 0.25*Var.Factor)
+d$y <- a + b * d$x + e 
+if(Linearity==FALSE) d$y <- a + b *exp( d$x) + e 
+
+write.csv(d, "diagnostics.csv", row.names = FALSE, quote = FALSE)
+
+questions <- character(6)
+questions[1] <- "Linearity"
+questions[2] <- "Normality"
+questions[3] <- "Independence"
+questions[4] <- "Equal variance"
+questions[5] <- "Linearity and equal variance"
+questions[6] <- "None of the above"
+
+solutions <- c(!Linearity & EqualVar,FALSE,FALSE,Linearity & !EqualVar,!Linearity & !EqualVar,
+               Linearity & EqualVar)
+
+explanations <- character(6)
+explanations[1] <- ""
+explanations[2] <- ""
+explanations[3] <- ""
+explanations[4] <- ""
+explanations[5] <- ""
+explanations[6] <- ""
+
+## permute order of solutions/questions
+Order <- c(sample(1:5),6)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```    
+
+Question
+========
+
+Download the data file [diagnostics.csv](diagnostics.csv) by right clicking and 'Save link as', then load it into RStudio using `read_csv()` or the Import Dataset button.
+
+Use `lm()` to fit a linear model to `x` and `y` and perform standard residual diagnostics on your model. Which one of the following assumptions fails to hold based on your diagnostics?
+  
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+To replicate the analysis in R:
+
+```{r, eval=FALSE}
+library(tidyverse)
+d <- read_csv("diagnostics.csv")
+d %>% ggplot(aes(x=x,y=y)) + geom_point()
+m <- lm(y ~ x, data = d)
+plot(m)
+```
+
+Your residuals versus fitted plot should look like this:
+
+```{r, echo=FALSE, fig.cap=""}
+plot(lm(y ~ x, data = d), which=1, add.smooth = FALSE)
+```
+
+So your conclusion should be that linearity is `r ifelse(Linearity, "", "not ")`satisfied and equal variance is `r ifelse(EqualVar, "", "not ")`satisfied.
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

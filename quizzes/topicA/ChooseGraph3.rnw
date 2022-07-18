@@ -1,0 +1,55 @@
+
+<<echo=FALSE, results=hide>>=
+## DATA GENERATION
+## QUESTION/ANSWER GENERATION
+questions <- character(5)
+    questions[1] <- "scatter plot"
+    questions[2] <- "histogram"
+    questions[3] <- "box plot"
+    questions[4] <- "density plot"
+    questions[5] <- "bar chart"
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE,FALSE)
+explanations <- character(5)
+explanations[1] <- "A scatterplot is appropriate for two numeric measures."
+explanations[2] <- "A histogram is appropriate for the distribution of a single numeric measure."
+explanations[3] <- "A boxplot is appropriate for comparing the distribution of a numeric measure across groups."
+explanations[4] <- "A density plot is appropriate for the distribution of a single numeric measure."
+explanations[5] <- "A bar chart is suited for counts across groups (i.e. a single qualitative measure)."
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+@
+
+
+\begin{question}
+To graphically show the relationship between two variables, we can use a
+
+\begin{answerlist}
+  \item \Sexpr{questions[1]}
+  \item \Sexpr{questions[2]}
+  \item \Sexpr{questions[3]}
+  \item \Sexpr{questions[4]}
+  \item \Sexpr{questions[5]}
+\end{answerlist}
+\end{question}
+
+%% SOLUTIONS
+\begin{solution}
+\begin{answerlist}
+  \item \Sexpr{mchoice2text(solutions[1])}: \Sexpr{explanations[1]}
+  \item \Sexpr{mchoice2text(solutions[2])}: \Sexpr{explanations[2]}
+  \item \Sexpr{mchoice2text(solutions[3])}: \Sexpr{explanations[3]}
+  \item \Sexpr{mchoice2text(solutions[4])}: \Sexpr{explanations[4]}
+  \item \Sexpr{mchoice2text(solutions[5])}: \Sexpr{explanations[5]}
+\end{answerlist}
+\end{solution}
+
+%% META-INFORMATION
+%% \extype{schoice}
+%% \exsolution{\Sexpr{mchoice2string(solutions)}}
+%% \exname{Multiple choice}
+

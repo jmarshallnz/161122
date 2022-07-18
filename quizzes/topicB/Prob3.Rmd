@@ -1,0 +1,58 @@
+```{r data generation, echo = FALSE, results = "hide"}
+PA = round((3+sample(5,1))/29, 4)
+PB = round((3+sample(5,1))/23, 4)
+PAandB = round(PA*PB-0.009,4)
+
+## QUESTION/ANSWER GENERATION
+questions <- character(5)
+    questions[1] <- round(PAandB/PB, 4)
+    questions[2] <- round(PAandB/PA, 4)
+    questions[3] <- round(PA*PB, 4)
+    questions[4] <- round(PA-PAandB+PB, 4)
+    questions[5] <- round(min(PA/PB,PB/PA), 4)
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE,FALSE)
+explanations <- character(5)
+explanations[1] <- ""
+explanations[2] <- ""
+explanations[3] <- ""
+explanations[4] <- ""
+explanations[5] <- ""
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+
+Question
+========
+
+If $P(A) = `r PA`$, $P(B) = `r PB`$ and $P(A \mbox{ and } B) = `r PAandB`$, then
+$P(A\vert{} B)$ is
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+Recall that $P(A\vert{} B) = \frac{P(A \mbox{ and } B)}{P(B)}$. Using RStudio, we have
+
+```{r}
+PAandB / PB
+```
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

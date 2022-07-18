@@ -1,0 +1,96 @@
+```{r data generation, echo = FALSE, results = "hide"}
+library(tidyverse)
+library(exams)
+
+transformtype <- 'exp'
+
+if (transformtype == 'power') {
+  d <- data.frame(x = runif(100, 0.5, 2))
+  a <- 1
+  b <- sample(c(-1,1),1)
+  d$y <- a* d$x^(3*b)*exp(rnorm(100, sd = 0.25))
+} else if (transformtype == 'exp') {
+  d <- data.frame(x = runif(100, 0.5, 2))
+  a <- 1
+  b <- sample(c(-1,1),1)
+  d$y <- a*exp(2*b* d$x)*exp(rnorm(100, sd = 0.25))
+} else if (transformtype == 'log') {
+  d <- data.frame(x = runif(100, 0.1, 2))
+  a <- 1
+  b <- sample(c(-1,1),1)
+  d$y <- a + b * log( d$x) + rnorm(100, sd = 0.1)
+} else {
+  d <- data.frame(x = runif(100, 0.5, 2))
+  a <- 1
+  b <- sample(c(-1,1),1)
+  d$y <- a + b * d$x + rnorm(100, sd = 0.1)
+}
+
+m <- lm(y ~ x, data = d)
+
+bhat <- coef(m)[2]
+
+transform <- transformtype %in% c('power','exp','log')
+
+questions <- character(6)
+questions[1] <- "The scatter plot shows an increasing trend and the linear model fit it well."
+questions[2] <- "The scatter plot shows a decreasing trend and the linear model fit it well."
+questions[3] <- "The scatter plot shows an increasing trend but the linear model fit it poorly."
+questions[4] <- "The scatter plot shows a decreasing trend but the linear model fit it poorly."
+questions[5] <- "A transformation is needed here."
+questions[6] <- "A transformation is not needed here."
+
+solutions <- c( (bhat > 0)  & !transform, 
+                (bhat < 0)  & !transform, 
+                (bhat > 0)  & transform, 
+                (bhat < 0)  & transform,
+                transform, 
+                !transform
+                )
+
+explanations <- character(6)
+explanations[1] <- ""
+explanations[2] <- ""
+explanations[3] <- ""
+explanations[4] <- ""
+explanations[5] <- ""
+explanations[6] <- ""
+
+## permute order of solutions/questions
+Candidate <- 1:6
+TrueCandidate <- Candidate[solutions==TRUE]
+Order <- c(sample(TrueCandidate,1), Candidate[-TrueCandidate])
+possible_answers <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]
+```    
+
+Question
+========
+
+A linear model is fitted to `x` and `y` and visualised as follows.
+
+```{r,echo=FALSE, fig.width=8, fig.height=5, fig.retina=2, fig.cap=""}
+m <- lm(y ~ x, data = d)
+library(visreg)
+visreg(m,gg=TRUE)
+```
+
+Which of the following statements is true about the fitted linear model?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(possible_answers, markup = "markdown")
+```
+
+Solution
+========
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

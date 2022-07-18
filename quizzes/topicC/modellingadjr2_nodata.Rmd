@@ -1,0 +1,84 @@
+```{r data generation, echo = FALSE, message=FALSE, results = "hide"}
+library(tidyverse)
+library(exams)
+
+n <- 100
+p <- 3
+
+ture_p <- sample(2:p,1)
+
+x <- matrix(runif(n*p),ncol=p)
+
+select <- sort(sample(1:p,ture_p))
+
+X <- x[,select]
+
+alpha <- 3
+
+beta <- (2*rbinom(ture_p,1,0.5)-1)*2
+
+y <- X%*%beta + alpha + rnorm(n)
+
+d <- data.frame(y,x)
+
+questions <- character()
+adj.r2 <- numeric()
+
+for(eff_p in 1:p){
+  x_combn <-  combn(p,eff_p)
+  adj.r2 <-  c(adj.r2,apply(x_combn,MARGIN=2,function(t) summary(lm(y~x[,t]))$adj.r.squared))
+  x_names <- apply(x_combn,MARGIN=2,
+                  function(t) colnames(data.frame(x))[t])
+  if(eff_p==1) x_names <- t(x_names)
+  questions <- c(questions,apply(x_names,MARGIN=2,
+                  function(t) paste0('y ~ ',paste0(t,collapse=' + '))))
+}
+
+solutions <- adj.r2==max(adj.r2)
+
+explanations <- rep("",length(solutions))
+
+## permute order of solutions/questions
+Order <- sample(c(sample(which(solutions!=TRUE),4),which(solutions==TRUE)))
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+Several linear models were fitted to some data `y`, `X1`, `X2`, and `X3`, with the results below.
+
+```{r generating, echo=FALSE, message=FALSE, comment = "", results='asis'}
+src <- knitr::knit_expand(text=c('```{r summaryoutput, message=FALSE}',
+                   'summary(lm({{questions[1]}}, data=d))',
+                   'summary(lm({{questions[2]}}, data=d))',
+                   'summary(lm({{questions[3]}}, data=d))',
+                   'summary(lm({{questions[4]}}, data=d))',
+                   'summary(lm({{questions[5]}}, data=d))',
+                   '```'))
+res = knitr::knit_child(text = src, quiet=TRUE)
+cat(res)
+```
+
+Which one of the following regression formulae yields the best compromise between the complexity and the goodness of fit among the corresponding fitted linear models?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+The adjusted $R^2$ should be used.
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

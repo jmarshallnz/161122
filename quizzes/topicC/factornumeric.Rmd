@@ -1,0 +1,95 @@
+```{r data generation, echo = FALSE, results = "hide"}
+library(tidyverse)
+library(exams)
+
+
+n <- 400
+
+
+Brand_effect <- FALSE
+ 
+Inter_effect <- TRUE
+
+Humidity<- runif(n,0,1)
+
+Brand <- c("Gluten",sample(c("Gluten","Guru","Gluey"),n-1,replace = TRUE))
+
+mean <- 1.5 - Humidity + Brand_effect*(0.5*(Brand=='Guru') + 1*(Brand=='Gluey')) + 
+  Inter_effect*(0.5 *(Brand=='Guru') - 0.5 *(Brand=='Gluey'))*Humidity 
+
+Lifetime <- exp(rnorm(n,mean,sd=0.01))
+
+d <- data.frame(Lifetime,Humidity,Brand)
+
+write.csv(d, "glue.csv", row.names = FALSE, quote = FALSE)
+
+questions <- character(5)
+questions[1] <- "A log transformation on lifetimes is needed when modelling."
+
+questions[2] <- "The humidity condition is always significant."
+
+questions[3] <- "The interaction effects are significant after accounting for the brand effects and the humidity."
+
+questions[4] <- "The brand effects are significant after accounting for the humidity condition."
+
+questions[5] <- "The brand effects are significant after accounting for both the humidity conditions and the interaction effects."
+
+solutions <- c(FALSE,FALSE,FALSE,FALSE,TRUE)
+
+explanations <- rep("",length(solutions))
+
+## permute order of solutions/questions
+Order <- sample(c(sample(which(solutions!=TRUE),4),which(solutions==TRUE)))
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```    
+
+Question
+========
+
+Download the data file [glue.csv](glue.csv) by right clicking and 'Save link as', then load it into RStudio using `read_csv()` or the Import Dataset button. The data set summarises the lifetimes of adhesive bonds (`Lifetime`) produced by three manufacturers (`Brand`:`Gluey`,`Guru`,`Gluten`) under different humidity conditions (`Humidity`). 
+
+Fit suitable linear models to this data set, peruse their ANOVA tables and R summaries, and perform residual diagnostics. Based on your analysis, which one of the following statements is **not** true at the significance level 0.05?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+To replicate the analysis in R:
+
+```{r, eval=FALSE}
+library(tidyverse)
+d <- read_csv('glue.csv')
+
+# Try a full model. It should be obvious that a log transform is needed
+full.mod <- lm(Lifetime ~ Brand + Humidity + Brand:Humidity,data=d)
+plot(full.mod)
+
+# Fit some models with the log transform
+simple.mod.log <- lm(log(Lifetime) ~ Humidity, data=d)
+partial.mod.log <- lm(log(Lifetime) ~ Brand + Humidity, data=d)
+partial.mod.inter.log <- lm(log(Lifetime) ~ Humidity + Brand:Humidity, data=d)
+full.mod.log <- lm(log(Lifetime) ~ Brand + Humidity + Brand:Humidity, data=d)
+
+# Assess these models
+anova(full.mod.log)
+anova(simple.mod.log,partial.mod.log)
+anova(partial.mod.log,full.mod.log)
+anova(partial.mod.inter.log,full.mod.log)
+summary(partial.mod.inter.log)
+summary(full.mod.log)
+```
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

@@ -1,0 +1,64 @@
+```{r data_generation, echo=FALSE, results='hide'}
+library(exams)
+
+questions <- character(5)
+    questions[1] <- "If we change the units of heights into centimetres and of weights into
+kg (i.e. each *h* is multiplied by 2.54 and each
+*w* is multiplied by 0.454) and recalculate the
+value of correlation coefficient, then it is the same as
+*r*."
+    questions[2] <- "The correlation *r* describes how strong the
+nonlinear relationship between height and weight is."
+    questions[3] <- "The correlation *r* has units of pounds per inch."
+    questions[4] <- "If we change the units of heights into centimetres and of weights into
+kg (i.e. each *h* is multiplied by 2.54 and each
+*w* is multiplied by 0.454) and recalculate the
+value of the correlation coefficient, then it is larger than
+*r*."
+    questions[5] <- "If we change the units of heights into centimetres and of weights into
+kg (i.e. each *h* is multiplied by 2.54 and each
+*w* is multiplied by 0.454) and recalculate the
+value of correlation coefficient, then it is smaller than
+*r*."
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE,FALSE)
+explanations <- character(5)
+explanations[1] <- "The correlation coefficient does not depend on the scale of *w* or *h*."
+explanations[2] <- "The correlation coefficient describes the strength of a linear relationship."
+explanations[3] <- "The correlation coefficient is dimension-less. It has no units."
+explanations[4] <- "The correlation coefficient does not depend on the scale of *w* or *h*."
+explanations[5] <- "The correlation coefficient does not depend on the scale of *w* or *h*."
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+We have a data set which consists of heights (in inches)
+and weights (in pounds) of 20 people. Let *r* be
+the correlation coefficient computed from the data. Which of the following
+statements is correct?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice
+

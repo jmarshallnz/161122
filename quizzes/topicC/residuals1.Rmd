@@ -1,0 +1,47 @@
+```{r data_generation, echo=FALSE, results='hide'}
+library(exams)
+
+questions <- character(5)
+questions[1] <- "Residual versus fits plot"
+questions[2] <- "Scale-location plot"
+questions[3] <- "Scatter plot with fitted line"
+questions[4] <- "Q-Q plot"
+questions[5] <- "All of the above"
+
+solutions <- c(FALSE,FALSE,FALSE,TRUE,FALSE)
+explanations <- character(5)
+explanations[1] <- ""
+explanations[2] <- ""
+explanations[3] <- ""
+explanations[4] <- "Q-Q plot can only check the normality."
+explanations[5] <- ""
+
+## permute order of solutions/questions
+Order <- c(sample(1:4),5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+Which of the following tools can **not** be used to check the linearity and/or equal variance of a fitted linear model?
+  
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+  
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+  
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

@@ -1,0 +1,84 @@
+```{r data generation, echo = FALSE, results = "hide"}
+library(dplyr)
+library(readr)
+library(exams)
+
+roll = read_csv("https://www.massey.ac.nz/~jcmarsha/data/schools/roll_nomacrons.csv")
+
+variables <- c("School", "Level", "Gender", "EthnicGroup")
+
+# choose the variable(s)
+selected_vars <- sample(variables, 2)
+var1 = selected_vars[1]
+var2 = selected_vars[2]
+
+answer <- 0
+while (answer == 0) {
+  # OK, now for each one, find the one we want to filter to
+  options1 <- roll |> pull(var1) |> unique()
+  options2 <- roll |> pull(var2) |> unique()
+  
+  selected1 <- sample(options1, 1)
+  selected2 <- sample(options2, 1)
+  
+  # check we have enough of what we want
+  answer <- roll |> filter(.data[[var1]] == selected1,
+                  .data[[var2]] == selected2) |>
+    summarise(Students = sum(Students)) |>
+    pull(Students)
+}
+
+questions <- character(5)
+questions[1] <- round(answer,0)
+questions[2] <- round(answer + sample(5:20, 1),0)
+questions[3] <- round(max(answer - sample(5:10, 1), 0),0)
+questions[4] <- round(answer*1.5 + 1,0)
+questions[5] <- round(max(answer/1.5 - 1, 0),0)
+questions <- c(questions[1], unique(questions[2:5]))
+
+solutions <- c(TRUE,rep(FALSE, length(questions)-1))
+explanations <- character(length(solutions))
+
+## permute order of solutions/questions
+Order <- sample(seq_along(questions))
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+Using the `roll` data that was used in workshops A05 through A07, find the total number of students where `r var1` is `r selected1` and `r var2` is `r selected2`.
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+```{r, echo=FALSE, message=FALSE, comment = "", results='asis'}
+src <- knitr::knit_expand(text=c('```{r, message=FALSE}',
+                   'library(tidyverse)',
+                   'roll <- read_csv("https://www.massey.ac.nz/~jcmarsha/data/schools/roll_nomacrons.csv")',
+                   'roll |>',
+                   '  filter({{var1}} == "{{selected1}}",',
+                   '         {{var2}} == "{{selected2}}") |>',
+                   '  summarise(Students = sum(Students))',
+                   '```'))
+res = knitr::knit_child(text = src, options = list(comment = ""), quiet=TRUE)
+cat(res)
+```
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice
+

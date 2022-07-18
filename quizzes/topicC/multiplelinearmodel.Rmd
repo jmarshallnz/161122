@@ -1,0 +1,65 @@
+```{r data_generation, echo=FALSE, results='hide'}
+library(gtools)
+library(exams)
+
+num_step <- 5
+questions_combn <-  permutations(num_step,num_step)
+num_questions <- factorial(num_step)
+questions <- character(num_questions)
+k<-1
+for (i in 1:length(questions)){
+      choice<-questions_combn[i,]
+      questions[i]<-paste0(choice, collapse = ', ')
+}
+
+solutions <- rep(FALSE,num_questions)
+
+solutions[72] <- TRUE
+
+
+explanations <- rep("",num_questions)
+
+
+## permute order of solutions/questions
+Order <- sample(c(which(solutions==TRUE),sample(which(solutions==FALSE),4)))
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+Specify the correct order of the following five steps when building a linear model.
+
+1. Visualise the fitted linear model effects via `visreg()` for better interpretation of effect sizes/uncertainties.
+
+2. Check the summary table and interpret the estimated coefficients there for the significant variables.
+
+3. Explore the multivariable data set with summary statistics and graphical tools.
+
+4. Check the ANOVA table, particularly if you have factors.
+
+5. Fit the linear model with `lm()` by including predictors and potential interactions.
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+We always look at the data first. Then we fit the model. Then we check ANOVA table for important factors, and summary table for coefficients. We can also visualise the model to aid interpretation.
+
+Not mentioned here but important - we use diagnostics to assess the model assumptions!
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+  
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

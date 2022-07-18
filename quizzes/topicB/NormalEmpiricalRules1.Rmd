@@ -1,0 +1,48 @@
+```{r data generation, echo = FALSE, results = "hide"}
+HowMany=100+10*sample(6,1)
+## QUESTION/ANSWER GENERATION
+questions <- character(5)
+questions[1] <- paste(round(0.68*HowMany,0), ", ", round(0.95*HowMany,0), ", and all but one of them.", sep="")
+questions[2] <- paste(round(0.25*HowMany,0), ", ", round(0.5*HowMany,0), " and ", round(0.75*HowMany,0), ".", sep="")
+questions[3] <- paste(round(0.7*HowMany,0), ", ", round(0.8*HowMany,0), " and ", round(0.9*HowMany,0), ".", sep="")
+questions[4] <- paste(round(0.6*HowMany,0), ", ", round(0.8*HowMany,0), ", and all but one of them.", sep="")
+questions[5] <- "We cannot tell without being told the mean of the exam marks."
+solutions <- c(TRUE,FALSE, FALSE,FALSE,FALSE)
+
+explanations <- character(5)
+explanations[1] <- ""
+explanations[2] <- ""
+explanations[3] <- ""
+explanations[4] <- ""
+explanations[5] <- ""
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+Empirical rules for assessing the normality of `r HowMany` exam marks would suggest that... (how many?) results lie within 1, 2, and 3 standard deviations of the mean.
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+Recall the rules of thumb for the normal distribution show that 68% of observations are within one, 95% within two, and 99.5% within three standard deviations of the mean. With `r HowMany` exam marks, we could use <code>c(0.68, 0.95, 0.995)*`r HowMany`</code> to compute this.
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

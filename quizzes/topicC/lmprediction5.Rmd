@@ -1,0 +1,63 @@
+```{r data generation, echo = FALSE, results = "hide"}
+library(tidyverse)
+library(exams)
+d <- data.frame(x = runif(100, -1, 1))
+a <- 0
+b <- sample(c(-1, 1), 1) * sample(c(0, 0.6, 0.9), 1)
+d$y <- a + b * d$x + rnorm(100, sd = 0.25)
+
+m <- lm(y ~ x, data = d)
+
+newdata<-data.frame(x=c(-2,-1,0,1,2))
+
+prediction <- round(predict(m,newdata),3)
+
+answer <- tibble(value = prediction,
+                 x = newdata$x,
+                thing = paste("x=", x))
+
+possible_answers <- answer %>% pull(value)
+
+possible_questions <- answer %>% filter(x != 0)
+
+which_question <- sample_n(possible_questions, 1)
+which_question
+
+solutions <- possible_answers == (which_question %>% pull(value))
+
+explanations <- paste0("That is at ", answer %>% pull(thing), ".")
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+possible_answers <- possible_answers[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]
+```    
+
+Question
+========
+
+A simple linear model is fitted to `x` and `y` and the R summary table is given as follows. 
+
+```{r,echo=FALSE}
+summary(m)
+```
+
+Which one of the following values is the prediction at `r which_question %>% pull(thing)`?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(possible_answers, markup = "markdown")
+```
+
+Solution
+========
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

@@ -1,0 +1,50 @@
+
+```{r data_generation, echo=FALSE, results='hide'}
+library(exams)
+
+questions <- character(5)
+questions[1] <- "The ground truth in stochastic simulation is known. So we do not have to estimate it."
+questions[2] <- "We can set the random seed in stochastic simulation to ensure the reproducibility of our study."
+questions[3] <- "Our estimates will exactly agree with the ground truth since the ground truth is known in stochastic simulation."
+questions[4] <- "The results in stochastic simulation are totally uncontrollable as the data is randomly generated."
+questions[5] <- "The sample size and parameters can not be changed in stochastic simulation as a part of the ground truth."
+
+solutions <- c(FALSE,TRUE,FALSE,FALSE,FALSE)
+explanations <- character(5)
+explanations[1] <- "The point of stochastic simulation is to see how the estimates from random samples taken from 'ground truth' vary. Estimation is critical."
+explanations[2] <- "Yes. Reproducibility requires the drawn random numbers to be the same, which can be controlled by setting the random seed."
+explanations[3] <- "Estimates from a stochastic simulation will be scattered around the ground truth. The point of stochastic simulation is to analyse how
+the estimates vary."
+explanations[4] <- "Stochastic simulation is done in a way such that some control happens (e.g. it starts at ground truth and contains rules about how the randomness is introduced)."
+explanations[5] <- "Parameters might be a part of ground truth, but sample size is not and is often varied. The results from stochastic simulation depend on the sample size (due to the central limit theorem)."
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+  
+Which of the following statements is true about stochastic simulation?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+  
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+  
+  extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice
+

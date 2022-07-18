@@ -1,0 +1,78 @@
+```{r data generation, echo = FALSE, results = "hide"}
+library(tidyverse)
+library(exams)
+
+d <- data.frame(x = runif(100, -2, 2))
+a <- sample(c(0, 1), 1)
+b <- sample(c(-1, 0, 1), 1) 
+d$y <- a + b * d$x + rnorm(100, sd = 0.25)
+
+level <- 0.05
+
+m <- lm(y ~ x, data = d)
+ahat <- coef(m)[1]
+bhat <- coef(m)[2]
+apvl <- summary(m)$coefficients[1, 4]
+bpvl <- summary(m)$coefficients[2, 4]
+
+questions <- character(6)
+questions[1] <- "*x* and *y* are not significantly correlated but the baseline is significant."
+questions[2] <- "None of the slope and baseline is significant."
+questions[3] <- "*y* increases significantly with *x* with a significant baseline."
+questions[4] <- "*y* decreases significantly with *x* with an insignificant baseline."
+questions[5] <- "*y* increases significantly with *x* with an insignificant baseline."
+questions[6] <- "*y* decreases significantly with *x* with a significant baseline."
+
+solutions <- c( (bpvl >= level) & (apvl < level), 
+                (bpvl >= level) & (apvl >= level),
+                (bpvl < level) & (bhat > 0) & (apvl < level), 
+                (bpvl < level) & (bhat < 0) & (apvl > level),
+                (bpvl < level) & (bhat > 0) & (apvl > level), 
+                (bpvl < level) & (bhat < 0) & (apvl < level)
+                )
+
+explanations <- character(6)
+explanations[1] <- ""
+explanations[2] <- ""
+explanations[3] <- ""
+explanations[4] <- ""
+explanations[5] <- ""
+explanations[6] <- ""
+
+## permute order of solutions/questions
+TrueCandidate <- which(solutions==TRUE)
+Candidate <- 1:6
+Order <- c(TrueCandidate, sample(Candidate[-TrueCandidate],4))
+possible_answers <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+
+```    
+
+Question
+========
+
+A simple linear model is fitted to `x` and `y` and the R summary table is given as follows. 
+
+```{r,echo=FALSE}
+summary(m)
+```
+
+Which of the following statements is true about the fitted linear model at the significance level `r level`?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(possible_answers, markup = "markdown")
+```
+
+Solution
+========
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

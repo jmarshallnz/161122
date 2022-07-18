@@ -1,0 +1,62 @@
+
+<<echo=FALSE, results=hide>>=
+## DATA GENERATION
+HowMany=(sample(50,1)+40)*100
+What=sample(c("IQ scores", "heights", "weights"),1)
+HowOld=sample(c("five", "six", "seven", "thirteen"), 1)
+
+## QUESTION/ANSWER GENERATION
+questions <- character(5)
+    questions[1] <- "histogram."
+    questions[2] <- "pie chart."
+    questions[3] <- "bar chart."
+    questions[4] <- "scatter plot."
+    questions[5] <- "time series plot."
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE,FALSE)
+explanations <- character(5)
+explanations[1] <- "This is a good option."
+explanations[2] <- "This is for categorical data."
+explanations[3] <- "This is for categorical data."
+explanations[4] <- "This is for bivariate data, not a single variable."
+explanations[5] <- "This is data for a sample of individuals, not a measurement taken on the same individual over time."
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+@
+
+
+\begin{question}
+A data set  consists of \Sexpr{HowMany} \Sexpr{What} of
+\Sexpr{HowOld} year old children. To study the distribution of \Sexpr{What},
+we should use a
+
+%%%make no adjustments past this point!!!
+\begin{answerlist}
+  \item \Sexpr{questions[1]}
+  \item \Sexpr{questions[2]}
+  \item \Sexpr{questions[3]}
+  \item \Sexpr{questions[4]}
+  \item \Sexpr{questions[5]}
+\end{answerlist}
+\end{question}
+
+%% SOLUTIONS
+\begin{solution}
+\begin{answerlist}
+  \item \Sexpr{mchoice2text(solutions[1])}: \Sexpr{explanations[1]}
+  \item \Sexpr{mchoice2text(solutions[2])}: \Sexpr{explanations[2]}
+  \item \Sexpr{mchoice2text(solutions[3])}: \Sexpr{explanations[3]}
+  \item \Sexpr{mchoice2text(solutions[4])}: \Sexpr{explanations[4]}
+  \item \Sexpr{mchoice2text(solutions[5])}: \Sexpr{explanations[5]}
+\end{answerlist}
+\end{solution}
+
+%% META-INFORMATION
+%% \extype{schoice}
+%% \exsolution{\Sexpr{mchoice2string(solutions)}}
+%% \exname{Multiple choice}
+

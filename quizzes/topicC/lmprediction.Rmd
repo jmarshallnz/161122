@@ -1,0 +1,107 @@
+```{r data generation, echo = FALSE, results = "hide"}
+library(tidyverse)
+library(exams)
+d <- data.frame(x = runif(100, -1, 1))
+a <- 0
+b <- sample(c(-1, 1), 1) * sample(c(0, 0.6, 0.9), 1)
+d$y <- a + b * d$x + rnorm(100, sd = 0.25)
+
+write.csv(d, "regression3.csv", row.names = FALSE, quote = FALSE)
+
+m <- lm(y ~ x, data = d)
+# bhat <- coef(m)[2]
+# bpvl <- summary(m)$coefficients[2, 4]
+# bsol <- c(bpvl >= 0.05, (bpvl < 0.05) & (bhat > 0), (bpvl < 0.05) & (bhat < 0))
+
+newdata<-data.frame(x=c(-2,-1,0,1,2))
+
+prediction <- round(predict(m,newdata),3)
+confidenceinterval <- round(predict(m,newdata,interval ='confidence'),3)
+predictioninterval <- round(predict(m,newdata,interval ='prediction'),3)
+predictioninterval99 <- round(predict(m,newdata,interval ='confidence',level=0.99),3)
+
+type <- sample(c("prediction", "95% confidence interval", "95% prediction interval", "99% confidence interval"), 1)
+
+if (type == "prediction") {
+  answer <- tibble(value = prediction,
+                 thing = paste0(type, " at x=", newdata$x),
+                 xval = newdata$x)
+  answer_func <- "predict(m, newdata=newdata)"
+} else if (type == "95% confidence interval") {
+  answer <- tibble(value = paste0('(',confidenceinterval[,2],',',confidenceinterval[,3],')'),
+                 thing = paste0(type, " at x=", newdata$x),
+                 xval = newdata$x)
+  answer_func <- "predict(m, newdata=newdata, interval='confidence')"
+} else if (type == "95% prediction interval") {
+  answer <- tibble(value = paste0('(',predictioninterval[,2],',',predictioninterval[,3],')'),
+                 thing = paste0(type, " at x=", newdata$x),
+                 xval = newdata$x)
+  answer_func <- "predict(m, newdata=newdata, interval='prediction')"
+} else {
+  answer <- tibble(value = paste0('(',predictioninterval99[,2],',',predictioninterval99[,3],')'),
+                 thing = paste0(type, " at x=", newdata$x),
+                 xval = newdata$x)
+  answer_func <- "predict(m, newdata=newdata, interval='confidence', level=0.99)"
+}
+
+#  min_diff <- answer %>% pull(value) %>% sort() %>% diff() %>% min()
+#  if (min_diff / (answer %>% pull(value) %>% min()) > 0.2)
+   
+possible_answers <- answer %>% pull(value)
+
+possible_questions <- answer # %>% filter(thing != "baseline")
+
+which_question <- sample_n(possible_questions, 1)
+
+solutions <- possible_answers == (which_question %>% pull(value))
+
+explanations <- paste0("That is the ", answer %>% pull(thing), ".")
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+possible_answers <- possible_answers[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]
+```    
+
+Question
+========
+Download the data file [regression3.csv](regression3.csv) by right clicking and 'Save link as', then load it into RStudio using `read_csv()` or the Import Dataset button.
+
+Use `lm()` to fit a linear model to `x` and `y` and make a prediction at x=`r which_question %>% pull(xval)`.
+
+Which of the following is a `r which_question %>% pull(thing)`?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(possible_answers, markup = "markdown")
+```
+
+Solution
+========
+
+To replicate the analysis in R:
+
+```
+d <- read.csv("regression3.csv")
+m <- lm(y ~ x, data = d)
+summary(m)
+newdata <- data.frame(x = `r which_question %>% pull(xval)`)
+`r answer_func`
+```
+
+You should get
+
+```{r, echo=FALSE}
+newdata <- data.frame(x = which_question %>% pull(xval))
+eval(str2expression(answer_func))
+```
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

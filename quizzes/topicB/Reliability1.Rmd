@@ -1,0 +1,70 @@
+```{r data generation, echo = FALSE, results = "hide"}
+library(exams)
+Periods = sample(3,1)
+PeriodsW=c("one", "two", "three")[Periods]
+Plural=c("", "s", "s")[Periods]
+Items=sample(3,1)+1
+ItemsW=c("One", "Two", "Three", "Four")[Items]
+
+## QUESTION/ANSWER GENERATION
+questions <- character(5)
+questions[1] <- round(1-(1-1/(Periods+1))^Items, 4)
+questions[2] <- round(0.95*(1-(1-1/(Periods+1))^Items), 4)
+questions[3] <- round((1-1/(Periods+1))^Items, 4)
+questions[4] <- round(0.777*(1-1/(Periods+1))^Items, 4)
+questions[5] <- round((Items-1)/Items, 4)
+solutions <- c(TRUE, FALSE, FALSE, FALSE, FALSE)
+explanations <- character(5)
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]
+```
+
+Question
+========
+
+`r ItemsW` identical parts, with a reliability of $R(t)=1/(t+1)$, are arranged in parallel. What is the probability that this simple system is functional after `r PeriodsW` time period`r Plural`?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+The first thing to note is that the a part remains working for $t = `r Periods`$ time period`r Plural` with probability $R(`r Periods`) = \frac{1}{`r Periods` + 1} = \frac{1}{`r Periods+1`}$. So the probability of a part failing in $t = `r Periods`$ time period`r Plural` is $1 - R(`r Periods`) = \frac{`r Periods`}{`r Periods+1`}$.
+
+As the parts are in parallel, only one of them needs to be functional for the system to be functional. In other words, the system is not functional only if all parts have failed. As the parts are independent,
+
+$$
+P(\mbox{System failed}) = P(\mbox{All parts failed}) = \left[P(\mbox{One part fails})\right]^`r Items`.
+$$
+
+As $P(\mbox{One part fails}) = 1 - P(\mbox{One part is reliable}) = 1 - R(`r Periods`) = \frac{`r Periods`}{`r Periods+1`}$, the system reliability is
+
+$$
+1 - P(\mbox{System failed}) = 1 - \left(1-R(`r Periods`)\right)^{`r Items`} = 1-\left(1-\frac{1}{`r Periods`+1} \right)^{`r Items`} = 1-\left(1-\frac{1}{`r Periods+1`}\right)^{`r Items`} = 1 - \left(\frac{`r Periods`}{`r Periods+1`}\right)^{`r Items`}.
+$$
+
+With RStudio we could use:
+
+```
+Rt = 1 / (`r Periods` + 1)
+POneFails = 1 - Rt
+PSystemFails = POneFails^`r Items`
+1 - PSystemFails
+```
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

@@ -1,0 +1,80 @@
+```{r data generation, echo = FALSE, results = "hide"}
+library(dplyr)
+library(readr)
+library(exams)
+
+roll = read_csv("https://www.massey.ac.nz/~jcmarsha/data/schools/roll_nomacrons.csv")
+
+# choose the variable(s)
+
+answer <- data.frame()
+while (nrow(answer) != 2) {
+  
+  # Find the school we want
+  options1 <- roll |> pull(School) |> unique()
+  selected1 <- sample(options1, 1)
+
+  # check we have enough of what we want
+  answer <- roll |> filter(School == selected1) |>
+    group_by(Gender) |> summarise(Students = sum(Students))
+}
+
+gen_answer <- function(offsets) {
+  answer |> mutate(Students = pmax(Students + offsets, 0)) |>
+    mutate(answer = paste(Gender, Students, sep=" = ")) |>
+    pull(answer) |> paste(collapse=", ")
+}
+
+questions <- character(5)
+questions[1] <- gen_answer(0)
+questions[2] <- gen_answer(sample(c(-100:-3, 3:100), 2))
+questions[3] <- gen_answer(sample(c(-100:-3, 3:100), 2))
+questions[4] <- gen_answer(sample(c(-100:-3, 3:100), 2))
+questions[5] <- gen_answer(sample(c(-100:-3, 3:100), 2))
+questions <- c(questions[1], unique(questions[2:5]))
+
+solutions <- c(TRUE,rep(FALSE, length(questions)-1))
+explanations <- character(length(solutions))
+
+## permute order of solutions/questions
+Order <- sample(seq_along(questions))
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+Using the `roll` data that was used in workshops A05 through A07, find the total number of students of each gender for `r selected1`.
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+```{r, echo=FALSE, message=FALSE, comment = "", results='asis'}
+src <- knitr::knit_expand(text=c('```{r, message=FALSE}',
+                   'roll <- read_csv("https://www.massey.ac.nz/~jcmarsha/data/schools/roll_nomacrons.csv")',
+                   'roll |>',
+                   '  filter(School == "{{selected1}}") |>',
+                   '  group_by(Gender) |>',
+                   '  summarise(Students = sum(Students))',
+                   '```'))
+res = knitr::knit_child(text = src, options = list(comment = ""), quiet=TRUE)
+cat(res)
+```
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice
+

@@ -1,0 +1,55 @@
+
+<<echo=FALSE, results=hide>>=
+## DATA GENERATION
+options <- c("below the lower quartile",
+             "above the upper quartile",
+             "between the lower quartile and median",
+             "between the median and upper quartile")
+option <- sample(options, 1)
+## QUESTION/ANSWER GENERATION
+questions <- character(5)
+questions[1] <- "0.500"
+    questions[2] <- "0.100"
+    questions[3] <- "0.250"
+    questions[4] <- "0.950"
+    questions[5] <- "1.000"
+solutions <- c(FALSE,FALSE,TRUE,FALSE,FALSE)
+explanations <- rep("The quartiles (and median) separate the data into 4 groups, so 25% between them.", 5)
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+@
+
+
+\begin{question}
+What proportion of the data lies \Sexpr{option}?
+
+%%%make no adjustments past this point!!!
+\begin{answerlist}
+  \item \Sexpr{questions[1]}
+  \item \Sexpr{questions[2]}
+  \item \Sexpr{questions[3]}
+  \item \Sexpr{questions[4]}
+  \item \Sexpr{questions[5]}
+\end{answerlist}
+\end{question}
+
+%% SOLUTIONS
+\begin{solution}
+\begin{answerlist}
+  \item \Sexpr{mchoice2text(solutions[1])}: \Sexpr{explanations[1]}
+  \item \Sexpr{mchoice2text(solutions[2])}: \Sexpr{explanations[2]}
+  \item \Sexpr{mchoice2text(solutions[3])}: \Sexpr{explanations[3]}
+  \item \Sexpr{mchoice2text(solutions[4])}: \Sexpr{explanations[4]}
+  \item \Sexpr{mchoice2text(solutions[5])}: \Sexpr{explanations[5]}
+\end{answerlist}
+\end{solution}
+
+%% META-INFORMATION
+%% \extype{schoice}
+%% \exsolution{\Sexpr{mchoice2string(solutions)}}
+%% \exname{Multiple choice}
+

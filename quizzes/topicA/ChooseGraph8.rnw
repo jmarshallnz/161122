@@ -1,0 +1,51 @@
+<<echo=FALSE, results=hide>>=
+
+
+## QUESTION/ANSWER GENERATION
+questions <- character(5)
+    questions[1] <- "Which neighborhood (out of 4 served by a fire station) where an emergency call out originates, for a sample of 200 calls."
+    questions[2] <- "The  windspeed at a building site, at 5 minute intervals throughout the day."
+    questions[3] <- "The number of cars waiting in the right turn lane at every traffic light in Auckland."
+     questions[4] <- "The temperature at a building site each hour throughout August."
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE)
+explanations <- character(5)
+explanations[1] <- "Bar charts are used for categorical variables."
+explanations[2] <-  "This is a continuous variable, better suited to a histogram or time series plot."
+explanations[3] <- "This is a numeric variable, so the bar chart is unsuitable. There are probably enough different values here to be displayed in a histogram."
+explanations[4] <- "This is a continuous variable, better suited to a histogram or time series plot."
+## permute order of solutions/questions
+Order <- sample(1:4)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+@
+
+
+\begin{question}
+Consider the variables described below.  Which situation is best
+depicted by a bar chart?
+%%%make no adjustments past this point!!!
+\begin{answerlist}
+  \item \Sexpr{questions[1]}
+  \item \Sexpr{questions[2]}
+  \item \Sexpr{questions[3]}
+  \item \Sexpr{questions[4]}
+\end{answerlist}
+\end{question}
+
+%% SOLUTIONS
+\begin{solution}
+\begin{answerlist}
+  \item \Sexpr{mchoice2text(solutions[1])}: \Sexpr{explanations[1]}
+  \item \Sexpr{mchoice2text(solutions[2])}: \Sexpr{explanations[2]}
+  \item \Sexpr{mchoice2text(solutions[3])}: \Sexpr{explanations[3]}
+  \item \Sexpr{mchoice2text(solutions[4])}: \Sexpr{explanations[4]}
+\end{answerlist}
+\end{solution}
+
+%% META-INFORMATION
+%% \extype{schoice}
+%% \exsolution{\Sexpr{mchoice2string(solutions)}}
+%% \exname{Multiple choice}
+

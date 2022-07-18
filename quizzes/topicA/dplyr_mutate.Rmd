@@ -1,0 +1,82 @@
+```{r data generation, echo = FALSE, results = "hide"}
+library(dplyr)
+library(readr)
+library(exams)
+
+schools = read_csv("https://www.massey.ac.nz/~jcmarsha/data/schools/schools.csv")
+
+# choose the variable(s)
+
+answer <- 0
+while (answer == 0) {
+
+  # Find the school we want
+  options1 <- schools |> pull(RegionalCouncil) |> unique()
+  regional_council <- sample(options1, 1)
+
+  answer_df <- schools |> filter(RegionalCouncil == regional_council) |>
+    count(SchoolGender)
+
+  if (nrow(answer_df) > 1) {
+    school_gender <- sample(answer_df$SchoolGender, 1)
+
+    answer <- answer_df |> mutate(Prop = n/sum(n)) |>
+      filter(SchoolGender == school_gender) |>
+      pull(Prop)
+  }
+
+}
+
+questions <- character(5)
+questions[1] <- round(answer, 3)
+questions[2] <- round(1-answer, 3)
+questions[3] <- round(answer/2, 3)
+questions[4] <- round(min(answer*2, 1),3)
+questions[5] <- round((1-answer)/2, 3)
+questions <- unique(questions)
+
+solutions <- questions == round(answer, 3)
+explanations <- character(length(solutions))
+
+## permute order of solutions/questions
+Order <- sample(seq_along(questions))
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]
+```
+
+Question
+========
+
+Using the `schools` data that was used in workshop A07, find the **proportion** of `r school_gender` schools in the `r regional_council` regional council.
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+```{r, echo=FALSE, message=FALSE, comment = "", results='asis'}
+src <- knitr::knit_expand(text=c('```{r, message=FALSE}',
+                   'schools <- read_csv("https://www.massey.ac.nz/~jcmarsha/data/schools/schools.csv")',
+                   'schools |>',
+                   '  filter(RegionalCouncil == "{{regional_council}}") |>',
+                   '  count(SchoolGender) |>',
+                   '  mutate(Proportion = n/sum(n))',
+                   '```'))
+res = knitr::knit_child(text = src, options = list(comment = ""), quiet=TRUE)
+cat(res)
+```
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice
+

@@ -1,0 +1,54 @@
+
+<<echo=FALSE, results=hide>>=
+## DATA GENERATION
+Sections=c("Required", "Description", "Usage", "Arguments", "Details", "References", "Examples")
+Drop = 1+sample(6,1)
+Sections=Sections[-Drop]
+## QUESTION/ANSWER GENERATION
+questions <- character(5)
+for(i in 1:5){
+    questions[i] <- paste(Sections[-i], collapse=", ")
+}
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE,FALSE)
+explanations <- rep("Common section names are Description, Usage, Arguments, Details, References, and Examples", 5)
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+@
+
+
+\begin{question}
+If you look at the help pages for functions used in R, you will find the information arranged into sections.
+
+Which of the following is a list of section names commonly found on the R help pages?
+
+
+\begin{answerlist}
+  \item \Sexpr{questions[1]}
+  \item \Sexpr{questions[2]}
+  \item \Sexpr{questions[3]}
+  \item \Sexpr{questions[4]}
+  \item \Sexpr{questions[5]}
+\end{answerlist}
+\end{question}
+
+%% SOLUTIONS
+\begin{solution}
+\begin{answerlist}
+  \item \Sexpr{mchoice2text(solutions[1])}: \Sexpr{explanations[1]}
+  \item \Sexpr{mchoice2text(solutions[2])}: \Sexpr{explanations[2]}
+  \item \Sexpr{mchoice2text(solutions[3])}: \Sexpr{explanations[3]}
+  \item \Sexpr{mchoice2text(solutions[4])}: \Sexpr{explanations[4]}
+  \item \Sexpr{mchoice2text(solutions[5])}: \Sexpr{explanations[5]}
+\end{answerlist}
+\end{solution}
+
+%% META-INFORMATION
+%% \extype{schoice}
+%% \exsolution{\Sexpr{mchoice2string(solutions)}}
+%% \exname{Multiple choice}
+

@@ -1,0 +1,94 @@
+```{r data generation, echo = FALSE, results = "hide"}
+library(tidyverse)
+library(exams)
+
+T<-96
+
+lineartrend <- TRUE 
+quadratictrend<-!lineartrend
+seasonality <- TRUE
+transformation <- FALSE
+
+
+trigger <- c(lineartrend,quadratictrend,seasonality,transformation)
+
+freq <- 4
+seasonalindex<- 0
+if(seasonality==TRUE) seasonalindex <- rep(sort(scale(purrr::rdunif(freq,200),scale=FALSE)),T/freq)
+
+d <- data.frame(t = 1:T)
+b <- 1
+c <- 0.05
+
+pvalue2=1
+pvalue1=0.05
+
+while(pvalue1>=0.05|pvalue2<0.05){
+d$y <- b * d$t + seasonalindex + rexp(T,1/10)
+if(quadratictrend==TRUE)  d$y <- d$y + c * (d$t)^2 
+if(transformation==TRUE)  d$y <- exp(d$y/50)
+d <- d %>% mutate(s=factor(rep(1:freq,T/freq)))
+m.lm <- lm(y~t,data=d)
+m.lm.s <- lm(y~t+s,data=d)
+ANT1<-anova(m.lm,m.lm.s)
+m.qm.s <- lm(y~t+I(t^2)+s,data=d)
+ANT2<-anova(m.lm.s,m.qm.s)
+pvalue1<-ANT1[2,6]
+pvalue2<-ANT2[2,6]
+}
+possible <- c('Fit a linear trend to the time series.',
+'Fit a quadratic trend to the time series.',
+'Address the seasonalities via adding factors.',
+'Take a log transformation on *y*.')
+
+questions <- character(5)
+questions[1] <- paste(possible[c(TRUE,FALSE,FALSE,FALSE)], collapse = " ")
+questions[2] <- paste(possible[c(FALSE,TRUE,FALSE,FALSE)], collapse = " ")
+questions[3] <- paste(possible[c(FALSE,FALSE,TRUE,FALSE)], collapse = " ")
+questions[4] <- paste(possible[c(TRUE,FALSE,TRUE,FALSE)], collapse = " ")
+questions[5] <- paste(possible[c(FALSE,TRUE,TRUE,FALSE)], collapse = " ")
+
+solutions <- questions==paste(possible[trigger], collapse = " ")
+
+explanations <- character(5)
+explanations[1] <- ""
+explanations[2] <- ""
+explanations[3] <- ""
+explanations[4] <- ""
+explanations[5] <- ""
+
+
+## permute order of solutions/questions
+Order <- sample(c(sample(which(solutions!=TRUE),4),which(solutions==TRUE)))
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```    
+
+Question
+========
+
+The scatter-line plot of a time series is below.
+
+```{r, fig.width=8, fig.height=5, fig.retina=2, fig.cap=""}
+d %>% ggplot(aes(x=t,y=y)) +geom_line() + geom_point()
+```
+
+In order to make sufficient good predictions, which one of the following aspects has to be taken into your consideration when fitting a regression model to this time series?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

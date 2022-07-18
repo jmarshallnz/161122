@@ -1,0 +1,48 @@
+```{r data generation, echo = FALSE, results = "hide"}
+## QUESTION/ANSWER GENERATION
+questions <- character(5)
+questions[1] <- "Poisson distribution"
+questions[2] <- "Binomial distribution"
+questions[3] <- "Normal distribution"
+questions[4] <- "Any discrete distribution"
+questions[5] <- "Any continuous distribution"
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE,FALSE)
+explanations <- character(5)
+explanations[1] <- "The Poisson distribution describes this situation."
+explanations[2] <- "The binomial distribution is used where you have a fixed number of repeated, independent binary events with the same probability."
+explanations[3] <- "The Normal distribution describes continuous measures."
+explanations[4] <- "Discrete distributions can describe far more situations than this."
+explanations[5] <- "Continuous distributions can describe many more situations than this."
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+Which probability distribution is appropriate when the
+events of interest occur randomly, independently of one another, and
+rarely?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

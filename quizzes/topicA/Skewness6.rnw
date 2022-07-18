@@ -1,0 +1,51 @@
+
+<<echo=FALSE, results=hide>>=
+## DATA GENERATION
+## QUESTION/ANSWER GENERATION
+questions <- character(5)
+    questions[1] <- "the distribution is skewed to the right."
+    questions[2] <- "the distribution is symmetric."
+    questions[3] <- "the distribution is skewed to the left."
+    questions[4] <- "it is a normal distribution."
+    questions[5] <- "it is bimodal."
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE,FALSE)
+explanations <- rep("A tail extending to the right indicates right or positive skew.", 5)
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+@
+
+
+\begin{question}
+A histogram with a much longer tail  extending to the right, indicates that
+
+%%%make no adjustments past this point!!!
+\begin{answerlist}
+  \item \Sexpr{questions[1]}
+  \item \Sexpr{questions[2]}
+  \item \Sexpr{questions[3]}
+  \item \Sexpr{questions[4]}
+  \item \Sexpr{questions[5]}
+\end{answerlist}
+\end{question}
+
+%% SOLUTIONS
+\begin{solution}
+\begin{answerlist}
+  \item \Sexpr{mchoice2text(solutions[1])}: \Sexpr{explanations[1]}
+  \item \Sexpr{mchoice2text(solutions[2])}: \Sexpr{explanations[2]}
+  \item \Sexpr{mchoice2text(solutions[3])}: \Sexpr{explanations[3]}
+  \item \Sexpr{mchoice2text(solutions[4])}: \Sexpr{explanations[4]}
+  \item \Sexpr{mchoice2text(solutions[5])}: \Sexpr{explanations[5]}
+\end{answerlist}
+\end{solution}
+
+%% META-INFORMATION
+%% \extype{schoice}
+%% \exsolution{\Sexpr{mchoice2string(solutions)}}
+%% \exname{Multiple choice}
+

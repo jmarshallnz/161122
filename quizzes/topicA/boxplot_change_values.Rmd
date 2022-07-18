@@ -1,0 +1,70 @@
+```{r data generation, echo = FALSE, results = "hide"}
+library(masseystat)
+library(tidyverse)
+library(exams)
+
+dat <- data.frame(x = round(rexp(50, rate=0.1)*10 + 50))
+
+my_summ <- function(x) {
+  ans = c(summary(x), `std dev`=sd(x))
+  names(ans) <- c("Min", "LQ", "Median", "Mean", "UQ", "Max", "Std dev")
+  data.frame(as.list(round(ans)), check.names=FALSE)
+}
+ans <- dat |> summarise(my_summ(x))
+
+num <- sample(5:12, 1)
+
+questions <- character(5)
+questions[1] <- "Max, Std dev, Mean"
+questions[2] <- "Std dev, Mean"
+questions[3] <- "UQ, Max, Std dev, Mean"
+questions[4] <- "Median, Std dev, Mean"
+questions[5] <- "UQ, Max, Mean"
+
+solutions <- c(FALSE,TRUE,FALSE,FALSE,FALSE)
+explanations <- character(5)
+explanations[1] <- "The maximum would not change."
+explanations[2] <-  "The standard deviation and mean would change as they depend on the values that each data point takes. The values that change would leave the UQ and maximum the same."
+explanations[3] <- "The UQ and maximum would not change."
+explanations[4] <- "The median would not change."
+explanations[5] <- "The UQ and maximum would not change."
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+
+```
+
+Question
+========
+
+Several numerical summaries of a data set are reproduced below.
+
+```{r, echo=FALSE}
+ans |>
+  knitr::kable(format='html', booktabs=TRUE, align='lrrrr') |>
+  kableExtra::kable_styling(bootstrap_options = "bordered", full_width = FALSE, position = "center")
+```  
+
+After computing these, it is found that `r num-2` of the `r num` values recorded as `r ans$Max` were supposed to be `r round(mean(c(ans$UQ,ans$Max)))`.
+
+Which of the above values would change?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: boxplot_change_values

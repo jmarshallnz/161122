@@ -1,0 +1,57 @@
+```{r data generation, echo = FALSE, results = "hide"}
+library(masseystat)
+library(tidyverse)
+library(exams)
+
+dat <- rboxplot(mu=0.8, sd=2, skew=25) |> mutate(box = LETTERS[1:4])
+
+questions <- paste("Graph", dat |> pull(box))
+
+answers <- dat |> pull(evaluate)
+
+which_answer <- "shape"
+
+question_phrase <- ifelse(which_answer == "none",
+                       "shows no difference between the groups?",
+                       paste0("demonstrates a difference in **", which_answer, "** between groups?"))
+
+solutions <- answers == which_answer
+
+explanations <- ifelse(answers == "none",
+                       "These boxplots don't differ.",
+                       paste0("These boxplots differ in ", answers, "."))
+                       
+## Don't permute order of solutions/questions
+```
+
+Question
+========
+
+Which one of the following sets of boxplots `r question_phrase`
+
+```{r plot, echo=FALSE, fig.cap="", results="hide", fig.width=7, fig.height=5, fig.retina=2}
+ggplot(dat |> unnest(data)) +
+  geom_boxplot(aes(y=group, x=value)) +
+  facet_wrap(vars(box), scales = 'free_x') +
+  theme(axis.title = element_blank(),
+        axis.text = element_blank(),
+        axis.ticks = element_blank())
+```
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

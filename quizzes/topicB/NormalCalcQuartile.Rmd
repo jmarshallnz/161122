@@ -1,0 +1,53 @@
+```{r data generation, echo = FALSE, results = "hide"}
+Mean=30+sample(20,1)
+SD=3+sample(10,1)
+Drop=1+sample(5,1)
+
+## QUESTION/ANSWER GENERATION
+questions <- character(6)
+questions[1] <- round(Mean+0.675*SD,2)
+questions[2] <- round(Mean+0.75*SD,2)
+questions[3] <- round(Mean+0.65*SD,2)
+questions[4] <- round(Mean+SD,2)
+questions[5] <- round(Mean+1.28*SD,2)
+questions[6] <- round(Mean+1.96*SD,2)
+questions=questions[-Drop]
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE,FALSE)
+explanations <- character(5)
+explanations[1] <- ""
+explanations[2] <- ""
+explanations[3] <- ""
+explanations[4] <- ""
+explanations[5] <- ""
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]
+```
+
+Question
+========
+
+A normal distribution with mean of `r Mean` and standard deviation of `r SD` has its upper quartile at...
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+We can compute quantiles with `qnorm()`, so can use <code>qnorm(0.75, mean=`r Mean`, sd=`r SD`)</code>.
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

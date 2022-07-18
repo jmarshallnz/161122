@@ -1,0 +1,43 @@
+
+```{r data generation, echo = FALSE, results = "hide"}
+library(stringr)
+colours <- str_subset(colours(), "[0-9]+", negate = TRUE)
+colour <- sample(colours, 1)
+
+questions <- character(5)
+    questions[1] <- paste0("add `colour='", colour, "'` inside the `geom_point()` function.")
+    questions[2] <- paste0("add `colour='", colour, "'` inside the inside the `ggplot()` function.")
+    questions[3] <- paste0("add `+ colour('", colour, "')` on to the end.")
+    questions[4] <- paste0("add `colour='", colour, "'` inside the `aes()` function.")
+    questions[5] <- paste0("add `colour='", colour, "'` inside the `ggplot()` function.")
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE,FALSE)
+explanations <- rep("To set an aesthetic to a value, it should be placed inside the corresponding `geom_*()` geometry layer but not inside `aes()`.", 5)
+
+# permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+To change the colour of points on a scatterplot in `ggplot2` to `r colour`, we would:
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple choice

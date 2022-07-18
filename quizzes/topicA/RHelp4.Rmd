@@ -1,0 +1,42 @@
+
+```{r data generation, echo = FALSE, results = "hide"}
+
+questions <- character(5)
+    questions[1] <- "Try `geom_histogram(bins=15)`"
+    questions[2] <- "`geom_histogram()` will always produce a histogram with 15 bars."
+    questions[3] <- "Use `geom_hisogram(boundary=0)`"
+    questions[4] <- "Increase the x-axis limits"
+    questions[5] <- "It is not possible to change the default number of bars."
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE,FALSE)
+explanations <- rep("We use the `bins` argument in `geom_histogram()` to specify the number of bins.", 5)
+
+# permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+Suppose I am making a histogram using `ggplot2` and would like there to be 15 bars.
+Use the R help for `geom_histogram` (type `?geom_histogram` at the Console) to suggest a solution.
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple choice

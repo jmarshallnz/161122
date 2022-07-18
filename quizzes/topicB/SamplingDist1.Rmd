@@ -1,0 +1,54 @@
+```{r data generation, echo = FALSE, results = "hide"}
+HowMany=30+sample(20,1)
+Mean= 20+sample(10,1)
+SD=3+sample(5,1)
+XPoint= as.integer(round(Mean+1.5*SD/sqrt(HowMany), 0))
+## QUESTION/ANSWER GENERATION
+questions <- character(5)
+questions[1] <- round(1-pnorm(XPoint, Mean, SD/sqrt(HowMany)), 4)
+questions[2] <- "Unknown because the distribution of the population is unknown."
+questions[3] <- round(1-pnorm(XPoint, Mean, SD), 4)
+questions[4] <- round(1-pnorm(XPoint, Mean, SD/HowMany), 4)
+questions[5] <- "0.0500"
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE,FALSE)
+explanations <- character(5)
+explanations[1] <- ""
+explanations[2] <- ""
+explanations[3] <- ""
+explanations[4] <- ""
+explanations[5] <- ""
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+A random sample of $n=`r HowMany`$
+measurements is selected from a population with mean equal to `r Mean` and
+standard deviation `r SD`. What is the probability that the sample mean will
+exceed `r XPoint`?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+Recall that the sample mean is distributed as $\mbox{Normal}(\mu, \frac{\sigma}{\sqrt{n}})$. For the probability greater than a value, we can use `pnorm` with `lower.tail=FALSE`. So in RStudio, we can use <code>pnorm(`r XPoint`, mean=`r Mean`, sd=`r SD`/sqrt(`r HowMany`), lower.tail=FALSE)</code>.
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

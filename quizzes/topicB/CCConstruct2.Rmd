@@ -1,0 +1,84 @@
+```{r data generation, echo = FALSE, results = "hide"}
+library(exams)
+What=sample(c("network cables", "memory cards", "USB cables", "LCD monitors"), 1)
+file=paste0(unlist(strsplit(What, " "))[1], ".csv")
+Rate=3.5+sample(10,1)/10
+X=rpois(30,Rate)
+Mean=mean(X)/75
+Answer=Mean+3*sqrt(Mean*(1-Mean)/75)
+dat = data.frame(Faults=X)
+write.csv(dat, file, row.names = FALSE)
+
+## QUESTION/ANSWER GENERATION
+Drop=sample(5,1)+1
+questions <- character(6)
+questions[1] <- round(Answer,2)
+questions[2] <- round(1.1*Answer,2)
+questions[3] <- round(0.9*Answer,2)
+questions[4] <- max(X)
+questions[5] <- round(1/Answer,3)
+questions[6] <- round(2*Answer,2)
+questions=questions[-Drop]
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE,FALSE)
+explanations <- character(5)
+explanations[1] <- ""
+explanations[2] <- ""
+explanations[3] <- ""
+explanations[4] <- ""
+explanations[5] <- ""
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+You are given the number of faulty `r What` in the last thirty shipments leaving the factory in the dataset `r file`. Each shipment contains 75 `r What`.
+
+Download the data file [`r file`](`r file`), and read it into RStudio.
+
+By using the appropriate control chart for this kind of data, the upper control limit is closest to...
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+We could use RStudio for this with the `qcc` function with `type='p'`.
+
+```{r name_me, echo=FALSE, message=FALSE, comment = "", results='asis', fig.show='hide'}
+src <- knitr::knit_expand(text=c('```{r ccc2, message=FALSE, fig.dim=c(7,5), results="hide"}',
+                   'library(tidyverse)',
+                   'library(qcc)',
+                   'dat <- read_csv("{{file}}")',
+                   'qcc(dat$Faults, type="p", sizes=75)',
+                   '```'))
+res = knitr::knit_child(text = src, options = list(comment = ""), quiet=TRUE)
+cat(res)
+```
+
+Alternatively, we could use the formula: $UCL = \bar{p} + 3 \sqrt{\frac{\bar{p}(1-\bar{p})}{n}}$.
+
+```{r name_me3, message=FALSE}
+library(tidyverse)
+dat %>% summarise(p = mean(Faults/75),
+                  ucl = p + 3 * sqrt(p*(1-p)/75))
+```
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

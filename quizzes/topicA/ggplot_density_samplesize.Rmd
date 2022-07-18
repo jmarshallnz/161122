@@ -1,0 +1,45 @@
+
+```{r data generation, echo = FALSE, results = "hide"}
+
+questions <- character(5)
+    questions[1] <- "Have a smaller bandwidth."
+    questions[2] <- "Have a larger bandwidth."
+    questions[3] <- "Use the same bandwidth."
+    questions[4] <- "Use the exact same x-axis limits."
+    questions[5] <- "Use the exact same y-axis limits."
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE,FALSE)
+explanations <- character(5)
+explanations[1] <- "The bandwidth should reduce when the size of the data increases."
+explanations[2] <- "The bandwidth should reduce when the size of the data increases."
+explanations[3] <- "The bandwidth should reduce when the size of the data increases."
+explanations[4] <- "The axis limits should depend on the data collected, so can change with more data."
+explanations[5] <- "The axis limits should depend on the data collected, so can change with more data."
+
+# permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+Suppose you produce a density plot from a dataset with 100 observations. You then go and collect another 1000 observations and create a new density plot. The new plot should:
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple choice

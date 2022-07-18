@@ -1,0 +1,61 @@
+```{r, echo=FALSE, results="hide"}
+## DATA GENERATION
+x=(runif(500)+runif(500)+runif(500))*20
+MeanX=round(mean(x),1)
+SDX=round(sd(x),1)
+## QUESTION/ANSWER GENERATION
+questions <- numeric(5)
+questions[1] <- SDX
+questions[2] <- MeanX
+questions[3] <- MeanX+SDX
+questions[4] <- 3*SDX
+questions[5] <- round(SDX/4,2)
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE,FALSE)
+
+questions <- masseystat::make_unique(questions, solutions, tolerance=0.05)
+
+explanations <- character(5)
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+The following histogram shows a sample of 500 results.
+
+```{r, fig.width=7, fig.height=5, fig.cap="", fig.retina=2, echo=FALSE}
+library(tidyverse)
+ggplot(data.frame(x=x)) + geom_histogram(aes(x), bins=15)
+```
+
+The standard deviation of this data is likely to be close to:
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+Recall that for a Normal distribution, around 95% of the data is within 2 standard deviations of the mean, and around 99.5% of the data is within 3 standard deviations of the mean.
+
+So, for a normal distribution we'd expect the range of the data to be around 4-6 standard deviations.
+
+This also applies (approximately at least!) to distributions that are relatively normal, like this one. So take the range and divide by 4 to 6 to get an idea as to what the standard deviation might be.
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple choice
+

@@ -1,0 +1,122 @@
+```{r data generation, echo = FALSE, results = "hide"}
+library(tidyverse)
+library(exams)
+
+T<-96
+
+setup_options <- tibble::tribble(~linear, ~seasonal, ~transform, ~error,
+                                 TRUE, TRUE, FALSE, 1/4,
+                                 FALSE, TRUE, FALSE, 1/20,
+                                 FALSE, FALSE, FALSE, 1/10,
+                                 TRUE, TRUE, TRUE, 1/2)
+
+setup <- setup_options %>% sample_n(1)
+
+lineartrend <- setup %>% pull(linear)
+quadratictrend<-!lineartrend
+seasonality <- setup %>% pull(seasonal)
+transformation <- setup %>% pull(transform)
+error_rate <- setup %>% pull(error)
+
+trigger <- c(lineartrend,quadratictrend,seasonality,transformation)
+
+freq <- sample(c(4,12),1)
+seasonal_max <- ifelse(lineartrend, 30, 200)
+seasonalindex<- 0
+if(seasonality==TRUE) seasonalindex <- rep(scale(purrr::rdunif(freq,seasonal_max),scale=FALSE),T/freq)
+
+d <- data.frame(t = 1:T)
+b <- 1
+c <- 0.05
+d$y <- b * d$t + seasonalindex + rexp(T,error_rate)
+if(quadratictrend==TRUE)  d$y <- d$y + c * (d$t)^2 
+if(transformation==TRUE)  d$y <- exp(d$y/30)
+
+d <- d %>% mutate(s=paste0("S",rep(1:freq,T/freq)))
+
+write.csv(d, "timeseries.csv", row.names = FALSE, quote = FALSE)
+
+possible <- c('Fit a linear trend to the time series.',
+'Fit a quadratic trend to the time series.',
+'Address the seasonalities via adding factors.',
+'Take a log transformation on *y*.')
+
+questions <- character(8)
+questions[1] <- paste(possible[c(TRUE,FALSE,FALSE,FALSE)], collapse = " ")
+questions[2] <- paste(possible[c(FALSE,TRUE,FALSE,FALSE)], collapse = " ")
+questions[3] <- paste(possible[c(FALSE,FALSE,TRUE,FALSE)], collapse = " ")
+questions[4] <- paste(possible[c(TRUE,FALSE,TRUE,FALSE)], collapse = " ")
+questions[5] <- paste(possible[c(FALSE,TRUE,TRUE,FALSE)], collapse = " ")
+questions[6] <- paste(possible[c(TRUE,FALSE,FALSE,TRUE)], collapse = " ")
+questions[7] <- paste(possible[c(FALSE,FALSE,TRUE,TRUE)], collapse = " ")
+questions[8] <- paste(possible[c(TRUE,FALSE,TRUE,TRUE)], collapse = " ")
+
+solutions <- questions==paste(possible[trigger], collapse = " ")
+
+explanations <- character(8)
+explanations[1] <- ""
+explanations[2] <- ""
+explanations[3] <- ""
+explanations[4] <- ""
+explanations[5] <- ""
+explanations[6] <- ""
+explanations[7] <- ""
+explanations[8] <- ""
+
+## permute order of solutions/questions
+Order <- sample(c(sample(which(solutions!=TRUE),4),which(solutions==TRUE)))
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```    
+
+Question
+========
+
+Download the data file [timeseries.csv](timeseries.csv) by right clicking and 'Save link as', then load it into RStudio using `read_csv()` or the Import Dataset button. 
+
+In order to make sufficiently good predictions, which one of the following aspects has to be taken into your consideration when fitting a regression model to this time series?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+This question requires you to do a bit of exploratory analysis (i.e. plot the data):
+
+```{r, message=FALSE, fig.caption = ""}
+library(tidyverse)
+d <- read_csv('timeseries.csv')
+ggplot(data=d, mapping=aes(x=t,y=y)) +
+  geom_line() +
+  geom_point()
+```
+
+The plot may give you some ideas, but you can also explore fitting some models and doing diagnostics:
+
+```{r, eval=FALSE}
+# try some models with trend (linear, quadratic) and potential seasonality
+m1 <- lm(y ~ t + s, data=d)
+m2 <- lm(y ~ t + I(t^2) + s, data=d)
+# try a transformation maybe?
+m3 <- lm(log(y) ~ t + s, data=d)
+m4 <- lm(log(y) ~ t + I(t^2) + s, data=d)
+
+# see if terms are important:
+anova(m1)
+
+# try model diagnostics etc.
+plot(m1)
+```
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

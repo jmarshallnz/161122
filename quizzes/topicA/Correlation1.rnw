@@ -1,0 +1,58 @@
+%%% adjustments occur on indented lines only.
+%% each possible answer gets inserted int he "" marks
+%% The line starting solutions gets replaced entirely.
+<<echo=FALSE, results=hide>>=
+## DATA GENERATION
+## QUESTION/ANSWER GENERATION
+questions <- character(5)
+    questions[1] <- "The correlation coefficient and covariance will change."
+    questions[2] <- "The correlation coefficient and covariance will both remain the same."
+    questions[3] <- "The correlation coefficient will remain the same, but the covariance will change."
+    questions[4] <- "The correlation coefficient will change, but the covariance will remain the same."
+    questions[5] <- "The correlation coefficient will increase by 1.8 and the covariance will increase by $1.8^2$."
+    solutions <- c(FALSE, FALSE,TRUE,FALSE,FALSE)
+
+explanations <- character(5)
+explanations[1] <- "The correlation is unchanged under changes in scale or center."
+explanations[2] <- "The covariance changes with changes in scale."
+explanations[3] <- "The correlation is unchanged under changes in scale or center, while covariance changes with changes in scale."
+explanations[4] <- "The correlation is unchanged under changes in scale or center."
+explanations[5] <- "The correlation is unchanged under changes in scale or center."
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+@
+
+
+\begin{question}
+The relationship between the contraction of the rubber used in the expansion joints on bridges and temperature is known to be approximately linear. If the correlation coefficient and covariance are found from data where the explanatory variable (temperature) is measured in degrees Celsius., what will be the impact if the temperature data is converted to degrees Fahrenheit? Note that for the purposes of this question, $F=32+1.8C$ is the conversion between degrees Fahrenheit and Celsius.
+
+%%%make no adjustments past this point!!!
+\begin{answerlist}
+  \item \Sexpr{questions[1]}
+  \item \Sexpr{questions[2]}
+  \item \Sexpr{questions[3]}
+  \item \Sexpr{questions[4]}
+  \item \Sexpr{questions[5]}
+\end{answerlist}
+\end{question}
+
+%% SOLUTIONS
+\begin{solution}
+\begin{answerlist}
+  \item \Sexpr{mchoice2text(solutions[1])}: \Sexpr{explanations[1]}
+  \item \Sexpr{mchoice2text(solutions[2])}: \Sexpr{explanations[2]}
+  \item \Sexpr{mchoice2text(solutions[3])}: \Sexpr{explanations[3]}
+  \item \Sexpr{mchoice2text(solutions[4])}: \Sexpr{explanations[4]}
+  \item \Sexpr{mchoice2text(solutions[5])}: \Sexpr{explanations[5]}
+\end{answerlist}
+\end{solution}
+
+%% META-INFORMATION
+%% \extype{schoice}
+%% \exsolution{\Sexpr{mchoice2string(solutions)}}
+%% \exname{Multiple choice}
+

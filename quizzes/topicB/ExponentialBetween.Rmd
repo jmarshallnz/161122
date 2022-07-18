@@ -1,0 +1,60 @@
+```{r data generation, echo = FALSE, results = "hide"}
+library(masseystat)
+
+# created MBJ, confirmed JG
+lambda<-round(abs(rnorm(1,0,1)),2)
+x<-round(abs(rnorm(2,0,1)),2) + 0.01
+x<-sort(x)
+
+# QUESTION/ANSWER GENERATION
+questions <- numeric(5)
+questions[1] <- signif(pexp(x[2],lambda)-pexp(x[1],lambda),3)
+questions[2] <-  signif(pexp(x[1], lambda),3)
+questions[3] <-  signif(pexp(x[2], lambda ),3)
+questions[4] <-   signif(pexp(x[1],lambda )/pexp(x[2], lambda),3)
+questions[5] <-   signif(pexp(x[2],lambda)-pexp(x[1],lambda),2)+0.05
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE,FALSE)
+
+questions <- make_unique(questions, solutions, tolerance=0.01)
+questions <- as.character(questions)
+
+explanations <- character(5)
+explanations[1] <- ""
+explanations[2] <- ""
+explanations[3] <- ""
+explanations[4] <- ""
+explanations[5] <- ""
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]
+```
+
+Question
+========
+
+$X$ has an exponential distribution with rate `r lambda`.  What is
+the probability that $X$ is between `r x[1]` and `r x[2]`?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+We can use `pexp()` for this, by noting that $P(`r x[1]` < X < `r x[2]`) = P(X < `r x[2]`) - P(X < `r x[1]`)$. Thus, we can use <code>pexp(`r x[2]`, rate=`r lambda`) - pexp(`r x[1]`, rate=`r lambda`)</code>.
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

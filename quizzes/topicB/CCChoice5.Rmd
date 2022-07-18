@@ -1,0 +1,50 @@
+```{r data generation, echo = FALSE, results = "hide"}
+## QUESTION/ANSWER GENERATION
+questions <- character(5)
+    questions[1] <- "The $p$ and $np$ charts are equivalent if the subgroup sizes
+are equal."
+    questions[2] <- "$p$ and $np$ charts are equivalent if the subgroup sizes are
+unequal."
+    questions[3] <- "The smaller the subgroup size $n_i$, the narrower the control limits."
+    questions[4] <- "We are absolutely certain that $p_i$ (the proportion of nonconforming items in subgroup $i$) is outside the 3-sigma control limits."
+    questions[5] <- "The control limits for a $c$-chart is based on the properties of a binomial
+distribution."
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE,FALSE)
+explanations <- character(5)
+explanations[1] <- "If $n$ is the same for all subgroups, then the $np$ chart is just a scaling of the $p$ chart."
+explanations[2] <- "If subgroup sizes are unequal, then $n$ changes between subgroups so that $np$ charts differ from $p$ charts."
+explanations[3] <- "The smaller the subgroup size $n_i$ the larger the control limits, as we are less certain about the process."
+explanations[4] <- "The 3-sigma control limits are just what we expect $p_i$ to be within almost all the time (due to the Central Limit Theorem the process proportion should be normally distributed) if the process is in-control. If the process goes outside these limits then it may be out of statistical control so will need investigating."
+explanations[5] <- "The $c$-chart is based on the Poisson distribution."
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+Consider control charts for attributes. Which of the
+following statements is always true?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

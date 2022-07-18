@@ -1,0 +1,66 @@
+```{r data generation, echo = FALSE, results = "hide"}
+library(tidyverse)
+library(exams)
+
+d <- data.frame(x = runif(100, -2, 2))
+a <- sample(c(0, 1), 1)
+b <- sample(c(-1, 0, 1), 1) 
+d$y <- a + b * d$x + rnorm(100, sd = 0.25)
+
+m <- lm(y ~ x, data = d)
+ahat <- coef(m)[1]
+bhat <- coef(m)[2]
+ahatSE <- summary(m)$coefficients[1, 2]
+bhatSE <- summary(m)$coefficients[2, 2]
+
+intervals<-round(rbind(cbind(ahat-(1:3)*ahatSE,ahat+(1:3)*ahatSE),
+      cbind(bhat-(1:3)*bhatSE,bhat+(1:3)*bhatSE)),3)
+
+questions <- paste0('(',intervals[,1],',',intervals[,2],')')
+  
+solutions <- c(FALSE,FALSE,FALSE,FALSE,TRUE,FALSE)
+
+explanations <- character(6)
+explanations[1] <- ""
+explanations[2] <- ""
+explanations[3] <- ""
+explanations[4] <- ""
+explanations[5] <- ""
+explanations[6] <- ""
+
+## permute order of solutions/questions
+Candidate <- 1:6
+TrueCandidate <- Candidate[solutions==TRUE]
+Order <- c(TrueCandidate, sample(Candidate[-TrueCandidate],4))
+possible_answers <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```    
+
+Question
+========
+
+A simple linear model is fitted to `x` and `y` and the R summary table is given as follows. 
+
+```{r,echo=FALSE}
+summary(m)
+```
+
+Which one of the following intervals is the 95% confidence interval for the estimated slope?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(possible_answers, markup = "markdown")
+```
+
+Solution
+========
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

@@ -1,0 +1,47 @@
+```{r data_generation, echo=FALSE, results='hide'}
+library(exams)
+
+questions <- character(5)
+questions[1] <- "Only factor variables can interact with each other. Factor variables can not interact with numerical variables."
+questions[2] <- "Adding interactions between a factor variable and a numerical variable leads to parellel lines defined by the regressiton equation."
+questions[3] <- "The significance of interactions can be examined using the ANOVA table."
+questions[4] <- "A linear model with interactions outperforms one without interactions as the former provides better goodness of fit."
+questions[5] <- "One can always include interaction terms in the linear model since it becomes insignificant if there are no interactions."
+
+solutions <- c(FALSE,FALSE,TRUE,FALSE,FALSE)
+explanations <- character(5)
+explanations[1] <- "Any variable can interact with any other, regardless of type."
+explanations[2] <- "An interaction between a factor and a numeric variable means that the slope of the numeric variable is allowed to change within the levels of the factor, so any lines will not be parallel."
+explanations[3] <- "Interactions are almost always best assessed in the ANOVA table."
+explanations[4] <- "A better fit does not necessarily mean a better model. We need to balance model complexity."
+explanations[5] <- "Including variables that are not important means we need to estimate the coefficients, which uses up power (reduces our degrees of freedom). It is generally better to balance model size against goodness of fit."
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+Which one of the following statements is true for interactions in a linear model?
+ 
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+  
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+  
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

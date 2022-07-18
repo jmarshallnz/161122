@@ -1,0 +1,100 @@
+```{r data generation, echo = FALSE, results = "hide"}
+library(tidyverse)
+library(exams)
+
+n <- 100
+p <- 4
+
+ture_p <- sample(2:p,1)
+
+x <- matrix(runif(n*p),ncol=p)
+
+select <- sort(sample(1:p,ture_p))
+
+X <- x[,select]
+
+alpha <- 3
+
+beta <- (2*rbinom(ture_p,1,0.5)-1)*2
+
+y <- X%*%beta + alpha + rnorm(n)
+
+data<-data.frame(y,x)
+
+write.csv(data, "regression.csv", row.names = FALSE, quote = FALSE)
+
+questions <- character()
+adj.r2 <- numeric()
+
+for(eff_p in 1:p){
+x_combn <-  combn(p,eff_p)
+adj.r2 <-  c(adj.r2,apply(x_combn,MARGIN=2,function(t) summary(lm(y~x[,t]))$adj.r.squared))
+x_names <- apply(x_combn,MARGIN=2,
+                function(t) colnames(data.frame(x))[t])
+if(eff_p==1) x_names <- t(x_names)
+questions <- c(questions,apply(x_names,MARGIN=2,
+                function(t) paste0('y~',paste0(t,collapse='+'))))
+}
+
+solutions <- adj.r2==max(adj.r2)
+
+explanations <- rep("",length(solutions))
+
+## permute order of solutions/questions
+Order <- sample(c(sample(which(solutions!=TRUE),4),which(solutions==TRUE)))
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```    
+
+Question
+========
+
+Download the data file [regression.csv](regression.csv) by right clicking and 'Save link as', then load it into RStudio using `read_csv()` or the Import Dataset button. 
+
+Which one of the following regression formulae yields the best compromise between the complexity and the goodness of fit among the corresponding fitted linear models, assessed via adjusted $R^2$?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+The following R code **can be modified** to replicate the full analysis in R. You can then compare the 
+
+```{r, eval=FALSE}
+library(tidyverse)
+library(broom)
+d <- read_csv('regression.csv')
+
+# fit models - modify this for the models you want to fit.
+mod1 <- lm(y~X1, data=d)
+mod2 <- lm(y~X1+X2, data=d)
+mod3 <- lm(y~X1+X2+X3, data=d)
+mod4 <- lm(y~X1+X2+X3+X4, data=d)
+
+# check the adj.r.squared. A nice way to do this is with broom::glance
+bind_rows(glance(mod1),
+          glance(mod2),
+          glance(mod3),
+          glance(mod4), .id="model")
+```
+
+You'll get something like:
+
+```{r, echo=FALSE}
+map(questions, ~ broom::glance(lm(as.formula(.), data=data))) %>%
+  set_names(questions) %>%
+  bind_rows(.id='model')
+```
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

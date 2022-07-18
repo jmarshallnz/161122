@@ -1,0 +1,70 @@
+```{r data generation, echo = FALSE, results = "hide"}
+# created MBJ, JG likes but not a basic question for MT1
+
+library(tidyverse)
+library(exams)
+## DATA GENERATION
+probs<-rbeta(5,0.5, 0.5)
+probs[4]<- 0
+probs[5]<-0.1
+probs[1:3]<- 0.9*probs[1:3]/sum(probs[1:3])
+probs<- round(probs,2)
+probs[5]<- 1-sum(probs[1:3])
+answer<-round(probs[5]/(sum(probs[2:5])),4)
+## QUESTION/ANSWER GENERATION
+questions <- character(5)
+    questions[1] <- answer
+    questions[2] <-round( answer*0.5,4)
+    questions[3] <- answer-0.02
+    questions[4] <- answer+0.02
+    questions[5] <- answer*2
+    solutions <- c(TRUE, FALSE, FALSE,FALSE,FALSE)
+
+explanations <- character(5)
+explanations[1] <- ""
+explanations[2] <- ""
+explanations[3] <- ""
+explanations[4] <- ""
+explanations[5] <- ""
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+A panel of wine enthusiasts are given 4 labeled bottles, and 4 unlabeled glasses of wine. The are asked to match each wine with the correct bottle. The following table gives the probability of each number of correct assignments for this population of experts.
+
+```{r, echo=FALSE}
+probs <- data.frame(matrix(probs, nrow=1))
+names(probs) <- 0:4
+cbind(`Correct matches` = "Probability", probs) %>%
+  knitr::kable(format='html', booktabs=TRUE) %>%
+  kableExtra::kable_styling(bootstrap_options = "bordered", full_width = FALSE, position = "center")
+```
+
+If we restrict ourselves to experts that get at least one wine correct, what is the probability that they get all wines correct?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+We want $\Pr(matches=4| matches \ge 1)= \frac{\Pr(matches=4)}{\Pr(matches=1)+\Pr(matches=2)+\Pr(matches=3)+\Pr(matches=4)}$. 
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

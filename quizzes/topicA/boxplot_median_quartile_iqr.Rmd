@@ -1,0 +1,68 @@
+```{r data generation, echo = FALSE, results = "hide"}
+library(tidyverse)
+library(exams)
+
+while(TRUE) {
+  mu <- runif(1, 100, 300)
+  sd <- runif(1, 20, 50)
+
+  x<-round(rt(30, df=4)*sd + mu,2)
+  data <- data.frame(x=x)
+
+  answer <- data |>
+    summarise(value = round(c(quantile(x, c(0, 0.25, 0.5, 0.75)), IQR(x)),0),
+                thing = c("minimum", "lower quartile", "median", "upper quartile", "interquartile range"))
+  min_diff <- answer |> pull(value) |> sort() |> diff() |> min()
+  if (min_diff / (answer |> pull(value) |> min()) > 0.2)
+    break
+}
+answer
+
+write.csv(data, "dataset.csv", row.names = FALSE)
+
+possible_answers <- answer |> pull(value)
+
+possible_questions <- answer |> filter(thing != "minimum")
+which_question <- sample_n(possible_questions, 1)
+
+solutions <- possible_answers == (which_question |> pull(value))
+
+explanations <- paste0("That is the ", answer |> pull(thing), ".")
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+possible_answers <- possible_answers[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+Download the data file [dataset.csv](dataset.csv) by right clicking and 'Save link as', then load it into RStudio using `read_csv()` or the Import Dataset button.
+
+Use `ggplot2` to make a boxplot of the `x` column. What is the `r which_question |> pull(thing)`?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(possible_answers, markup = "markdown")
+```
+
+Solution
+========
+
+```{r boxplot_hist, message=FALSE, results = "hide", fig.height = 2, fig.width = 5, fig.path = "", fig.cap = ""}
+library(tidyverse)
+dataset <- read_csv("dataset.csv")
+ggplot(dataset) + geom_boxplot(aes(x=x))
+```
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

@@ -1,0 +1,45 @@
+
+```{r data generation, echo = FALSE, results = "hide"}
+
+questions <- character(5)
+    questions[1] <- "`x` and `y`"
+    questions[2] <- "`x`"
+    questions[3] <- "`y`"
+    questions[4] <- "`size`"
+    questions[5] <- "`x` and one of `col` or `fill`"
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE,FALSE)
+explanations <- character(5)
+explanations[1] <- "A scatterplot requires both `x` and `y` to be set."
+explanations[2] <- "A scatterplot requires both `x` and `y` to be set."
+explanations[3] <- "A scatterplot requires both `x` and `y` to be set."
+explanations[4] <- "A scatterplot requires both `x` and `y` to be set."
+explanations[5] <- "A scatterplot requires both `x` and `y` to be set."
+
+# permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+When setting up a scatter plot in `ggplot2`, which aesthetics should be mapped?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple choice

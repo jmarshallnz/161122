@@ -1,0 +1,45 @@
+
+```{r data generation, echo = FALSE, results = "hide"}
+
+questions <- character(5)
+    questions[1] <- "add `colour=group` to `aes()`."
+    questions[2] <- "add `colour=group` to `ggplot()`."
+    questions[3] <- "add `+ colour(group)` to the ggplot expression."
+    questions[4] <- "add `colour=group` to `geom_point()`."
+    questions[5] <- "add `group=colour` to `aes()`."
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE,FALSE)
+explanations <- character(5)
+explanations[1] <- "Whenever we map an aesthetic feature of the plot to a column of data it should be within the `aes()` function."
+explanations[2] <- "Whenever we map an aesthetic feature of the plot to a column of data it should be within the `aes()` function."
+explanations[3] <- "Whenever we map an aesthetic feature of the plot to a column of data it should be within the `aes()` function."
+explanations[4] <- "Whenever we map an aesthetic feature of the plot to a column of data it should be within the `aes()` function."
+explanations[5] <- "Whenever we map an aesthetic the name of the argument is the corresponding plot feature (in this case `colour`)."
+
+# permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+When you wish to colour points in a scatter plot by the grouping variable `group` in `ggplot2` you would:
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple choice

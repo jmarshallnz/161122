@@ -1,0 +1,59 @@
+```{r data generation, echo = FALSE, results = "hide"}
+library(masseystat)
+#created MBJ, confirmed JG
+lambda<-round(abs(rnorm(1,0,1)),2)
+prob=round((1+runif(1))/2, 4)
+## QUESTION/ANSWER GENERATION
+Drop=1+sample(5,1)
+questions <- numeric(6)
+questions[1] <- round(qexp(prob,lambda),2)
+questions[2] <- round(qexp(prob-.15, lambda),2)
+questions[3] <-  round(qexp(prob-.2, lambda),2)
+questions[4] <-  round(pexp(prob,lambda),2)
+questions[5] <-  round(pexp(prob, lambda, lower=FALSE),2)
+questions[6] <- round(qexp(prob-.22, lambda),2)
+questions <- questions[-Drop]
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE,FALSE)
+questions <- make_unique(questions, solutions, tolerance=0.01)
+questions <- as.character(questions)
+
+explanations <- character(5)
+explanations[1] <- ""
+explanations[2] <- ""
+explanations[3] <- ""
+explanations[4] <- ""
+explanations[5] <- ""
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+$X$ has an exponential distribution with rate `r lambda`.  Find the
+value $q$ such that the $Pr(X<q) = `r prob`$.
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+We have a probability and require the corresponding quantile, so can use <code>qexp(`r prob`, rate=`r lambda`)</code>.
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

@@ -1,0 +1,47 @@
+```{r data_generation, echo=FALSE, results='hide'}
+library(exams)
+
+questions <- character(5)
+questions[1] <- "A factor variable with $k$ levels generates $k-1$ regression coefficients in the fitted linear model."
+questions[2] <- "The regression coefficients corresponding to a factor variable are not slopes of the regression line."
+questions[3] <- "An ordinal variable can be treated as a factor variable."
+questions[4] <- "In RStudio, factor variables are transformed to indicator (binary) variables which are essentially numerical variables."
+questions[5] <- "A factor variable is converted to numeric by recoding the levels as 1, 2, 3, ..., $k$, where $k$ is the number of levels."
+
+solutions <- c(FALSE,FALSE,FALSE,FALSE,TRUE)
+explanations <- character(5)
+explanations[1] <- "One level is included in the base-line (intercept) so there are $k-1$ additional covariates for a $k$ level factor."
+explanations[2] <- "The regression coefficients that correspond to a factor variable are shifts in the mean - they're not slopes, as the covariates are only 0/1 binary variables."
+explanations[3] <- "An ordinal variable can be treated as a factor, though this may ignore the order part of the variable which means the model fit may be more general than is desired (e.g. you might want to enforce an increasing or decreasing trend when the factor has order)."
+explanations[4] <- "A factor with $k$ levels is replaced by $k-1$ indicator 0/1 variables in the model equation, which are numeric (though they only take two values)."
+explanations[5] <- "Factor variables are recoded by replacing them with $k-1$ indicator 0/1 variables."
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+Which one of the following statements is **not** true for factor variables in a linear model?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+  
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+  
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

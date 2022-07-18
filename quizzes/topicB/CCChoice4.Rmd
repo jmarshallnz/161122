@@ -1,0 +1,46 @@
+```{r data generation, echo = FALSE, results = "hide"}
+## QUESTION/ANSWER GENERATION
+questions <- character(5)
+    questions[1] <- "Binomial."
+    questions[2] <- "Normal."
+    questions[3] <- "Poisson."
+    questions[4] <- "Weibull."
+    questions[5] <- "Exponential."
+    solutions <- c(TRUE, FALSE, FALSE, FALSE,FALSE)
+
+explanations <- character(5)
+explanations[1] <- "The binomial is used even if the number of units changes from sample to sample."
+explanations[2] <- "The normal distribution is used for the distribution of the proportion parameter, not the observed proportions."
+explanations[3] <- "The Poisson distribution is for counts not proportions."
+explanations[4] <- "The Weibull distribution is commonly used for modelling the reliability of individual components."
+explanations[5] <- "The exponential distribution is commonly used for modelling inter-event times such as the time to failure of a component."
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+The $p$ chart is used in conjuction with scenarios that follow which distribution?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

@@ -1,0 +1,88 @@
+```{r data generation, echo = FALSE, results = "hide"}
+library(dplyr)
+library(readr)
+library(exams)
+
+odis <- read_csv("https://www.massey.ac.nz/~jcmarsha/161122/data/ODIs.csv")
+
+# choose the variable(s)
+selected_var <- "Ground"
+
+possible_answers <- NULL
+while (TRUE) {
+  # OK, now for each one, find the one we want to filter to
+  options <- odis |> pull(selected_var) |> unique()
+
+  selected <- sample(options, 1)
+
+  # check we have enough of what we want
+  possible_answers <- odis |> filter(.data[[selected_var]] == selected) |>
+    group_by(Team) |> summarise(Score = max(Score)) |>
+    arrange(desc(Score))
+
+  # restrict to 5
+  if (nrow(possible_answers) >= 5) {
+    rows <- c(1, sample(2:nrow(possible_answers), 4))
+    possible_answers <- possible_answers |> slice(rows) |>
+      arrange(desc(Score))
+    # check the first two
+    score_values <- possible_answers |> pull(Score)
+    if (score_values[1] >= score_values[2]) {
+      break
+    }
+  }
+}
+
+questions <- possible_answers$Team
+solutions <- c(TRUE,rep(FALSE, length(questions)-1))
+
+explanations <- character(length(solutions))
+
+## permute order of solutions/questions
+Order <- sample(seq_along(questions))
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+A dataset of one day cricket match results from 1971 to 2019 may be downloaded into RStudio using the following code:
+
+```{r, eval=FALSE}
+library(tidyverse)
+odis <- read_csv("https://www.massey.ac.nz/~jcmarsha/161122/data/ODIs.csv")
+```
+
+Using these data, the `Team` that has the highest `Score` at the `Ground` "`r selected`" is:
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE, comment = "", results='asis'}
+src <- knitr::knit_expand(text=c('```{r, message=FALSE, warning=FALSE}',
+                   'library(tidyverse)',
+                   'odis <- read_csv("https://www.massey.ac.nz/~jcmarsha/161122/data/ODIs.csv")',
+                   'odis |>',
+                   '  filter({{selected_var}} == "{{selected}}") |>',
+                   '  arrange(desc(Score))',
+                   '```'))
+res = knitr::knit_child(text = src, options = list(comment = ""), quiet=TRUE)
+cat(res)
+```
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

@@ -1,0 +1,89 @@
+```{r data generation, echo = FALSE, results = "hide"}
+library(tidyverse)
+library(exams)
+
+level <- sample(c(0.05,0.01),1)
+binary_choice <- c(TRUE,FALSE)
+n <- 50
+baseline <- 5
+# Ensure data is balanced so order don't matter
+d <- expand.grid(Treat = c('Control', 'Treatment'),
+                 Sex = c('F', 'M'), n = n) %>%
+  uncount(n)
+
+Sex_effect <- sample(binary_choice,1)
+Treat_effect <- sample(binary_choice,1)
+Inter_effect <- sample(binary_choice,1)*sample(c(1,-1),1)*0.5
+
+d <- d %>% mutate(y = baseline + Sex_effect*(Sex=='M')+ Treat_effect*(Treat=='Treatment') +
+ Inter_effect*(Sex=='M')*(Treat=='Treatment') - Inter_effect*(Sex=='F')*(Treat=='Treatment') +
+ Inter_effect*(Sex=='F')*(Treat=='Control') - Inter_effect*(Sex=='M')*(Treat=='Control') +
+   rnorm(n(),sd=0.2))
+
+write.csv(d, "factor.csv", row.names = FALSE, quote = FALSE)
+
+ANOVA <- anova(lm(y~Sex*Treat, data=d))
+
+pvalue <- (ANOVA$`Pr(>F)`[1:3])
+
+significance <-ifelse(pvalue < level,"significant.","insignificant.")
+
+all.combn <- expand.grid(binary_choice,binary_choice,binary_choice)
+
+wording <- c("The sex effect is", "The treatment effect is", "Their interaction effect is") 
+
+questions <- character()
+
+for(i in 1:nrow(all.combn)){
+  questions[i]<-paste0(paste(wording,ifelse(all.combn[i,],"significant.","insignificant.")),collapse = ' ')
+}
+
+solutions <- as.logical(matrixStats::rowProds(t(t(all.combn)==(pvalue < level))))
+
+explanations <- rep("",length(solutions))
+
+## permute order of solutions/questions
+Order <- sample(c(sample(which(solutions!=TRUE),4),which(solutions==TRUE)))
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```    
+
+Question
+========
+
+Download the data file [factor.csv](factor.csv) by right clicking and 'Save link as', then load it into RStudio using `read_csv()` or the Import Dataset button. The data set summarises the responses of the patients (`y`) with different genders(`Sex`) after receiving a treatment or no treatment (`Treat`).  
+
+Fit a linear model with interactions to the data set and check the ANOVA table. Which one of the following statements is true about the significance of each effect at the significance level `r level`?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+To replicate the analysis in R:
+
+```{r, eval=FALSE}
+library(tidyverse)
+d <- read_csv('factor.csv')
+mod <- lm(y ~ Sex + Treat + Sex:Treat, data=d)
+anova(mod)
+```
+
+You should get:
+
+```{r, echo=FALSE}
+ANOVA
+```
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice
