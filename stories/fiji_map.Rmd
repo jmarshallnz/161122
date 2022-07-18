@@ -1,0 +1,128 @@
+---
+title: "Fiji earthquakes"
+author: "Jonathan Marshall"
+date: "22/07/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Goal
+
+The goal is to take the earthquakes data from `quakes` and find
+a map of Fiji to put them on in order to provide a bit of context
+as to where they are.
+
+So essentially we want to take this:
+
+```{r, message=FALSE}
+library(tidyverse)
+ggplot(data=quakes) +
+  geom_point(mapping=aes(x=long, y=lat, col=mag))
+```
+
+and add the outline/map of Fiji onto it so we can see where the earthquakes are in relation to where the country is.
+
+It turns out this is a little bit tricky.
+
+## Solution
+
+First up, I googled "map of countries in R" and found this:
+
+https://www.r-spatial.org/r/2018/10/25/ggplot2-sf.html
+
+This gave me the hint to use the `rnaturalearth` package. Let's install that:
+
+```{r, eval=FALSE}
+install.packages('rnaturalearth')
+```
+
+I then grabbed Fiji out of it, following the guide above:
+
+```{r}
+library(rnaturalearth)
+fiji <- ne_countries(country = 'fiji', returnclass = 'sf')
+ggplot(fiji) +
+  geom_sf()
+```
+
+And that looks... weird.
+
+The reason is that Fiji straddles the dateline (the anti-Meridian) which is where the standard map projection splits the world so it can fit on a page.
+
+### Getting the right coordinate reference system
+
+So, we need to figure out how to change the 'coordinate reference system' or CRS.
+
+I googled and found this one:
+
+http://pacificprojections.spc.int/3460
+
+which seems to be what we want. We can use `coord_sf()` to change
+coordinate systems for our plot:
+
+```{r}
+ggplot(fiji) +
+  geom_sf() +
+  coord_sf(crs = 3460)
+```
+
+OK, so at least we're getting it all so we can see it. But it still looks very strange, because we've got a super low resolution map.
+
+### Getting a higher resolution
+
+To get the high resolution, we first have to install the high resolution version of `rnaturalearth`. Following the guide on 
+
+https://github.com/ropensci/rnaturalearth
+
+I used:
+
+```{r, eval=FALSE}
+install.packages("rnaturalearthhires",
+                 repos = "http://packages.ropensci.org",
+                 type = "source")
+```
+
+Then we can get the high resolution version (by specifying `scale=10`) and redo our plot:
+
+```{r}
+fiji <- ne_countries(scale=10, country = 'fiji', returnclass = 'sf')
+ggplot(fiji) +
+  geom_sf() +
+  coord_sf(crs = 3460)
+```
+
+That's way nicer!
+
+Now we just have to figure out how to get the points on as well.
+
+### Putting the points on the map
+
+The trick here is to convert the points into a simple features (sf) spatial file, so we can assign a coordinate reference system. Otherwise, it'll plot very strangely indeed (as the final CRS is in metres, so the long/lat will be interpreted as metres instead of degrees). We specify the CRS as '4326' which is the standard WGS84 Mercator projection as used by Google maps etc (i.e. plain longitude/latitude).
+
+```{r, message=FALSE}
+library(sf)
+quakes_as_sf <- st_as_sf(quakes, coords=c('long', 'lat'))
+st_crs(quakes_as_sf) <- 4326
+```
+
+And now we can plot them both:
+
+```{r}
+ggplot() +
+  geom_sf(data=quakes_as_sf, aes(col=mag), size=0.5) +
+  geom_sf(data=fiji, fill='grey', col='black') +
+  coord_sf(crs = 3460)
+```
+
+Now we can see that the earthquakes are mostly off the east cost and south of Fiji, with another lot out to the west.
+
+### Final thought
+
+It'd be nice if our projection was still in lat/long instead of in metres. That way we could have plotted the points without turning them into simple features and setting their projection.
+
+It would also then allow things like `geom_density2d` to be used easily. At the moment if we wanted to do something like that we'd need to do the smoothing ourselves, convert the output to a simple feature and set the projection. That seems like a lot of work compared to just getting the projection right to begin with so we can just use long/lat.
+
+If anyone knows how to do this I'd be interested to hear! I *think* you can probably do it by comparing the `proj4` strings for the two projections maybe? i.e. find the way the standard lat/long projection WGS84 is defined, and alter it to have a longitude offset.

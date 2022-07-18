@@ -1,0 +1,673 @@
+Timeperiod,Direction,WeekDay,Hour,Count
+Before times,From City,Sunday,0,0.2
+Before times,From City,Sunday,1,0
+Before times,From City,Sunday,2,0
+Before times,From City,Sunday,3,0
+Before times,From City,Sunday,4,0.06666666666666667
+Before times,From City,Sunday,5,0.4666666666666667
+Before times,From City,Sunday,6,4.6
+Before times,From City,Sunday,7,9.733333333333333
+Before times,From City,Sunday,8,15.2
+Before times,From City,Sunday,9,21.933333333333334
+Before times,From City,Sunday,10,28.066666666666666
+Before times,From City,Sunday,11,27.4
+Before times,From City,Sunday,12,20.533333333333335
+Before times,From City,Sunday,13,22.6
+Before times,From City,Sunday,14,25.4
+Before times,From City,Sunday,15,26
+Before times,From City,Sunday,16,20.266666666666666
+Before times,From City,Sunday,17,11.6
+Before times,From City,Sunday,18,5.666666666666667
+Before times,From City,Sunday,19,5.2
+Before times,From City,Sunday,20,2.8666666666666667
+Before times,From City,Sunday,21,0.3333333333333333
+Before times,From City,Sunday,22,0.13333333333333333
+Before times,From City,Sunday,23,0.13333333333333333
+Before times,From City,Monday,0,0
+Before times,From City,Monday,1,0
+Before times,From City,Monday,2,0
+Before times,From City,Monday,3,0.13333333333333333
+Before times,From City,Monday,4,0.4
+Before times,From City,Monday,5,2.6
+Before times,From City,Monday,6,8.8
+Before times,From City,Monday,7,51.53333333333333
+Before times,From City,Monday,8,70.6
+Before times,From City,Monday,9,26.866666666666667
+Before times,From City,Monday,10,15.533333333333333
+Before times,From City,Monday,11,12.6
+Before times,From City,Monday,12,11.933333333333334
+Before times,From City,Monday,13,11.866666666666667
+Before times,From City,Monday,14,9.733333333333333
+Before times,From City,Monday,15,11.2
+Before times,From City,Monday,16,13.066666666666666
+Before times,From City,Monday,17,12
+Before times,From City,Monday,18,8.8
+Before times,From City,Monday,19,5.6
+Before times,From City,Monday,20,3.1333333333333333
+Before times,From City,Monday,21,0.4666666666666667
+Before times,From City,Monday,22,0.13333333333333333
+Before times,From City,Monday,23,0
+Before times,From City,Tuesday,0,0
+Before times,From City,Tuesday,1,0
+Before times,From City,Tuesday,2,0
+Before times,From City,Tuesday,3,0.125
+Before times,From City,Tuesday,4,0.375
+Before times,From City,Tuesday,5,2.9375
+Before times,From City,Tuesday,6,10.3125
+Before times,From City,Tuesday,7,48.625
+Before times,From City,Tuesday,8,61.625
+Before times,From City,Tuesday,9,25.75
+Before times,From City,Tuesday,10,14.375
+Before times,From City,Tuesday,11,11.6875
+Before times,From City,Tuesday,12,11.375
+Before times,From City,Tuesday,13,20.1875
+Before times,From City,Tuesday,14,11.75
+Before times,From City,Tuesday,15,13.875
+Before times,From City,Tuesday,16,12.0625
+Before times,From City,Tuesday,17,10.6875
+Before times,From City,Tuesday,18,9.25
+Before times,From City,Tuesday,19,4.3125
+Before times,From City,Tuesday,20,3
+Before times,From City,Tuesday,21,0.75
+Before times,From City,Tuesday,22,0.1875
+Before times,From City,Tuesday,23,0.0625
+Before times,From City,Wednesday,0,0.0625
+Before times,From City,Wednesday,1,0
+Before times,From City,Wednesday,2,0.0625
+Before times,From City,Wednesday,3,0.0625
+Before times,From City,Wednesday,4,0.1875
+Before times,From City,Wednesday,5,2.75
+Before times,From City,Wednesday,6,7.625
+Before times,From City,Wednesday,7,42.75
+Before times,From City,Wednesday,8,61.75
+Before times,From City,Wednesday,9,25.9375
+Before times,From City,Wednesday,10,14.1875
+Before times,From City,Wednesday,11,12.75
+Before times,From City,Wednesday,12,10.875
+Before times,From City,Wednesday,13,14.1875
+Before times,From City,Wednesday,14,9.3125
+Before times,From City,Wednesday,15,12.3125
+Before times,From City,Wednesday,16,11.4375
+Before times,From City,Wednesday,17,11.1875
+Before times,From City,Wednesday,18,7.8125
+Before times,From City,Wednesday,19,6.25
+Before times,From City,Wednesday,20,3.5625
+Before times,From City,Wednesday,21,0.4375
+Before times,From City,Wednesday,22,0.1875
+Before times,From City,Wednesday,23,0.125
+Before times,From City,Thursday,0,0
+Before times,From City,Thursday,1,0
+Before times,From City,Thursday,2,0
+Before times,From City,Thursday,3,0.13333333333333333
+Before times,From City,Thursday,4,0.4
+Before times,From City,Thursday,5,2.4
+Before times,From City,Thursday,6,8.6
+Before times,From City,Thursday,7,40.06666666666667
+Before times,From City,Thursday,8,59.266666666666666
+Before times,From City,Thursday,9,25.933333333333334
+Before times,From City,Thursday,10,14.333333333333334
+Before times,From City,Thursday,11,10.533333333333333
+Before times,From City,Thursday,12,9.533333333333333
+Before times,From City,Thursday,13,14.133333333333333
+Before times,From City,Thursday,14,8.4
+Before times,From City,Thursday,15,8.8
+Before times,From City,Thursday,16,11.133333333333333
+Before times,From City,Thursday,17,8.533333333333333
+Before times,From City,Thursday,18,7.6
+Before times,From City,Thursday,19,5.866666666666666
+Before times,From City,Thursday,20,3.2
+Before times,From City,Thursday,21,0.8
+Before times,From City,Thursday,22,0.26666666666666666
+Before times,From City,Thursday,23,0
+Before times,From City,Friday,0,0
+Before times,From City,Friday,1,0.06666666666666667
+Before times,From City,Friday,2,0
+Before times,From City,Friday,3,0
+Before times,From City,Friday,4,0.3333333333333333
+Before times,From City,Friday,5,2.933333333333333
+Before times,From City,Friday,6,6.466666666666667
+Before times,From City,Friday,7,39
+Before times,From City,Friday,8,58.06666666666667
+Before times,From City,Friday,9,28.133333333333333
+Before times,From City,Friday,10,12.6
+Before times,From City,Friday,11,11.071428571428571
+Before times,From City,Friday,12,9.5
+Before times,From City,Friday,13,12.214285714285714
+Before times,From City,Friday,14,10.285714285714286
+Before times,From City,Friday,15,8
+Before times,From City,Friday,16,6.285714285714286
+Before times,From City,Friday,17,9.142857142857142
+Before times,From City,Friday,18,5.642857142857143
+Before times,From City,Friday,19,4.214285714285714
+Before times,From City,Friday,20,2.2142857142857144
+Before times,From City,Friday,21,0.35714285714285715
+Before times,From City,Friday,22,0.2857142857142857
+Before times,From City,Friday,23,0.14285714285714285
+Before times,From City,Saturday,0,0.06666666666666667
+Before times,From City,Saturday,1,0.06666666666666667
+Before times,From City,Saturday,2,0.2
+Before times,From City,Saturday,3,0
+Before times,From City,Saturday,4,0.06666666666666667
+Before times,From City,Saturday,5,0.3333333333333333
+Before times,From City,Saturday,6,4.333333333333333
+Before times,From City,Saturday,7,8.733333333333333
+Before times,From City,Saturday,8,12.2
+Before times,From City,Saturday,9,17.666666666666668
+Before times,From City,Saturday,10,23
+Before times,From City,Saturday,11,19.066666666666666
+Before times,From City,Saturday,12,14.666666666666666
+Before times,From City,Saturday,13,18.6
+Before times,From City,Saturday,14,23.8
+Before times,From City,Saturday,15,18.133333333333333
+Before times,From City,Saturday,16,14.933333333333334
+Before times,From City,Saturday,17,6.466666666666667
+Before times,From City,Saturday,18,5.533333333333333
+Before times,From City,Saturday,19,4.733333333333333
+Before times,From City,Saturday,20,1.6666666666666667
+Before times,From City,Saturday,21,0.6
+Before times,From City,Saturday,22,0.3333333333333333
+Before times,From City,Saturday,23,0
+Before times,To City,Sunday,0,0.26666666666666666
+Before times,To City,Sunday,1,0.3333333333333333
+Before times,To City,Sunday,2,0.13333333333333333
+Before times,To City,Sunday,3,0
+Before times,To City,Sunday,4,0
+Before times,To City,Sunday,5,0
+Before times,To City,Sunday,6,0.2
+Before times,To City,Sunday,7,6.466666666666667
+Before times,To City,Sunday,8,9.266666666666667
+Before times,To City,Sunday,9,18.4
+Before times,To City,Sunday,10,27.466666666666665
+Before times,To City,Sunday,11,28.4
+Before times,To City,Sunday,12,22.266666666666666
+Before times,To City,Sunday,13,21.4
+Before times,To City,Sunday,14,21.066666666666666
+Before times,To City,Sunday,15,24.533333333333335
+Before times,To City,Sunday,16,24.933333333333334
+Before times,To City,Sunday,17,14.533333333333333
+Before times,To City,Sunday,18,6.6
+Before times,To City,Sunday,19,4.666666666666667
+Before times,To City,Sunday,20,3.2666666666666666
+Before times,To City,Sunday,21,1.1333333333333333
+Before times,To City,Sunday,22,0.3333333333333333
+Before times,To City,Sunday,23,0.2
+Before times,To City,Monday,0,0
+Before times,To City,Monday,1,0.06666666666666667
+Before times,To City,Monday,2,0
+Before times,To City,Monday,3,0
+Before times,To City,Monday,4,0
+Before times,To City,Monday,5,0.2
+Before times,To City,Monday,6,2.066666666666667
+Before times,To City,Monday,7,5.466666666666667
+Before times,To City,Monday,8,9.066666666666666
+Before times,To City,Monday,9,5.933333333333334
+Before times,To City,Monday,10,7.066666666666666
+Before times,To City,Monday,11,11.066666666666666
+Before times,To City,Monday,12,15.933333333333334
+Before times,To City,Monday,13,9.933333333333334
+Before times,To City,Monday,14,17.266666666666666
+Before times,To City,Monday,15,24.2
+Before times,To City,Monday,16,60.46666666666667
+Before times,To City,Monday,17,62.86666666666667
+Before times,To City,Monday,18,21.666666666666668
+Before times,To City,Monday,19,10.533333333333333
+Before times,To City,Monday,20,4.533333333333333
+Before times,To City,Monday,21,1.1333333333333333
+Before times,To City,Monday,22,1.2
+Before times,To City,Monday,23,0.06666666666666667
+Before times,To City,Tuesday,0,0.3125
+Before times,To City,Tuesday,1,0
+Before times,To City,Tuesday,2,0
+Before times,To City,Tuesday,3,0
+Before times,To City,Tuesday,4,0
+Before times,To City,Tuesday,5,0.3125
+Before times,To City,Tuesday,6,2.3125
+Before times,To City,Tuesday,7,4.8125
+Before times,To City,Tuesday,8,7.625
+Before times,To City,Tuesday,9,5.6875
+Before times,To City,Tuesday,10,8.0625
+Before times,To City,Tuesday,11,10.25
+Before times,To City,Tuesday,12,11.9375
+Before times,To City,Tuesday,13,13.5625
+Before times,To City,Tuesday,14,13.3125
+Before times,To City,Tuesday,15,21.9375
+Before times,To City,Tuesday,16,56
+Before times,To City,Tuesday,17,57.6875
+Before times,To City,Tuesday,18,17.1875
+Before times,To City,Tuesday,19,8.8125
+Before times,To City,Tuesday,20,4.625
+Before times,To City,Tuesday,21,2
+Before times,To City,Tuesday,22,0.8125
+Before times,To City,Tuesday,23,0.25
+Before times,To City,Wednesday,0,0.0625
+Before times,To City,Wednesday,1,0.1875
+Before times,To City,Wednesday,2,0
+Before times,To City,Wednesday,3,0
+Before times,To City,Wednesday,4,0
+Before times,To City,Wednesday,5,0.0625
+Before times,To City,Wednesday,6,1.875
+Before times,To City,Wednesday,7,4.25
+Before times,To City,Wednesday,8,8.3125
+Before times,To City,Wednesday,9,5.375
+Before times,To City,Wednesday,10,8.125
+Before times,To City,Wednesday,11,9.6875
+Before times,To City,Wednesday,12,13.3125
+Before times,To City,Wednesday,13,11.1875
+Before times,To City,Wednesday,14,15.25
+Before times,To City,Wednesday,15,22.25
+Before times,To City,Wednesday,16,49.5625
+Before times,To City,Wednesday,17,52.125
+Before times,To City,Wednesday,18,17.3125
+Before times,To City,Wednesday,19,11.5625
+Before times,To City,Wednesday,20,4.8125
+Before times,To City,Wednesday,21,2.0625
+Before times,To City,Wednesday,22,1.1875
+Before times,To City,Wednesday,23,0.4375
+Before times,To City,Thursday,0,0.06666666666666667
+Before times,To City,Thursday,1,0.13333333333333333
+Before times,To City,Thursday,2,0
+Before times,To City,Thursday,3,0
+Before times,To City,Thursday,4,0.06666666666666667
+Before times,To City,Thursday,5,0.13333333333333333
+Before times,To City,Thursday,6,2.533333333333333
+Before times,To City,Thursday,7,5.2
+Before times,To City,Thursday,8,6.266666666666667
+Before times,To City,Thursday,9,6.4
+Before times,To City,Thursday,10,7.6
+Before times,To City,Thursday,11,11.533333333333333
+Before times,To City,Thursday,12,13.2
+Before times,To City,Thursday,13,11.2
+Before times,To City,Thursday,14,12.4
+Before times,To City,Thursday,15,20
+Before times,To City,Thursday,16,48
+Before times,To City,Thursday,17,47.8
+Before times,To City,Thursday,18,17
+Before times,To City,Thursday,19,11.533333333333333
+Before times,To City,Thursday,20,4.333333333333333
+Before times,To City,Thursday,21,1.8666666666666667
+Before times,To City,Thursday,22,0.8
+Before times,To City,Thursday,23,0.13333333333333333
+Before times,To City,Friday,0,0.3333333333333333
+Before times,To City,Friday,1,0
+Before times,To City,Friday,2,0
+Before times,To City,Friday,3,0.06666666666666667
+Before times,To City,Friday,4,0
+Before times,To City,Friday,5,0.4
+Before times,To City,Friday,6,2.2
+Before times,To City,Friday,7,6.133333333333334
+Before times,To City,Friday,8,7.466666666666667
+Before times,To City,Friday,9,6
+Before times,To City,Friday,10,10.333333333333334
+Before times,To City,Friday,11,12.785714285714286
+Before times,To City,Friday,12,16.071428571428573
+Before times,To City,Friday,13,10.785714285714286
+Before times,To City,Friday,14,14.785714285714286
+Before times,To City,Friday,15,21.071428571428573
+Before times,To City,Friday,16,43.57142857142857
+Before times,To City,Friday,17,41.5
+Before times,To City,Friday,18,16.428571428571427
+Before times,To City,Friday,19,7.642857142857143
+Before times,To City,Friday,20,4.428571428571429
+Before times,To City,Friday,21,1.5714285714285714
+Before times,To City,Friday,22,1.0714285714285714
+Before times,To City,Friday,23,0.2857142857142857
+Before times,To City,Saturday,0,0.2
+Before times,To City,Saturday,1,0
+Before times,To City,Saturday,2,0.06666666666666667
+Before times,To City,Saturday,3,0
+Before times,To City,Saturday,4,0
+Before times,To City,Saturday,5,0.2
+Before times,To City,Saturday,6,0.7333333333333333
+Before times,To City,Saturday,7,4.933333333333334
+Before times,To City,Saturday,8,10.4
+Before times,To City,Saturday,9,14.533333333333333
+Before times,To City,Saturday,10,16.866666666666667
+Before times,To City,Saturday,11,20.933333333333334
+Before times,To City,Saturday,12,15.2
+Before times,To City,Saturday,13,12.466666666666667
+Before times,To City,Saturday,14,22.066666666666666
+Before times,To City,Saturday,15,21.666666666666668
+Before times,To City,Saturday,16,19.533333333333335
+Before times,To City,Saturday,17,12.266666666666667
+Before times,To City,Saturday,18,6.133333333333334
+Before times,To City,Saturday,19,4.8
+Before times,To City,Saturday,20,2.8
+Before times,To City,Saturday,21,1.5333333333333334
+Before times,To City,Saturday,22,0.6
+Before times,To City,Saturday,23,0.13333333333333333
+Lockdown,From City,Sunday,0,0.09090909090909091
+Lockdown,From City,Sunday,1,0
+Lockdown,From City,Sunday,2,0
+Lockdown,From City,Sunday,3,0
+Lockdown,From City,Sunday,4,0.18181818181818182
+Lockdown,From City,Sunday,5,0.2727272727272727
+Lockdown,From City,Sunday,6,3.090909090909091
+Lockdown,From City,Sunday,7,9.454545454545455
+Lockdown,From City,Sunday,8,20.818181818181817
+Lockdown,From City,Sunday,9,32.36363636363637
+Lockdown,From City,Sunday,10,44.27272727272727
+Lockdown,From City,Sunday,11,47.18181818181818
+Lockdown,From City,Sunday,12,37.54545454545455
+Lockdown,From City,Sunday,13,39.27272727272727
+Lockdown,From City,Sunday,14,51.27272727272727
+Lockdown,From City,Sunday,15,45.45454545454545
+Lockdown,From City,Sunday,16,39.54545454545455
+Lockdown,From City,Sunday,17,16.09090909090909
+Lockdown,From City,Sunday,18,4
+Lockdown,From City,Sunday,19,0.9090909090909091
+Lockdown,From City,Sunday,20,1
+Lockdown,From City,Sunday,21,0.09090909090909091
+Lockdown,From City,Sunday,22,0.45454545454545453
+Lockdown,From City,Sunday,23,0
+Lockdown,From City,Monday,0,0
+Lockdown,From City,Monday,1,0
+Lockdown,From City,Monday,2,0
+Lockdown,From City,Monday,3,0
+Lockdown,From City,Monday,4,0.36363636363636365
+Lockdown,From City,Monday,5,0.5454545454545454
+Lockdown,From City,Monday,6,3.909090909090909
+Lockdown,From City,Monday,7,16.454545454545453
+Lockdown,From City,Monday,8,16.454545454545453
+Lockdown,From City,Monday,9,15.272727272727273
+Lockdown,From City,Monday,10,17.454545454545453
+Lockdown,From City,Monday,11,20.454545454545453
+Lockdown,From City,Monday,12,16.09090909090909
+Lockdown,From City,Monday,13,20
+Lockdown,From City,Monday,14,25.545454545454547
+Lockdown,From City,Monday,15,27.636363636363637
+Lockdown,From City,Monday,16,30.181818181818183
+Lockdown,From City,Monday,17,18.09090909090909
+Lockdown,From City,Monday,18,4.090909090909091
+Lockdown,From City,Monday,19,1.9090909090909092
+Lockdown,From City,Monday,20,1
+Lockdown,From City,Monday,21,0
+Lockdown,From City,Monday,22,0.09090909090909091
+Lockdown,From City,Monday,23,0
+Lockdown,From City,Tuesday,0,0
+Lockdown,From City,Tuesday,1,0
+Lockdown,From City,Tuesday,2,0.3
+Lockdown,From City,Tuesday,3,0
+Lockdown,From City,Tuesday,4,0.3
+Lockdown,From City,Tuesday,5,0.8
+Lockdown,From City,Tuesday,6,6
+Lockdown,From City,Tuesday,7,20.3
+Lockdown,From City,Tuesday,8,17.6
+Lockdown,From City,Tuesday,9,15.7
+Lockdown,From City,Tuesday,10,16.3
+Lockdown,From City,Tuesday,11,20.5
+Lockdown,From City,Tuesday,12,19.2
+Lockdown,From City,Tuesday,13,20.1
+Lockdown,From City,Tuesday,14,26.8
+Lockdown,From City,Tuesday,15,31.2
+Lockdown,From City,Tuesday,16,39.3
+Lockdown,From City,Tuesday,17,23.3
+Lockdown,From City,Tuesday,18,7.4
+Lockdown,From City,Tuesday,19,1.8
+Lockdown,From City,Tuesday,20,0.7
+Lockdown,From City,Tuesday,21,0.3
+Lockdown,From City,Tuesday,22,0.1
+Lockdown,From City,Tuesday,23,0.1
+Lockdown,From City,Wednesday,0,0
+Lockdown,From City,Wednesday,1,0.1
+Lockdown,From City,Wednesday,2,0.1
+Lockdown,From City,Wednesday,3,0
+Lockdown,From City,Wednesday,4,0.4
+Lockdown,From City,Wednesday,5,0.8
+Lockdown,From City,Wednesday,6,4.8
+Lockdown,From City,Wednesday,7,22.1
+Lockdown,From City,Wednesday,8,21.4
+Lockdown,From City,Wednesday,9,19.9
+Lockdown,From City,Wednesday,10,21
+Lockdown,From City,Wednesday,11,24.6
+Lockdown,From City,Wednesday,12,23.9
+Lockdown,From City,Wednesday,13,24.9
+Lockdown,From City,Wednesday,14,33.4
+Lockdown,From City,Wednesday,15,38
+Lockdown,From City,Wednesday,16,42.1
+Lockdown,From City,Wednesday,17,24
+Lockdown,From City,Wednesday,18,6.4
+Lockdown,From City,Wednesday,19,2
+Lockdown,From City,Wednesday,20,1.3
+Lockdown,From City,Wednesday,21,0.3
+Lockdown,From City,Wednesday,22,0.4
+Lockdown,From City,Wednesday,23,0.1
+Lockdown,From City,Thursday,0,0.09090909090909091
+Lockdown,From City,Thursday,1,0
+Lockdown,From City,Thursday,2,0.09090909090909091
+Lockdown,From City,Thursday,3,0.18181818181818182
+Lockdown,From City,Thursday,4,0.2727272727272727
+Lockdown,From City,Thursday,5,0.5454545454545454
+Lockdown,From City,Thursday,6,5.2727272727272725
+Lockdown,From City,Thursday,7,16.818181818181817
+Lockdown,From City,Thursday,8,23.545454545454547
+Lockdown,From City,Thursday,9,13.636363636363637
+Lockdown,From City,Thursday,10,18.363636363636363
+Lockdown,From City,Thursday,11,16.545454545454547
+Lockdown,From City,Thursday,12,16.272727272727273
+Lockdown,From City,Thursday,13,18.09090909090909
+Lockdown,From City,Thursday,14,20.90909090909091
+Lockdown,From City,Thursday,15,29.818181818181817
+Lockdown,From City,Thursday,16,33.36363636363637
+Lockdown,From City,Thursday,17,18.636363636363637
+Lockdown,From City,Thursday,18,7.545454545454546
+Lockdown,From City,Thursday,19,2
+Lockdown,From City,Thursday,20,0.45454545454545453
+Lockdown,From City,Thursday,21,0.45454545454545453
+Lockdown,From City,Thursday,22,0.36363636363636365
+Lockdown,From City,Thursday,23,0
+Lockdown,From City,Friday,0,0.18181818181818182
+Lockdown,From City,Friday,1,0.09090909090909091
+Lockdown,From City,Friday,2,0.18181818181818182
+Lockdown,From City,Friday,3,0.09090909090909091
+Lockdown,From City,Friday,4,0.36363636363636365
+Lockdown,From City,Friday,5,0.8181818181818182
+Lockdown,From City,Friday,6,5.363636363636363
+Lockdown,From City,Friday,7,16.90909090909091
+Lockdown,From City,Friday,8,22.09090909090909
+Lockdown,From City,Friday,9,18.181818181818183
+Lockdown,From City,Friday,10,20.636363636363637
+Lockdown,From City,Friday,11,21
+Lockdown,From City,Friday,12,17.09090909090909
+Lockdown,From City,Friday,13,24.90909090909091
+Lockdown,From City,Friday,14,30.636363636363637
+Lockdown,From City,Friday,15,31
+Lockdown,From City,Friday,16,34.09090909090909
+Lockdown,From City,Friday,17,14.090909090909092
+Lockdown,From City,Friday,18,3.6363636363636362
+Lockdown,From City,Friday,19,1.0909090909090908
+Lockdown,From City,Friday,20,0.5454545454545454
+Lockdown,From City,Friday,21,0.18181818181818182
+Lockdown,From City,Friday,22,0
+Lockdown,From City,Friday,23,0.45454545454545453
+Lockdown,From City,Saturday,0,0.09090909090909091
+Lockdown,From City,Saturday,1,0.09090909090909091
+Lockdown,From City,Saturday,2,0
+Lockdown,From City,Saturday,3,0
+Lockdown,From City,Saturday,4,0.18181818181818182
+Lockdown,From City,Saturday,5,0.09090909090909091
+Lockdown,From City,Saturday,6,3.090909090909091
+Lockdown,From City,Saturday,7,8.363636363636363
+Lockdown,From City,Saturday,8,15.454545454545455
+Lockdown,From City,Saturday,9,25.09090909090909
+Lockdown,From City,Saturday,10,28.454545454545453
+Lockdown,From City,Saturday,11,30.818181818181817
+Lockdown,From City,Saturday,12,27.545454545454547
+Lockdown,From City,Saturday,13,30.09090909090909
+Lockdown,From City,Saturday,14,39.54545454545455
+Lockdown,From City,Saturday,15,42.18181818181818
+Lockdown,From City,Saturday,16,32.36363636363637
+Lockdown,From City,Saturday,17,15.636363636363637
+Lockdown,From City,Saturday,18,4.090909090909091
+Lockdown,From City,Saturday,19,1.0909090909090908
+Lockdown,From City,Saturday,20,0.45454545454545453
+Lockdown,From City,Saturday,21,0.09090909090909091
+Lockdown,From City,Saturday,22,0.09090909090909091
+Lockdown,From City,Saturday,23,0.09090909090909091
+Lockdown,To City,Sunday,0,0
+Lockdown,To City,Sunday,1,0
+Lockdown,To City,Sunday,2,0
+Lockdown,To City,Sunday,3,0
+Lockdown,To City,Sunday,4,0
+Lockdown,To City,Sunday,5,0
+Lockdown,To City,Sunday,6,0.6363636363636364
+Lockdown,To City,Sunday,7,5.636363636363637
+Lockdown,To City,Sunday,8,14.363636363636363
+Lockdown,To City,Sunday,9,19.818181818181817
+Lockdown,To City,Sunday,10,31.727272727272727
+Lockdown,To City,Sunday,11,42.54545454545455
+Lockdown,To City,Sunday,12,39.90909090909091
+Lockdown,To City,Sunday,13,26.90909090909091
+Lockdown,To City,Sunday,14,37.63636363636363
+Lockdown,To City,Sunday,15,39.72727272727273
+Lockdown,To City,Sunday,16,35.63636363636363
+Lockdown,To City,Sunday,17,17.09090909090909
+Lockdown,To City,Sunday,18,5.909090909090909
+Lockdown,To City,Sunday,19,1.0909090909090908
+Lockdown,To City,Sunday,20,0.45454545454545453
+Lockdown,To City,Sunday,21,0.2727272727272727
+Lockdown,To City,Sunday,22,0.36363636363636365
+Lockdown,To City,Sunday,23,0.09090909090909091
+Lockdown,To City,Monday,0,0
+Lockdown,To City,Monday,1,0
+Lockdown,To City,Monday,2,0
+Lockdown,To City,Monday,3,0
+Lockdown,To City,Monday,4,0
+Lockdown,To City,Monday,5,0
+Lockdown,To City,Monday,6,1.1818181818181819
+Lockdown,To City,Monday,7,5.2727272727272725
+Lockdown,To City,Monday,8,8.818181818181818
+Lockdown,To City,Monday,9,10.727272727272727
+Lockdown,To City,Monday,10,14.090909090909092
+Lockdown,To City,Monday,11,14.818181818181818
+Lockdown,To City,Monday,12,15.727272727272727
+Lockdown,To City,Monday,13,13.727272727272727
+Lockdown,To City,Monday,14,25.181818181818183
+Lockdown,To City,Monday,15,24.545454545454547
+Lockdown,To City,Monday,16,29.818181818181817
+Lockdown,To City,Monday,17,22.363636363636363
+Lockdown,To City,Monday,18,6.545454545454546
+Lockdown,To City,Monday,19,1.2727272727272727
+Lockdown,To City,Monday,20,0.9090909090909091
+Lockdown,To City,Monday,21,1
+Lockdown,To City,Monday,22,1
+Lockdown,To City,Monday,23,0
+Lockdown,To City,Tuesday,0,0
+Lockdown,To City,Tuesday,1,0
+Lockdown,To City,Tuesday,2,0
+Lockdown,To City,Tuesday,3,0
+Lockdown,To City,Tuesday,4,0
+Lockdown,To City,Tuesday,5,0
+Lockdown,To City,Tuesday,6,1.2
+Lockdown,To City,Tuesday,7,6.3
+Lockdown,To City,Tuesday,8,8.6
+Lockdown,To City,Tuesday,9,10.5
+Lockdown,To City,Tuesday,10,10.2
+Lockdown,To City,Tuesday,11,16.7
+Lockdown,To City,Tuesday,12,17.6
+Lockdown,To City,Tuesday,13,15.9
+Lockdown,To City,Tuesday,14,24.7
+Lockdown,To City,Tuesday,15,31.8
+Lockdown,To City,Tuesday,16,43.4
+Lockdown,To City,Tuesday,17,28.4
+Lockdown,To City,Tuesday,18,7.5
+Lockdown,To City,Tuesday,19,2.7
+Lockdown,To City,Tuesday,20,1
+Lockdown,To City,Tuesday,21,1.5
+Lockdown,To City,Tuesday,22,1.5
+Lockdown,To City,Tuesday,23,0
+Lockdown,To City,Wednesday,0,0.1
+Lockdown,To City,Wednesday,1,0.2
+Lockdown,To City,Wednesday,2,0
+Lockdown,To City,Wednesday,3,0
+Lockdown,To City,Wednesday,4,0
+Lockdown,To City,Wednesday,5,0
+Lockdown,To City,Wednesday,6,1.4
+Lockdown,To City,Wednesday,7,6.6
+Lockdown,To City,Wednesday,8,9.6
+Lockdown,To City,Wednesday,9,11
+Lockdown,To City,Wednesday,10,17
+Lockdown,To City,Wednesday,11,18.5
+Lockdown,To City,Wednesday,12,21.4
+Lockdown,To City,Wednesday,13,19
+Lockdown,To City,Wednesday,14,30.5
+Lockdown,To City,Wednesday,15,33.1
+Lockdown,To City,Wednesday,16,41.1
+Lockdown,To City,Wednesday,17,31.8
+Lockdown,To City,Wednesday,18,9.3
+Lockdown,To City,Wednesday,19,3.9
+Lockdown,To City,Wednesday,20,1.4
+Lockdown,To City,Wednesday,21,1.8
+Lockdown,To City,Wednesday,22,1.2
+Lockdown,To City,Wednesday,23,0.1
+Lockdown,To City,Thursday,0,0
+Lockdown,To City,Thursday,1,0
+Lockdown,To City,Thursday,2,0
+Lockdown,To City,Thursday,3,0
+Lockdown,To City,Thursday,4,0
+Lockdown,To City,Thursday,5,0.09090909090909091
+Lockdown,To City,Thursday,6,1
+Lockdown,To City,Thursday,7,6.636363636363637
+Lockdown,To City,Thursday,8,9.454545454545455
+Lockdown,To City,Thursday,9,11.818181818181818
+Lockdown,To City,Thursday,10,12.636363636363637
+Lockdown,To City,Thursday,11,17.181818181818183
+Lockdown,To City,Thursday,12,17.181818181818183
+Lockdown,To City,Thursday,13,14.272727272727273
+Lockdown,To City,Thursday,14,19.181818181818183
+Lockdown,To City,Thursday,15,23.636363636363637
+Lockdown,To City,Thursday,16,33
+Lockdown,To City,Thursday,17,24.545454545454547
+Lockdown,To City,Thursday,18,7.636363636363637
+Lockdown,To City,Thursday,19,3.909090909090909
+Lockdown,To City,Thursday,20,1
+Lockdown,To City,Thursday,21,1
+Lockdown,To City,Thursday,22,1.1818181818181819
+Lockdown,To City,Thursday,23,0.2727272727272727
+Lockdown,To City,Friday,0,0
+Lockdown,To City,Friday,1,0.09090909090909091
+Lockdown,To City,Friday,2,0
+Lockdown,To City,Friday,3,0
+Lockdown,To City,Friday,4,0.18181818181818182
+Lockdown,To City,Friday,5,0.09090909090909091
+Lockdown,To City,Friday,6,1.2727272727272727
+Lockdown,To City,Friday,7,5.7272727272727275
+Lockdown,To City,Friday,8,9.727272727272727
+Lockdown,To City,Friday,9,12.818181818181818
+Lockdown,To City,Friday,10,14.727272727272727
+Lockdown,To City,Friday,11,14.727272727272727
+Lockdown,To City,Friday,12,19.181818181818183
+Lockdown,To City,Friday,13,19.181818181818183
+Lockdown,To City,Friday,14,26.09090909090909
+Lockdown,To City,Friday,15,28.181818181818183
+Lockdown,To City,Friday,16,35.81818181818182
+Lockdown,To City,Friday,17,20.454545454545453
+Lockdown,To City,Friday,18,6.090909090909091
+Lockdown,To City,Friday,19,2.8181818181818183
+Lockdown,To City,Friday,20,1.1818181818181819
+Lockdown,To City,Friday,21,0.6363636363636364
+Lockdown,To City,Friday,22,1.0909090909090908
+Lockdown,To City,Friday,23,0.2727272727272727
+Lockdown,To City,Saturday,0,0.18181818181818182
+Lockdown,To City,Saturday,1,0
+Lockdown,To City,Saturday,2,0
+Lockdown,To City,Saturday,3,0.09090909090909091
+Lockdown,To City,Saturday,4,0
+Lockdown,To City,Saturday,5,0
+Lockdown,To City,Saturday,6,1.1818181818181819
+Lockdown,To City,Saturday,7,5
+Lockdown,To City,Saturday,8,12.272727272727273
+Lockdown,To City,Saturday,9,19.09090909090909
+Lockdown,To City,Saturday,10,23.545454545454547
+Lockdown,To City,Saturday,11,29.90909090909091
+Lockdown,To City,Saturday,12,26.272727272727273
+Lockdown,To City,Saturday,13,26
+Lockdown,To City,Saturday,14,31.454545454545453
+Lockdown,To City,Saturday,15,35.18181818181818
+Lockdown,To City,Saturday,16,32.54545454545455
+Lockdown,To City,Saturday,17,22.272727272727273
+Lockdown,To City,Saturday,18,4.636363636363637
+Lockdown,To City,Saturday,19,1.2727272727272727
+Lockdown,To City,Saturday,20,0.5454545454545454
+Lockdown,To City,Saturday,21,0.36363636363636365
+Lockdown,To City,Saturday,22,0.36363636363636365
+Lockdown,To City,Saturday,23,0.09090909090909091
