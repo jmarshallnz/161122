@@ -1,0 +1,504 @@
+---
+title: "C5 - Multiple Regression and Factors"
+date: "`r Sys.Date()`"
+output:
+  ioslides_presentation:
+    mathjax: "https://cdn.bootcss.com/mathjax/2.7.3/MathJax.js?config=TeX-MML-AM_CHTML" 
+    highlight: tango
+    widescreen: yes
+graphics: yes
+---
+
+```{r setup, echo=FALSE}
+library(knitr)
+library(ggplot2); theme_set(theme_bw(base_size=15))
+library(patchwork)
+opts_chunk$set(dev.args=list(bg='transparent'), comment="", echo=FALSE)
+#print(knit_hooks$get('output'))
+knit_hooks$set(output=function (x, options) {
+#  cat("OPTIONS=", names(options), "\n")
+  cache_path <- unlist(strsplit(options$cache.path, '/'))
+#  cat("Cache_path length=", length(cache_path), "\n")
+  out_format <- cache_path[length(cache_path)]
+  if (out_format == "html") {
+    knitr:::escape_html(x)
+    x = paste(x, collapse = "\\n")
+    sprintf("<div class=\"%s\"><pre class=\"knitr %s\">%s</pre></div>\\n", 
+        'output', tolower(options$engine), x)
+  } else {
+    paste(c("\\begin{ROutput}",
+            sub("\n$", "", x),
+            "\\end{ROutput}",
+            ""),
+          collapse="\n")
+  }
+})
+col_points <- "#7f577492"
+col_dark   <- "#5f4354"
+```
+
+```{r, echo=FALSE}
+donkey <- read.csv("http://www.massey.ac.nz/~jcmarsha/227215/data/donkey.csv")
+mod <- lm(Bodywt ~ Heartgirth, data=donkey)
+```
+
+## Recap
+
+- Simple linear model
+
+- Inference
+
+- Prediction 
+
+- Theory
+
+- Diagnostics
+
+- Transformation
+
+## Learning Outcomes
+
+- Adding more covariates.
+
+- The $F$-test.
+
+- Models with factor variables.
+
+- Multiple factors
+
+# The Linear model|Multiple covariates
+
+## Relationships: Donkeys
+
+```{r, fig.align="center", fig.width=8, fig.height=5}
+donkey <- read.csv("http://www.massey.ac.nz/~jcmarsha/227215/data/donkey.csv")
+g1 <- ggplot(donkey, aes(x=Heartgirth, y=Bodywt)) + geom_point(col=col_points)
+g2 <- ggplot(donkey, aes(x=Umbgirth, y=Bodywt)) + geom_point(col=col_points)
+g3 <- ggplot(donkey, aes(x=Length, y=Bodywt)) + geom_point(col=col_points)
+g4 <- ggplot(donkey, aes(x=Height, y=Bodywt)) + geom_point(col=col_points)
+g1 + g2 + g3 + g4 + plot_layout(ncol=2)
+```
+
+## Relationships: Donkeys
+
+- There are reasonably strong increasing relationships between body weight and hearth girth, umbilical girth, length and height.
+
+- It makes sense to use all of these variables to predict the body weight.
+
+- That way we're likely to explain more of the variation in body weight.
+
+- Predictions will be more precise (smaller confidence and prediction intervals).
+
+## Multiple covariates
+
+- Adding extra covariates is as simple as adding another term to the linear model equation.
+$$
+\mathsf{mean}(y) = \alpha + \beta_1 x_1 + \beta_2 x_2 + \cdots
+$$
+- We find least squares estimates for $\alpha$, $\beta_1, \beta_2, \ldots$ in the same way, by minimising the residual sum of squares.
+
+- As the model assumptions are defined in terms of the residuals, the complexity of the model equation doesn't change things much.
+
+- We get additional lines in our output for each covariate we add to the model.
+
+## Sidenote: Mathematical form of the linear model
+
+With $p$ covariates $x_1,x_2,\ldots,x_p$ for a single response $y$, the abstract sample becomes a little more complicated as
+$(y_i,x_{i1},x_{i2},\ldots,x_{ip})$ with $i=1,2,\ldots,n$.
+
+We can write the detailed math model as
+$$
+\begin{aligned}
+y_1 &=\alpha+ \beta_1x_{11}+\beta_2 x_{12} +\cdots\beta_px_{1p} +\epsilon_1\\
+y_2 &=\alpha+ \beta_1x_{21}+\beta_2 x_{22} +\cdots\beta_px_{2p} +\epsilon_2\\
+&\vdots\\
+y_n &=\alpha+ \beta_1x_{n1}+\beta_2 x_{n2} +\cdots\beta_px_{np} +\epsilon_n
+\end{aligned}
+$$
+
+## Example: Donkeys {.fragile}
+
+```{r}
+mod <- lm(Bodywt ~ Heartgirth, data=donkey)
+summary(mod)
+```
+
+## Example: Donkeys {.fragile}
+
+```{r}
+mod <- lm(Bodywt ~ Heartgirth + Umbgirth, data=donkey)
+summary(mod)
+```
+
+## Testing multiple covariates
+
+- We don't want to just answer the question **"Which of the variables are important?"**
+
+- Rather, we want to answer **"Which of the variables are important *after accounting for the other variables*?"**
+
+- This is equivalent to: **"Which of the $\beta$'s are non-zero?"**
+
+## Summary output for multiple covariates {.smaller .fragile}
+
+```{r}
+mod <- lm(Bodywt ~ Heartgirth + Umbgirth + Length + Height, data=donkey)
+rs <- round(summary(mod)$r.squared,3)
+fv <- round(summary(mod)$fstatistic[1],1)
+summary(mod)
+```
+
+## Summary output for multiple covariates
+
+- Heart girth, umbilical girth and length are all important after accounting for other covariates.
+
+- Height is not important after accounting for the other covariates.
+
+- **This doesn't mean that height isn't important for body weight!**
+
+## But wait! {.fragile}
+
+```{r}
+summary(lm(Bodywt ~ Height, data=donkey))
+```
+
+## Summary output for multiple covariates
+
+- Heart girth, umbilical girth and length are all important after accounting for other covariates.
+
+- Height is not important after accounting for the other covariates.
+
+- The $R^2$ for the model is `r rs`, so the model is explaining `r rs*100`% of the variation in body weight.
+
+- What is the overall P-value telling us?
+
+# The F-test
+
+## The F-test
+
+- One of the first things we want to know is whether anything at all in our model is useful.
+
+- The hypothesis to test is **"Are any of the $\beta$'s non-zero?"**
+
+- We can do this by comparing the variation in the residuals to the total variation in $y$.
+
+- We use the **F-statistic** for this. It's similar to $R^2$, but results in nicer maths.
+$$
+F = \frac{\mathsf{Variation\ explained}}{\mathsf{Variation\ unexplained}} = \frac{(\sigma^2_\mathsf{total} - \sigma^2_\mathsf{res})/p}{\sigma^2_\mathsf{res}/(n-p-1)}
+$$
+where $p$ is the number of covariates, and $n$ the number of observations.
+
+- This process is also known as **ANalysis Of VAriance** or **ANOVA**.
+
+## The F-test
+$$
+F = \frac{\mathsf{Variation\ explained}}{\mathsf{Variation\ unexplained}} = \frac{(\sigma^2_\mathsf{total} - \sigma^2_\mathsf{res})/p}{\sigma^2_\mathsf{res}/(n-p-1)}
+$$
+
+- On the top we have variance explained by the model, and on bottom variance left over in residuals.
+
+- The ratio of these, $F$ will increase as we explain more variation in the model.
+
+- Under the hypothesis that the model doesn't explain anything we'd expect $F=0$. If the model is useful, we'd expect $F > 0$.
+
+- The **F-distribution** is used to figure out how likely the $F$ from our sample would arise by chance, giving us the P-value.
+
+- We use the P-value for our decision about the model. $F$ is just the way the maths gets us
+there (like $t$ in the $t$-test).
+
+## The F-statistic in summary output
+
+```
+Coefficients:
+              Estimate Std. Error t value Pr(>|t|)    
+(Intercept) -222.33956    8.01411 -27.744  < 2e-16 ***
+Heartgirth     1.76223    0.12784  13.784  < 2e-16 ***
+Umbgirth       0.37418    0.06726   5.563 5.01e-08 ***
+Length         0.87580    0.11531   7.595 2.41e-13 ***
+Height         0.25407    0.13749   1.848   0.0654 .  
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 9.476 on 380 degrees of freedom
+Multiple R-squared:  0.8519,	Adjusted R-squared:  0.8503 
+F-statistic: 546.4 on 4 and 380 DF,  p-value: < 2.2e-16
+```
+
+An F value of `r fv` is really unlikely to arise by chance, so our model is telling us something about body weight.
+
+# Linear models with factors
+
+## Linear models with factors
+
+- The linear model equation is describing the **mean** of the outcome variable given the value of the covariates.
+
+- When we have a factor, or categorical covariate, the linear model will estimate the mean within each group.
+
+- To do this, we'll need to convert the categorical variable to a numeric variable in some way.
+
+## Factors with two levels
+
+- For a factor with two levels, we can do this by introducing an **indicator variable** $z$ as a covariate, where
+$$
+z = \left\{
+\begin{array}{ll}
+0 & \textrm{for observations in level 1}\\
+1 & \textrm{for observations in level 2}
+\end{array}\right.
+$$
+- The equation is then
+$$
+\mathsf{mean}(y) = \alpha + \beta z
+$$
+
+## Factors with two levels
+
+- The equation is then
+$$
+\mathsf{mean}(y) = \alpha + \beta z
+$$
+- For observations in level 1 we know $z=0$, so the equation gives
+$$
+\mathsf{mean}(y) = \alpha
+$$
+- For observations in level 2 we know $z=1$, so the equation gives
+$$
+\mathsf{mean}(y) = \alpha + \beta
+$$
+- Thus, $\beta$ represents the **difference** between level 1 and 2.
+
+- Testing for a difference between groups is then just testing whether $\beta = 0$.
+
+## Example: Donkeys {.smaller}
+
+```{r, echo=TRUE}
+mod <- lm(Bodywt ~ Sex, data=donkey)
+summary(mod)
+```
+
+## Example: Donkeys
+
+```{r}
+co <- summary(lm(Bodywt ~ Sex, data=donkey))$coefficients
+```
+- The intercept is the mean body weight of female donkeys (`r round(co[1,1],1)` kg).
+
+- The coefficient labelled `SexMale` is the difference between females and males (males `r round(co[2,1],2)` kg heavier).
+
+- This difference isn't significant (P=`r round(co[2,4],3)`).
+
+## What about three levels?
+
+- For two levels we introduced an indicator variable that was 1 when we were in level 2 and 0 otherwise.
+
+- For three levels we introduce two indicator variables:
+
+    - $z_2 = 1$ if the observation is in level 2, $z_2 = 0$ otherwise.
+
+    - $z_3 = 1$ if the observation is in level 3, $z_3 = 0$ otherwise.
+
+- The linear model is then
+$$
+\mathsf{mean}(y) = \alpha + \beta_2 z_{2} + \beta_3 z_{3}
+$$
+where $\beta_2$ is the difference between level 1 and level 2, and $\beta_3$ is the difference between level 1 and level 3.
+
+## What about three levels?
+
+- The linear model is then
+$$
+\mathsf{mean}(y) = \alpha + \beta_2 z_{2} + \beta_3 z_{3}
+$$
+
+- The primary hypothesis to test is "Is there any difference between the three levels?".
+
+- This is the same as "Are any of the $\beta$'s non-zero?"
+
+- The F-test, or Analysis of Variance!
+
+## Example: Petrels
+
+```{r, fig.width=9.5}
+petrels <- read.csv("http://www.massey.ac.nz/~jcmarsha/227215/data/petrels.csv")
+petrels <- petrels[!is.na(petrels$Area) & !is.na(petrels$R.Wing.Lth),]
+petrels$Area <- as.factor(petrels$Area)
+petrels$Sex <- as.factor(petrels$Sex)
+ggplot(petrels, aes(x=Area, y=R.Wing.Lth)) + geom_boxplot() + ylab("Right wing length (mm)")
+```
+
+
+## Example: Petrels {.smaller .fragile}
+
+```{r}
+mod <- lm(R.Wing.Lth ~ Area, data=petrels)
+summary(mod)
+```
+
+## Example: Petrels
+
+- The overall F-test's P-value suggests average right wing length differs between areas.
+
+- Summary table suggests that Area 5 has largest birds, having 4.14cm larger ring wing lengths compared to those in Area 1.
+
+- Birds in Area 6 are smallest, having 9.27 cm smaller right wing lengths compared to those in Area 1.
+
+- We can get confidence intervals for the mean using the predict function
+
+## Example: Petrels
+```{r, echo=TRUE}
+new_data <- data.frame(Area=factor(1:6))
+predict(mod, new_data, interval="confidence")
+```
+
+## Visualising the differences
+
+```{r, echo=TRUE, eval=FALSE}
+library(visreg)
+visreg(mod)
+```
+
+```{r, fig.width=9.5}
+library(visreg)
+par(mar=c(4,4,0,0))
+visreg(mod, gg=TRUE)
+```
+
+
+# Multiple factors
+
+## What if we have more than one factor?
+
+- We include a block of indicator variables for each factor.
+
+- The first level, or **baseline** of each of the factors is what contributes to the intercept.
+
+- Subsequent levels are treated as differences compared to the baseline level.
+
+- The overall F-test and P-value for the model is testing whether any of the factors in the model are important.
+
+- We need another way to compute P-values for each factor separately.
+
+## Summary output for two factors {.fragile .smaller}
+
+```{r, echo=FALSE}
+mod.2 <- lm(R.Wing.Lth ~ Sex + Area, data=petrels)
+summary(mod.2)
+```
+
+## The anova function{.fragile}
+
+```{r}
+mod2 <- lm(R.Wing.Lth ~ Sex + Area, data=petrels)
+anova(mod2)
+```
+
+- Each row in the anova table corresponds to a factor (or numeric covariate).
+
+- P-values thus can be read out.
+
+## Process of assessing a factor covariate
+
+- Fit linear model.
+
+- Do `anova()` to check the factor is important (small P).
+
+- If it is important, look at the `summary()` to see how the levels differ (or `visreg()` to visualise them).
+
+- Multiple testing problem on the latter, which is why we do the overall test first.
+
+- **Order can be important in the anova table.**
+
+- Each row's P-values are adjusting for previous rows.
+
+## Example: Order matters{.fragile}
+
+```{r}
+anova(lm(R.Wing.Lth ~ Sex + Area, data=petrels))
+```
+
+## Example: Order matters{.fragile}
+
+```{r}
+anova(lm(R.Wing.Lth ~ Area + Sex, data=petrels))
+```
+
+## ANOVA table
+
+- Each row represents a single variable (factor or numeric).
+
+- Each row adjusted for what is above it (but not below).
+
+- Order can be important but probably tells you something if it changes things.
+
+- If a factor is important, look at summary table to see which groups differ (or visualise model).
+
+## Petrels: Summary table {.fragile .smaller}
+
+```{r, echo=FALSE}
+summary(mod2)
+co <- round(coef(mod2),2)
+```
+
+## Petrels: Conclusion{.fragile}
+
+- From ANOVA table, both `Area` and `Sex` are important to the right wing length.
+
+- From summary table, we see that males have `r co["SexMale"]`mm larger right wing length than females **after accounting for differences between areas**.
+
+```{r, echo=FALSE}
+mf = tapply(petrels$R.Wing.Lth, petrels$Sex, mean, na.rm=TRUE)
+mf = round(mf[2]-mf[1],2)
+ar = tapply(petrels$R.Wing.Lth, petrels$Area, mean, na.rm=TRUE)
+ar = round(ar[5]-ar[1],2)
+```
+
+- This doesn't mean that male birds have a `r co["SexMale"]`mm larger right wing length than females.
+
+- In fact
+    ```{r}
+    tapply(petrels$R.Wing.Lth, petrels$Sex, mean, na.rm=TRUE)
+    ```
+    they're `r mf`mm larger across all areas.
+
+## Petrels: Conclusion{.fragile}
+
+- Similarly, birds in area 5 have `r co["Area5"]`mm larger right wing length than those in area 1 **after accounting for differences in sex**.
+
+- Again,
+    ```{r}
+    tapply(petrels$R.Wing.Lth, petrels$Area, mean, na.rm=TRUE)
+    ```
+    they're `r ar`mm larger across both sexes.
+
+## Summary
+
+- The linear model estimates the **mean** of the outcome given the covariates.
+
+    - the mean body weight for a given heart girth.
+
+    - the mean body weight given heart girth, umbilical girth, length and sex.
+
+    - the mean right wing length for different areas.
+
+  It also gives uncertainties, i.e. confidence intervals.
+
+
+- For factor (grouping) variables, it estimates a separate mean for each level.
+
+    - The first level (baselines) goes into the intercept.
+
+    - Each other level is represented by the difference to the baseline.
+
+    - The overall F-test tells us whether the grouping variable is important.
+
+## Summary
+
+- Multiple Factors
+
+    - Always look at the `anova` table first, particularly if you have factors.
+
+    - Look at the `summary` table next, and interpret the estimated coefficients there for the significant variables from the `anova` table.
+
+    - Use `visreg` to visualise the effects - easier to see effect sizes/uncertainty.
+
+    - Remember that 'not significant' does not mean 'not important'.
+

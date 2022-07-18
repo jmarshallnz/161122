@@ -1,0 +1,369 @@
+---
+title: "C3 - A Minimal Theory of Linear Models"
+date: "`r Sys.Date()`"
+output:
+  ioslides_presentation:
+    mathjax: "https://cdn.bootcss.com/mathjax/2.7.3/MathJax.js?config=TeX-MML-AM_CHTML"
+    highlight: tango
+    widescreen: yes
+graphics: yes
+---
+
+```{r setup, echo=FALSE}
+library(knitr)
+library(ggplot2); theme_set(theme_bw(base_size=15))
+library(patchwork)
+opts_chunk$set(dev.args=list(bg='transparent'), comment="", warning=FALSE, echo=FALSE)
+#print(knit_hooks$get('output'))
+knit_hooks$set(output=function (x, options) {
+#  cat("OPTIONS=", names(options), "\n")
+  cache_path <- unlist(strsplit(options$cache.path, '/'))
+#  cat("Cache_path length=", length(cache_path), "\n")
+  out_format <- cache_path[length(cache_path)]
+  if (out_format == "html") {
+    knitr:::escape_html(x)
+    x = paste(x, collapse = "\\n")
+    sprintf("<div class=\"%s\"><pre class=\"knitr %s\">%s</pre></div>\\n", 
+        'output', tolower(options$engine), x)
+  } else {
+    paste(c("\\begin{ROutput}",
+            sub("\n$", "", x),
+            "\\end{ROutput}",
+            ""),
+          collapse="\n")
+  }
+})
+col_points <- "#7f577492"
+col_dark   <- "#5f4354"
+```
+## Learning Outcomes
+
+- Assumptions of the linear model.
+
+- Least square estimation.
+
+- Sampling distribution of least square estimator.
+
+## Recap
+
+- The general idea: find a (best possible) line to summarise the relationship between two variables.
+
+- How can we do this job in R by `lm()`?
+
+- What is the results of `lm()` and how can we access them by `summary()` and `coef()`?  
+
+- Overlay a fitted line with the scatter plot by `geom_abline()`.
+
+## Focus
+
+- When can we use linear regression? Sometimes, it is not clever to use a linear model, say predicting the numbers of confirmed cases of covid-19 in NZ.
+
+- What do we mean by a best possible **LINE**? Two points will determine a line! So three, four, or even more?
+
+- How can we find the best intercept and the slope? Calculate manually or leave it to R by `lm()`?
+
+# The Gauss-Markov Assumptions
+
+## Assumptions of linear models
+
+**L**inearity
+
+ - Residuals don't depend on $x$. The trend is correctly modelled.
+
+**I**ndependence
+
+ - Residuals don't depend on each other.
+
+**N**ormality
+
+ - Residuals are distributed normally.
+
+**E**qual variance
+
+ - Residuals have constant variance. The variation doesn't change as we move along the trend.
+
+## A Math Formualtion of Linear Model
+$$
+y=\alpha+\beta x +\varepsilon
+$$
+
+- Response: $y$ 
+
+- Covariate: $x$
+
+- Regression Coefficients (Parameters): $\alpha$ and $\beta$
+
+- Random Error (Residual): $\varepsilon$
+
+## A Math Formualtion of Linear Model
+
+- Say, we have observed multiple pairs of $y$ and $x$ as $(x_1,y_1),(x_2,y_2),\ldots,(x_n,y_n)$.
+
+$$
+y_1=\alpha+\beta x_1 +\varepsilon_1,
+$$
+$$
+y_2=\alpha+\beta x_2 +\varepsilon_2,
+$$
+$$
+\vdots
+$$
+$$
+y_n=\alpha+\beta x_n +\varepsilon_n,
+$$
+
+## Gauss-Markov Assumptions 
+
+- Given a linear model $y_i=\alpha+\beta x_i +\varepsilon_i,i=1,\ldots,n$, all four assumptions can be summarised in the following expression:
+
+$$
+\varepsilon_i \mathop{\sim}\limits_\mathsf{iid} \mathsf{Normal}(0, \sigma^2)
+$$
+
+- $\mathsf{mean}[\varepsilon_i]=0$ ensures the **L**inearity.
+
+- $\mathsf{iid}$(*identically and independently distributed*) ensures the **I**ndependence.
+
+- $\mathop{\sim}\mathsf{Normal}$ ensures the **N**ormality. 
+
+- $Var(\varepsilon_i)=\sigma^2$ ensures the **E**qual variance
+
+- The four assumptions are called **the Guass-Markov assumptions**
+
+## Wny do we need assumptions? 
+
+- These four assumptions are critical for deriving the theory of linear model. 
+- Assumptions hold forever in the theory. No need to worry about the theory. 
+
+- They are even more critical to our practices! Without the warranty of Gauss and Markov, the statistical inference of linear model can easily be non-sense.
+
+- However, assumptions may not hold for most practical problems. 
+
+- The next lecture C4 **Residual Diagnostics** will investigate this topic.
+ 
+# Least Sqaure Estimation
+
+## Minimising the residuals
+
+- Supposing that the Gauss-Markov assumptions are all satisfied, we will estimate the regression coefficients now, i.e. guessing the values of $\alpha$ and $\beta$ in an educated manner. 
+
+- Denote a pair of arbitrary guesses by $\tilde{\alpha}$ and $\tilde{\beta}$. Unless we receive an oracle, it won't equal to the ground truth denoted by $\alpha$ and $\beta$. 
+
+- For each point $x_i$ we have the corresponding estimated value $\tilde{y}_i = \tilde\alpha + \tilde\beta x_i$.
+
+- The difference between the real $y_i$ and fitted $\tilde{y}_i$ is the **residual** $\tilde\varepsilon_i = y_i - \tilde{y}_i$.
+
+- A good combination of $\tilde{\alpha}$ and $\tilde{\beta}$ gets all residuals (or most residuals) closer to zero. 
+
+## Minimising the variance of residuals
+
+- If we have only two pairs of observations, we can easily draw a line between them with residuals zero. 
+
+- Given more then two points, what can we do ?
+
+- We need some tools to measure the overall performance of a fitted line in terms of residuals. 
+
+- One way is to minimise the variance of the residuals, subject to their mean being 0. (Why mean 0?)
+
+## Least squares estimation
+
+- This is called **least squares** estimation as the formula for variance contains a sum of squares
+$$
+\begin{aligned}
+\mathsf{var}(\tilde\varepsilon_i) &= \frac{1}{n}\sum_{i=1}^n (\tilde\varepsilon_i - 0)^2= \frac{1}{n}\sum_{i=1}^n [y_i - (\tilde\alpha + \tilde\beta x_i)]^2
+\end{aligned}
+$$
+- By minimising the **residual variance** $\mathsf{Var}_\mathsf{res} = \frac{1}{n}\sum_{i=1}^n [y_i - (\hat\alpha + \hat\beta x_i)]^2$, we obtain the corresponding values of $\tilde\alpha$ and $\tilde\beta$ which are called **least squares estimates**.
+
+- We often put hats on parameters ($\hat{\alpha}$, $\hat{\beta}$) to denote the least square estimates. This helps us remember that they're sample statistics and differentiate them from the true values $\alpha$ and $\beta$ from the population and the arbitrary guesses $\tilde\alpha$ and $\tilde\beta$. 
+
+## A Toy Example
+
+- Let's consider a even simpler model - $\mathsf{mean}[y]=\beta x$. The intercept $\alpha$ is set as zero. We only need to estimate $\beta$.
+
+- We observed two pairs of observations $(x_1,y_1)=(4,5)$ and $(x_2,y_2)=(6,3)$. Then,
+
+$$\mathsf{Var}_\mathsf{res}(\tilde\beta)=[(y_1-\tilde\beta x_1)^2+(y_2-\tilde\beta x_2)^2]/2$$
+ 
+ - After some simplifications, we have 
+$$\mathsf{Var}_\mathsf{res}(\tilde\beta)=a\tilde\beta^2+b\tilde\beta+c$$
+where $a=(x_1^2+x_2^2)/2=26,b=-(x_1y_1+x_2y_2)=-38,c=(y_1^2+y_2^2)/2=17$.
+
+
+## A Toy Example
+
+ - Clearly, $\mathsf{Var}_\mathsf{res}(\tilde\beta)=26\tilde\beta^2-38\tilde\beta+17$ is a quadratic function of $\tilde\beta$. We can plot it in R as follows
+ 
+```{r, fig.align="center", fig.width=8, fig.height=4}
+library(ggplot2)
+Var_res <- function(beta_tilde) {
+  26*beta_tilde^2-38*beta_tilde+17
+}
+ggplot() + xlim(0, 1.5) + ylim(0,20) + 
+  geom_function(fun = Var_res, col='red') +
+  geom_vline(xintercept = 19/26, col='blue', alpha=0.5) +
+  geom_hline(yintercept = Var_res(19/26), col='black', alpha=0.4) +
+  xlab(latex2exp::TeX("$\\tilde{\\beta}$")) + ylab("Variance of Residuals")
+```
+
+## A Toy Example
+
+- Some calculus operations will reveal that $\mathsf{Var}_\mathsf{res}$ attains its minimum at $\tilde\beta=19/26\approx0.7308$.
+
+- We can of course leave all the calculations to R. 
+
+```{r, echo=TRUE, eval=TRUE}
+x <- c(4,6)
+y <- c(5,3)
+no_intercept  <- lm(y~x-1)
+```
+
+- To fit a linear model without intercept, we add `-1` to the right hand side of the formula `y~x`.
+
+## A Toy Example
+
+```{r, echo=TRUE, eval=TRUE}
+summary(no_intercept)
+```
+
+## Try some hard examples
+
+- Given three or more pairs of observations, we can still estimate $\beta$ manually or by R.
+
+- **Task**: Add a new observation $(x_3,y_3)=(9,12)$ to the two observations in our toy example. Re-estimate $\beta$ with all three observations with R.   
+
+- One can further estimate both the slope and the intercept in a linear model provided that the intercept is non-zero. To estimate two parameters simultaneously, i.e. $\alpha$ and $\beta$, we will need some knowledge on **Multivariate Calculus**. 
+
+- The procedure of finding the minimum(or maximum) of a function is called **optimisation**. **Optimisation** is largely a math concept, but it plays a very important role in modern statistics!
+
+- Let's forget these math details. R can do all these jobs for us (quickly and nicely)!
+
+## Estimator and Estimate
+
+- Go back to our toy example. This time we will use the abstract symbols $(x_1,y_1)$ and $(x_2,y_2)$. 
+
+- We can work out the residual variance as
+
+$$\mathsf{Var}_\mathsf{res}(\tilde\beta)=[(x_1^2+x_2^2)\tilde\beta^2-2(x_1y_1+x_2y_2)\tilde\beta+(y_1^2+y_2^2)]/2$$
+
+- The minimum of residual variance is attained at the least squares estimate 
+$$\hat\beta=\frac{x_1y_1+x_2y_2}{x_1^2+x_2^2}$$
+
+- This generic form of $\hat\beta$ is called the least square **estimator**. 
+
+- If we substitute the numerical values of observed data into the estimator, we obtain some numbers like $\hat\beta=19/26\approx0.7308$ which is called an **estimate**. 
+
+## Estimator and Estimate
+
+- An **estimate** is calculated from the real data but an **estimator** is calculated (derived) from the abstract data. 
+
+- If you know the math form of the least squares **estimator**, you can easily obtain the least squares **estimates** for arbitrary samples. 
+
+- The summary of `lm()` provides us the least square estimates, rather than estimators. Actually the least square estimators have been integrated into `lm()`. So we can run `lm()` on any data set. 
+
+- Statisticians devote a huge efforts in finding good estimators and programming them into R packages!
+
+## Estimator as a random variable
+
+- Recall that $y_1=\beta x_1+\varepsilon_1$ and $y_2=\beta x_2+\varepsilon_2$, we can substitute them into our toy least square estimator $\hat\beta=\frac{x_1y_1+x_2y_2}{x_1^2+x_2^2}$ which yields
+$$\hat\beta=\frac{x_1(\beta x_1+\varepsilon_1)+x_2(\beta x_2+\varepsilon_2)}{x_1^2+x_2^2}=\beta+\frac{x_1\varepsilon_1+x_2\varepsilon_2}{x_1^2+x_2^2}$$
+
+- $\hat\beta$ can be regarded as the sum of the ground truth $\beta$ and the random disturbance $\frac{x_1\varepsilon_1+x_2\varepsilon_2}{x_1^2+x_2^2}$.
+
+- $\hat\beta$ is also random! The source of the randomness is $\varepsilon_1$ and $\varepsilon_2$. We can study the distribution of $\hat\beta$ to get a general idea of its behavior given arbitrary samples.
+
+- Some math operations will reveal that $\mathsf{mean}[\hat\beta]=\beta$!
+
+## Hints on the mean of random variables 
+
+$$ 
+\begin{aligned}
+\mathsf{mean}[X+Y]&=\mathsf{mean}[X]+\mathsf{mean}[Y]\\
+ \mathsf{mean}[X+Y+Z]&=\mathsf{mean}[X]+\mathsf{mean}[Y]+\mathsf{mean}[Z]\\
+\mathsf{mean}[aX]&=a\cdot\mathsf{mean}[X]\\
+ \mathsf{mean}[aX+b]&=a\cdot\mathsf{mean}[X]+b\\
+\mathsf{mean}[aX+bY]&=???\\
+  \mathsf{mean}\left[\sum_{i=1}^nX_i\right]&=???\\
+    \mathsf{mean}\left[\sum_{i=1}^na_iX_i\right]&=???
+\end{aligned}
+$$
+
+## Hints on the mean of random variables 
+
+$$ 
+\begin{aligned}
+\mathsf{mean}[X+Y]&=\mathsf{mean}[X]+\mathsf{mean}[Y]\\
+ \mathsf{mean}[X+Y+Z]&=\mathsf{mean}[X]+\mathsf{mean}[Y]+\mathsf{mean}[Z]\\
+\mathsf{mean}[aX]&=a\cdot\mathsf{mean}[X]\\
+ \mathsf{mean}[aX+b]&=a\cdot\mathsf{mean}[X]+b\\
+\mathsf{mean}[aX+bY]&=a\cdot\mathsf{mean}[X]+b\cdot\mathsf{mean}[Y]\\
+  \mathsf{mean}\left[\sum_{i=1}^nX_i\right]&=\sum_{i=1}^n\mathsf{mean}[X_i]\\
+    \mathsf{mean}\left[\sum_{i=1}^na_iX_i\right]&=\sum_{i=1}^na_i\cdot\mathsf{mean}[X_i]
+\end{aligned}
+$$
+
+
+## Sampling distribution of our estimators
+
+- As long as the Guass-Markov assumptions hold then $\hat\alpha$ and $\hat\beta$ both have normal distributions.
+
+- We won't bother with the equations for them, other than to note:
+
+    - The estimates $\hat\alpha$ and $\hat\beta$ are **unbiased**, i.e.
+    $$
+    \mathsf{mean}[\hat\alpha]= \alpha, \qquad \mathsf{mean}[\hat\beta] = \beta
+    $$
+    - The standard errors of $\hat\alpha$ and $\hat\beta$ decrease with $n$ in the same way that the standard error of the sample mean decreases with $n$.
+    - We can test hypotheses about $\alpha$ and $\beta$ using these distributions.
+
+
+# Plot a simple function in R
+
+## Function in R
+
+- To plot a function, must learn to write functions in R. 
+
+- We write a simple function to evaluate the residual variance in the toy example $\mathsf{Var}_\mathsf{res}(\tilde\beta)=26\tilde\beta^2-38\tilde\beta+17$.
+
+    ```{r, echo=TRUE}
+    Var_res <- function(beta_tilde) 26*beta_tilde^2-38*beta_tilde+17
+    Var_res(2)
+    ```
+
+- `Var_res()` is a user-defined function, i.e. our own R functions. 
+
+- It will be sufficient for us to write some simple R functions as statistician has written most complicated R functions for us!
+
+## Plot a function in R
+```{r, echo=TRUE, fig.align="center", fig.width=6, fig.height=2.5}
+library(ggplot2)
+Var_res <- function(beta_tilde) 26*beta_tilde^2-38*beta_tilde+17
+ggplot() + xlim(0, 1.5) + ylim(0,20) + 
+  geom_function(fun = Var_res, col='red') +
+  geom_vline(xintercept = 19/26, col='blue', alpha=0.5) +
+  geom_hline(yintercept = Var_res(19/26), col='yellow', alpha=0.5) +
+  xlab("beta_tilde") + ylab("Variance of Residuals")
+```
+
+## Hint on making the plot
+
+- The key is `geom_function()`. But before calling it, you should create your ggplot object by `ggplot()` and specify the range of $x$ by `xlim()`. 
+
+- In `geom_function()`, specify the function to be plotted in the argument `fun`. You can try some different functions, e.g. `exp`, `dnorm` and `pnorm`.
+
+- We add the vertical line and horizontal line corresponding to the minimum of the residual variance by `geom_vline()` and `geom_vline()` by specifying the argument `xintercept` and `yintercept`.
+This can also be done by `geom_abline()` with the same arguments. 
+
+- Try different values in `xlim()` and `ylim()` and adjust `alpha` and `color` for better visualization effects.
+
+
+## Summary
+
+- Assumptions for linear model
+
+- Least squares estimation
+
+- Estimator, estimate, and sampling distribution
+
+- Create your own functions and make its plot
+

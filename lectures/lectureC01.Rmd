@@ -1,0 +1,475 @@
+---
+title: "C1 - Simple Linear Regression"
+date: "`r Sys.Date()`"
+output:
+  ioslides_presentation:
+    mathjax: "https://cdn.bootcss.com/mathjax/2.7.3/MathJax.js?config=TeX-MML-AM_CHTML"
+    highlight: tango
+    widescreen: yes
+graphics: yes
+---
+
+```{r setup, echo=FALSE}
+library(knitr)
+library(ggplot2); theme_set(theme_bw(base_size=15))
+library(patchwork)
+opts_chunk$set(dev.args=list(bg='transparent'), comment="", warning=FALSE, echo=FALSE)
+#print(knit_hooks$get('output'))
+knit_hooks$set(output=function (x, options) {
+#  cat("OPTIONS=", names(options), "\n")
+  cache_path <- unlist(strsplit(options$cache.path, '/'))
+#  cat("Cache_path length=", length(cache_path), "\n")
+  out_format <- cache_path[length(cache_path)]
+  if (out_format == "html") {
+    knitr:::escape_html(x)
+    x = paste(x, collapse = "\\n")
+    sprintf("<div class=\"%s\"><pre class=\"knitr %s\">%s</pre></div>\\n", 
+        'output', tolower(options$engine), x)
+  } else {
+    paste(c("\\begin{ROutput}",
+            sub("\n$", "", x),
+            "\\end{ROutput}",
+            ""),
+          collapse="\n")
+  }
+})
+col_points <- "#7f577492"
+col_dark   <- "#5f4354"
+```
+## Learning Outcomes
+
+- The linear model.
+
+- Using R to fit linear models.
+
+- Interpret the R outcomes. 
+
+# If I have seen further it is by standing on the shoulders of $~~~$ Giants. by  Isaac Newton 
+
+
+## A bit history - two centuries ago
+
+ - The earliest form of regression was the method of least squares, which was published by Legendre in 1805 and by Gauss in 1809. Both of them applied the method to the problem of determining, from astronomical observations, the orbits of bodies about the Sun.
+
+ - The term "regression" was coined by Francis Galton in the nineteenth century to describe a biological phenomenon - regression toward the mean. 
+ 
+ - The phenomenon was that the heights of descendants of tall ancestors tend to regress down towards a normal average.
+ 
+ - Galton's work on regression had only this biological meaning and it was later extended by Udny Yule and Karl Pearson to a more general statistical context.
+
+ - Great mathematicians and statistician spent almost two hundreds years to build the whole framework for linear regression. We will learn it in two weeks!
+
+# Example: Donkeys
+
+## Example: 385 Moroccan donkeys.
+
+Variable   Description
+--------   -----------
+Sex        Sex (Female/Male)
+Age        Age (years)
+Bodywt     Weight (kg)
+Heartgirth Girth at the heart (cm)
+Umbgirth   Girth at the umbilicus (cm)
+Length     Length from elbow to hind (cm)
+Height     Height to the withers (cm)
+
+## Relationships: Donkeys
+
+```{r, fig.align="center", fig.width=8, fig.height=5}
+donkey <- read.csv("http://www.massey.ac.nz/~jcmarsha/227215/data/donkey.csv")
+g1 <- ggplot(donkey, aes(x=Heartgirth, y=Bodywt)) + geom_point(col=col_points)
+g2 <- ggplot(donkey, aes(x=Umbgirth, y=Bodywt)) + geom_point(col=col_points)
+g3 <- ggplot(donkey, aes(x=Length, y=Bodywt)) + geom_point(col=col_points)
+g4 <- ggplot(donkey, aes(x=Height, y=Bodywt)) + geom_point(col=col_points)
+g1 + g2 + g3 + g4 + plot_layout(ncol=2)
+```
+
+## Relationships: Donkeys
+
+```{r, fig.align="center"}
+ggplot(donkey, aes(x=Sex, y=Bodywt)) + geom_boxplot() + coord_flip()
+```
+
+## Relationships: Donkeys
+
+- There are reasonably strong increasing relationships between body weight and hearth girth, umbilical girth, length and height.
+
+- There doesn't seem much difference between the sexes.
+
+- The *strongest* relationship is with heart girth. **Why?**
+
+- We'll look at **modelling** this relationship using a straight line.
+
+# The Linear Model
+
+## Linear modelling
+
+- Try to explain the variation in one measurement using other measurements.
+
+- Key is to model the **mean** of one variable conditional on the values of other variables.
+
+- Once we have a model, we can use that model for **prediction** or for quantifying the extent of the relationship.
+
+## Linear modelling
+
+```{r, fig.align="center", fig.width=8, fig.height=5}
+ab <- coef(lm(Bodywt ~ Heartgirth, data=donkey))
+ggplot(donkey, aes(x=Heartgirth, y=Bodywt)) + geom_point(col=col_points) +
+  geom_abline(intercept=ab[1], slope=ab[2]) + ylab("Response (Body weight in kg)") +
+  xlab("Explanatory variable (Heart girth in cm)") +
+  annotate('text', x=95, y=130, label = "Mean body weight\nfor a given heart girth", hjust=1) +
+  annotate('curve', x=95, y=130, curvature = -0.2, xend = 110, yend = ab[1] + ab[2]*110, arrow=arrow(angle=20, type='closed', length=unit(0.15, 'inches'))) +
+  scale_x_continuous(limits=c(77,143), expand=c(0,0)) +
+  scale_y_continuous(limits=c(42,230), expand=c(0,0))
+```
+
+## Linear modelling
+
+```{r, fig.align="center", fig.width=8, fig.height=5}
+l <- lm(Bodywt ~ Heartgirth, data=donkey)
+ab <- coef(l)
+p <- as.data.frame(predict(l, newdata=data.frame(Heartgirth=70:150), interval='prediction'))
+ggplot(donkey, aes(x=Heartgirth, y=Bodywt)) + geom_point(col=col_points) +
+  geom_abline(intercept=ab[1], slope=ab[2]) + ylab("Response (Body weight in kg)") +
+  xlab("Explanatory variable (Heart girth in cm)") +
+#  annotate('segment', x=91, y = ab[1] + ab[2]*90, xend = 135, yend = ab[1] + ab[2]*90, arrow=arrow(angle=20, type='closed', ends = 'both', length=unit(0.15, 'inches'))) +
+#  annotate('text', x=(91+135)/2, y=ab[1] + ab[2]*90, label="Variation in heart girth", vjust=-0.3) +
+  annotate('segment', x=90, y = ab[1] + ab[2]*90, xend = 136, yend = ab[1] + ab[2]*136, arrow=arrow(angle=20, type='closed', ends = 'both', length=unit(0.15, 'inches')), size=1) +
+  annotate('text', x=120, y=80, label= expression(atop("Variation in "* bold(mean)*" body weight", "explained by heart girth")), hjust=0, parse=TRUE) +
+  annotate('curve', x=120, y=80, curvature = -0.2, xend = 110, yend = ab[1] + ab[2]*110-2, arrow=arrow(angle=20, type='closed', length=unit(0.15, 'inches'))) +
+  annotate('line', x=70:150, y = p[,2], linetype = 'dotted') +
+  annotate('line', x=70:150, y = p[,3], linetype = 'dotted') +
+  annotate('text', x=95, y=160, label = expression(atop("Variation in body weight", "not explained")), hjust=1) +
+  annotate('curve', x=95, y=160, curvature = -0.2, xend = 110, yend = ab[1] + ab[2]*110 + 20, arrow=arrow(angle=20, type='closed', length=unit(0.15, 'inches'))) +
+  scale_x_continuous(limits=c(77,143), expand=c(0,0)) +
+  scale_y_continuous(limits=c(42,230), expand=c(0,0))
+```
+
+## Definitions
+
+- The **response**, or **dependent variable**, is the numeric variable we wish to model (the $y$ variable).
+
+- The **explanatory** variable(s), or **predictors**, **covariates**, or **independent variables** are the $x$ variables we use to explain the response. They needn't be numeric.
+
+- The **regression line** or **linear model** is the way we relate $y$ to the explanatory variables $x$.
+
+- For the simple case of a single numeric predictor, the equation is
+$$
+\mathsf{mean}[y] = \alpha + \beta x
+$$
+where $\alpha$ is the **intercept** or **baseline**, and $\beta$ is the **slope**, or **gradient**.
+
+## Definitions
+
+```{r, fig.align="center"}
+# generate some data for a generic plot
+set.seed(2015)
+x <- rnorm(100, 3, 1)
+y <- 0.5 + 0.5*x + rnorm(100, 0, 0.3)
+par(mar=c(2,1,1,1), cex=1.5)
+plot(y ~ x, col="#00000050", xlim=c(0, max(x)+0.2), ylim=c(0, max(y)+0.2), pch=19, xlab="", ylab="", xaxt="n", yaxt="n", xaxs="i", yaxs="i")
+line <- lm(y ~ x) 
+abline(line, lwd=2)
+xv <- c(1,5)
+yv <- predict(line, data.frame(x=xv))
+lines(xv, rep(yv[1], 2), lty="dotted")
+lines(rep(xv[2], 2), yv, lty="dotted")
+text(mean(xv), yv[1], "run", adj=c(0.5,1.2), col="grey30")
+text(xv[2], mean(yv), "rise", adj=c(-0.2,0.5), col="grey30")
+mtext(expression(alpha), side=2, line=0.5, at = coef(line)[1], las=1, cex=1.5)
+text(4, yv[1]-0.5, expression(beta==over(rise,run)))
+axis(1, at=0, line=0)
+```
+
+## Fixed Design and Random Design
+
+- We usually observe multiple pairs of observations in this way $(x_1,y_1),(x_2,y_2),\ldots,(x_n,y_n)$.
+
+- Notice that only the mean of $y$ is related to $x$ via the line. 
+
+- Can have a lot of uncertainties (randomness) in $y$!
+
+- How about the covariate $x$?
+
+- If the covariate $x$ is nonrandom(fixed), the linear model is in the fixed design setting. If $x$ is treated as a random variable, the model is in the random design setting. 
+
+- In our paper, we assume all the linear models are in the fixed design setting. Therefore, there is no randomness in $x$. 
+
+## A Math Formulation of Linear Model
+
+- In an abstract way, we usually denote the data set in simple linear regression by $(x_1,y_1),(x_2,y_2),\ldots,(x_n,y_n)$
+
+- To characterise the uncertainties in $y$, we assume that the randomness in $y_i$ is caused by some additive random errors (noises) denoted by $\varepsilon_i$.
+
+$$
+y_1=\alpha+\beta x_1 +\varepsilon_1,
+$$
+$$
+y_2=\alpha+\beta x_2 +\varepsilon_2,
+$$
+$$
+\vdots
+$$
+$$
+y_n=\alpha+\beta x_n +\varepsilon_n.
+$$
+
+- You will never observe the true noises! But all the randomness come from them. 
+
+## Sample versus Population
+
+- Combined, the $\alpha$ and $\beta$ are known as **coefficients** or **parameters** of the linear model in the population. They are the ground truth. 
+
+- Linear modelling is the process of fitting this model to data, where we **estimate** these coefficients.
+
+- There are so many different lines with different coefficients on a plane. Estimating coefficients means the procedure of find some suitable coefficients based on our data set. They are called **point estimates**. 
+
+-  We only ever have a sample of data. This means both two estimated coefficients shall be calculated from the data. Our point estimates are **sample statistics** denoted by $\hat\alpha$ and $\hat\beta$.
+
+- We hope $\hat\alpha$ and $\hat\beta$ will be some (good) sample representatives of the true parameters $\alpha$ and $\beta$ in the population.
+
+## Estimation of parameters
+
+```{r, fig.align="center"}
+# generate some data for a generic plot
+set.seed(2015)
+x <- rnorm(100, 3, 1)
+y <- 0.5 + 0.5*x + rnorm(100, 0, 0.3)
+par(mar=c(2,2,1,1), cex=1.5)
+plot(y ~ x, col="#00000030", xlim=c(0, max(x)+0.2), ylim=c(0, max(y)+0.2), pch=19, xlab="", ylab="", xaxt="n", yaxt="n", xaxs="i", yaxs="i")
+x_i <- x[15]; y_i <- y[15]
+y_h <- predict(line, data.frame(x=x_i))
+line <- lm(y ~ x) 
+#abline(line, lwd=2)
+lines(c(x_i, x_i), c(-4, y_i), lty='dotted')
+lines(c(-4, x_i), c(y_i, y_i), lty='dotted')
+points(x_i, y_i, col="#00000080", pch=19)
+axis(1, at=x_i, line=0, labels=expression(x[i]))
+axis(2, at=y_i, line=0, labels=expression(y[i]), las=1)
+```
+
+## Estimation of parameters
+
+```{r, fig.align="center"}
+# generate some data for a generic plot
+set.seed(2015)
+x <- rnorm(100, 3, 1)
+y <- 0.5 + 0.5*x + rnorm(100, 0, 0.3)
+par(mar=c(2,2,1,1), cex=1.5)
+plot(y ~ x, col="#00000030", xlim=c(0, max(x)+0.2), ylim=c(0, max(y)+0.2), pch=19, xlab="", ylab="", xaxt="n", yaxt="n", xaxs="i", yaxs="i")
+x_i <- x[15]; y_i <- y[15]
+y_h <- predict(line, data.frame(x=x_i))
+line <- lm(y ~ x) 
+abline(line, lwd=2)
+lines(c(x_i, x_i), c(-4, y_i), lty='dotted')
+lines(c(-4, x_i), c(y_i, y_i), lty='dotted', col="#00000080")
+lines(c(-4, x_i), c(y_h, y_h), lty='dotted')
+points(x_i, y_i, col="#00000080", pch=19)
+points(x_i, y_h, col="#00000080", pch=19)
+axis(1, at=x_i, line=0, labels=expression(x[i]))
+axis(2, at=c(y_h, y_i), line=0, labels=expression(hat(y)[i], y[i]), las=1)
+```
+
+## Estimation of parameters
+
+```{r, fig.align="center"}
+# generate some data for a generic plot
+library(shape)
+set.seed(2015)
+x <- rnorm(100, 3, 1)
+y <- 0.5 + 0.5*x + rnorm(100, 0, 0.3)
+par(mar=c(2,2,1,1), cex=1.5)
+plot(y ~ x, col="#00000030", xlim=c(0, max(x)+0.2), ylim=c(0, max(y)+0.2), pch=19, xlab="", ylab="", xaxt="n", yaxt="n", xaxs="i", yaxs="i")
+x_i <- x[15]; y_i <- y[15]
+y_h <- predict(line, data.frame(x=x_i))
+line <- lm(y ~ x) 
+abline(line, lwd=2, col="#00000080")
+lines(c(x_i, x_i), c(-4, y_i), lty='dotted')
+lines(c(-4, x_i), c(y_i, y_i), lty='dotted', col="#00000080")
+lines(c(-4, x_i), c(y_h, y_h), lty='dotted')
+points(x_i, y_i, col="#00000080", pch=19)
+points(x_i, y_h, col="#00000080", pch=19)
+Arrows(x_i, y_h, x_i, y_i, col='black', arr.adj = 1, arr.width= 0.3, arr.type="triangle", lwd=2)
+text(x_i, mean(c(y_h, y_i)), col='black', adj=c(1.5, 0.5), expression(hat(epsilon)[i]), cex=2)
+axis(1, at=x_i, line=0, labels=expression(x[i]))
+axis(2, at=c(y_h, y_i), line=0, labels=expression(hat(y)[i], y[i]), las=1)
+```
+
+## Estimation of parameters
+
+- For each point $x_i$ we have the corresponding estimated value $\hat{y}_i = \hat\alpha + \hat\beta x_i$.
+
+- The difference between the real $y_i$ and fitted $\hat{y}_i$ is the **residual** $\hat\varepsilon_i = y_i - \hat{y}_i$. Residuals are the estimates of random errors. 
+
+- We find the optimal $\hat\alpha$ and $\hat\beta$ by minimising the variance of the residuals, subject to their mean being 0.
+
+- This is called **least squares** estimation as the formula for variance contains a sum of squares
+$$
+\begin{aligned}
+\mathsf{var}(\hat\varepsilon_i) &= \frac{1}{n}\sum_{i=1}^n (\hat\varepsilon_i - 0)^2\\
+&= \frac{1}{n}\sum_{i=1}^n [y_i - (\hat\alpha + \hat\beta x_i)]^2
+\end{aligned}
+$$
+
+## Estimation of parameters
+
+- We minimise the **residual variance**
+$$
+\mathsf{Var}_\mathsf{res} = \frac{1}{n}\sum_{i=1}^n [y_i - (\hat\alpha + \hat\beta x_i)]^2
+$$
+- The values of $\hat\alpha$ and $\hat\beta$, found using calculus, are **least squares estimates**.
+
+- We often put hats on them ($\hat{\alpha}$, $\hat{\beta}$) to help us remember that they're sample statistics and not the true values from the population.
+
+- We'll add some assumptions later so we can relate our estimates to the population parameters.
+
+## Estimation of parameters
+
+<iframe src="https://shiny.massey.ac.nz/jcmarsha/leastsquares/" style="border: none"></iframe>
+
+# Linear models in R
+
+## Linear models in R
+
+```{r, echo=TRUE, eval=FALSE}
+mod <- lm(Bodywt ~ Heartgirth, data=donkey)
+summary(mod)
+```
+
+- `lm()` is the R function to fit linear models. We will use it extensively!
+- The second argument `data=donkey` specifies the data frame supplying the **responses** and **predictors**.
+- The first `Bodywt ~ Heartgirth` is a **formula**, i.e. a symbolic description of the model to be fitted. `Bodywt` (left) is `y` (the response) and `Heartgirth` is `x` (the predictor).
+- We store the fitted results in `mod`, including a lot of things! It is not easy to scan it. (Try `fix(mod)` to have an inspection.)
+- `summary()` is a generic R function to extract useful information from `mod` and organize it in a user-friendly way. 
+
+## Linear models in R {.fragile}
+
+```{r, comment=""}
+mod <- lm(Bodywt ~ Heartgirth, data=donkey)
+summary(mod)
+```
+
+## Linear models in R
+
+- `Call:`
+`lm(formula = Bodywt ~ Heartgirth, data = donkey)`
+simply repeats the model you have fitted.
+
+- `Residuals:` 
+provides you a quick summary on the distribution of your residuals with `min`, `max`, `median` and another two quartiles. 
+
+- `Coefficients:`
+summarizes the information on the estimates for the regression coefficients and `Estimate` column gives us the values of our coefficients. We will discuss the columns `Std. Error`, `t value` and `Pr(>|t|)` in Lecture C2.
+
+```{r}
+s <- summary(mod)$coefficients
+```
+    
+    - The linear model equation would be
+    $$
+    \mathsf{Body weight} = `r round(s[1,1],1)` + `r round(s[2,1],2)` \times \mathsf{Heart girth}
+    $$
+    
+    - The estimate for `Heartgirth` means a 1 unit increase in heart girth corresponds to a `r round(coef(mod)[2],2)` unit increase in mean body weight.
+
+<!-- ## Linear models in R -->
+
+<!-- - The `Std. Error` column is the standard error of our estimates. We can use this to find confidence intervals. -->
+
+<!--     - For heart girth, we're 95% confident that the coefficient of heartgirth is within -->
+<!-- $$ -->
+<!-- `r round(s[2,1],2)` \pm 2 \times `r round(s[2,2],2)` = (`r round(s[2,1]-2*s[2,2],2)`, `r round(s[2,1]+2*s[2,2],2)`). -->
+<!-- $$ -->
+
+<!-- ## Linear models in R -->
+
+<!-- - The `t value` column is the test statistic for the hypothesis that the coefficient is 0. -->
+
+<!-- - The  column is the P-value for this hypothesis test. -->
+
+<!-- - This is equivalent to asking "Does body weight depend on heart girth?" -->
+
+<!-- - In this case, the P-value is very small, so there is very little chance that we'd observe an estimate as large as `r round(s[2,1],2)` if there was no relationship between body weight and heart girth in the population. -->
+
+<!-- - Our conclusion would be that body weight does depend on heart girth. -->
+
+<!-- ## Linear models in R -->
+
+<!-- - The `Multiple R-squared` value is the proportion of variation in body weight explained by the model (i.e. explained by heart girth). -->
+<!-- $$ -->
+<!-- \begin{aligned} -->
+<!-- R^2 &= \frac{\mathsf{Variance\ Explained}}{\mathsf{Total\ Variance}} = \frac{\mathsf{Total\ Variance} - \mathsf{Residual\ Variance}}{\mathsf{Total\ Variance}}\\ -->
+<!-- &= \frac{\sigma_\mathsf{Y}^2 - \sigma_\mathsf{res}^2}{\sigma_\mathsf{Y}^2} -->
+<!-- \end{aligned} -->
+<!-- $$ -->
+<!-- - A high $R^2$ value suggests that the model explains a lot of the variation of the outcome variable. -->
+
+<!-- - i.e. Once you know the value of the heartgirth, you have a much lower range of potential values for the body weight. -->
+
+<!-- ## $R^2$ for Donkeys -->
+
+<!-- ```{r, fig.align="center", fig.width=8, fig.height=5} -->
+<!-- ab <- coef(mod) -->
+<!-- p <- as.data.frame(predict(mod, newdata=data.frame(Heartgirth=70:150), interval='prediction')) -->
+<!-- ggplot(donkey, aes(x=Heartgirth, y=Bodywt)) + geom_point(col=col_points) + -->
+<!--   geom_abline(intercept=ab[1], slope=ab[2]) + ylab("Response (Body weight in kg)") + -->
+<!--   xlab("Explanatory variable (Heart girth in cm)") + -->
+<!-- #  annotate('segment', x=91, y = ab[1] + ab[2]*90, xend = 135, yend = ab[1] + ab[2]*90, arrow=arrow(angle=20, type='closed', ends = 'both', length=unit(0.15, 'inches'))) + -->
+<!-- #  annotate('text', x=(91+135)/2, y=ab[1] + ab[2]*90, label="Variation in heart girth", vjust=-0.3) + -->
+<!--   annotate('segment', x=90, y = ab[1] + ab[2]*90, xend = 136, yend = ab[1] + ab[2]*136, arrow=arrow(angle=20, type='closed', ends = 'both', length=unit(0.15, 'inches')), size=1) + -->
+<!--   annotate('text', x=120, y=80, label=expression(atop("Variation in "* bold(mean)*" body weight", "explained by heart girth: 80%")), hjust=0, parse=TRUE) + -->
+<!--   annotate('curve', x=120, y=80, curvature = -0.2, xend = 110, yend = ab[1] + ab[2]*110-2, arrow=arrow(angle=20, type='closed', length=unit(0.15, 'inches'))) + -->
+<!--   annotate('line', x=70:150, y = p[,2], linetype = 'dotted') + -->
+<!--   annotate('line', x=70:150, y = p[,3], linetype = 'dotted') + -->
+<!--   annotate('text', x=95, y=160, label = expression(atop("Variation in body weight", "unexplained: 20%")), hjust=1) + -->
+<!--   annotate('curve', x=95, y=160, curvature = -0.2, xend = 110, yend = ab[1] + ab[2]*110 + 20, arrow=arrow(angle=20, type='closed', length=unit(0.15, 'inches'))) + -->
+<!--   scale_x_continuous(limits=c(77,143), expand=c(0,0)) + -->
+<!--   scale_y_continuous(limits=c(42,230), expand=c(0,0)) -->
+<!-- ``` -->
+
+<!-- ## Linear models in R -->
+
+<!-- - The `p-value` for the model (last line) is testing whether **anything** in the model helps explain body weight. -->
+
+<!-- - Same as P-value for heart girth in this case, as only thing in the model. -->
+
+<!-- - In models with more than one covariate, it will be assessing whether any of them help explain the outcome variable. -->
+
+<!-- - We will learn more details in the coming lecture **Testing and Prediction**.  -->
+
+## Let's Make a Plot 
+- It is always worth a try to make a plot by overlay the fitted line with your scatter plot. We can easily get a general idea on the goodness of fit of our straight line.
+- We can add a line by `geom_abline()` by specifying a slope and an intercept.
+- No need to copy and paste from `Estimate`. We can extract the intercept and slope by `coef()`. 
+
+```{r,echo=TRUE}
+ab <- coef(mod)
+ab
+```
+
+## Let's Make a Plot
+
+```{r,echo=TRUE,fig.align="center", fig.width=7, fig.height=4}
+ggplot(donkey, aes(x=Heartgirth, y=Bodywt)) + 
+  geom_point(col='grey',alpha=0.5) +
+  geom_abline(intercept=ab[1], slope=ab[2])
+```
+
+## Let's make a plot
+
+- Alternatively, one can use the function `visreg` from the package `visreg` to plot the line with a confidence band. This is covered in Lab C1.
+
+```{r, echo=TRUE, fig.align="center", fig.width=7, fig.height=3.5}
+library(visreg)
+visreg(mod, gg=TRUE)
+```
+
+## Summary
+
+- The general idea: find a (best possible) line to summarise the relationship between two variables.
+
+- How can we do this job in R by `lm()`?
+
+- What is the results of `lm()` and how can we access them by `summary()` and `coef()`?  
+
+- Overlay a fitted line with the scatter plot.

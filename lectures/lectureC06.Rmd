@@ -1,0 +1,351 @@
+---
+title: "C6 - Multiple factors Interactions"
+date: "`r Sys.Date()`"
+output:
+  ioslides_presentation:
+    mathjax: "https://cdn.bootcss.com/mathjax/2.7.3/MathJax.js?config=TeX-MML-AM_CHTML"
+    highlight: tango
+    widescreen: yes
+graphics: yes
+---
+
+```{r setup, echo=FALSE}
+library(knitr)
+library(ggplot2); theme_set(theme_bw(base_size=15) + theme(plot.background = element_blank()))
+opts_chunk$set(dev.args=list(bg='transparent'), comment="", warning=FALSE)
+#print(knit_hooks$get('output'))
+knit_hooks$set(output=function (x, options) {
+#  cat("OPTIONS=", names(options), "\n")
+  cache_path <- unlist(strsplit(options$cache.path, '/'))
+#  cat("Cache_path length=", length(cache_path), "\n")
+  out_format <- cache_path[length(cache_path)]
+  if (out_format == "html") {
+    knitr:::escape_html(x)
+    x = paste(x, collapse = "\\n")
+    sprintf("<div class=\"%s\"><pre class=\"knitr %s\">%s</pre></div>\\n", 
+        'output', tolower(options$engine), x)
+  } else {
+    paste(c("\\begin{ROutput}",
+            sub("\n$", "", x),
+            "\\end{ROutput}",
+            ""),
+          collapse="\n")
+  }
+})
+col_points <- "#7f577492"
+col_dark   <- "#5f4354"
+```
+
+## Recap
+
+- Multiple Covariates
+
+- $F$-test and ANOVA
+
+- Factors
+
+## Learning Outcomes
+
+- Interactions between factors
+
+- Interaction between numerical variables and factors
+
+# Interactions
+
+## Interactions
+
+- Our current models have been assuming that each effect is **additive**.
+
+- e.g. the difference in the right wing length between the sexes is common across all areas, and similarly the area effects are common for males and females.
+
+- This is often not the case.
+
+## Example: Hypothetical drugs
+
+- Suppose we have some medical condition and we have a numerical measure describing how good/bad a patient is.
+
+- Suppose further that we have two drugs A and B to treat that condition, and that we have the option of combining them.
+
+- Then there are 4 possible treatments: No drugs, just drug A, just drug B, or both drugs.
+
+- Our current linear models, would assume that we can add the effect of drug A and B together for the "both drugs" case.
+
+## Example: Hypothetical drugs
+
+The model equation would be
+$$
+\mathsf{mean}(y) = \alpha + \beta_A z_A + \beta_B z_B
+$$
+where $z_A$ and $z_B$ are indicators for whether drug A or B are included, giving
+
+Treatment     Mean
+------------  ----
+Neither drug  $\mathsf{mean}(y)=\alpha$
+Just drug A   $\mathsf{mean}(y)=\alpha + \beta_A$
+Just drug B   $\mathsf{mean}(y)=\alpha + \beta_B$
+Both drugs    $\mathsf{mean}(y)=\alpha + \beta_A + \beta_B$
+
+## Example: Hypothetical drugs
+
+- For the combined drugs treatment, we have $\mathsf{mean}(y)=\alpha + \beta_A + \beta_B$
+
+- We're thus assuming that the individual benefit of each drug add together when combined.
+
+- But, it might be that the combined effect of the drugs gives is smaller or larger than the sum of individual effects.
+
+- We need a bit more flexibility in the model.
+
+## Interactions: Hypothetical drugs
+
+We add another indicator variable $z_{AB}$ which is 1 when both drugs are in use.
+$$
+\mathsf{mean}(y) = \alpha + \beta_A z_A + \beta_B z_B + \beta_{AB} z_{AB}
+$$
+
+*Mathematical aside: the new variable is the product of the existing ones, as $z_{AB}=1$ only if both $z_A=1$ and $z_B=1$. $z_{A} \times z_{B}$ has this property.*
+
+The means for the neither drug or single drug treatments are still the same, as $z_{AB}=0$ in those cases. The mean in the both drugs treatment is the only one that changes to
+$$
+\mathsf{mean}(y) = \alpha + \beta_A + \beta_B + \beta_{AB}.
+$$
+Thus, $\beta_{AB}$ can be used to measure whether or not the effects of the two drugs are additive or not.
+
+## Interactions: Hypothetical drugs
+
+- $\beta_{AB}$ can be used to measure whether or not the effects of the two drugs are additive or not.
+
+- An alternate way to think about it is that the effect of drug B may differ depending on whether the patient is already given drug A.
+
+- e.g. the effect for drug B may be to increase the diagnostic measurement by 5 units in the absence of other treatment, but if the patient is on drug A as well, then the effect of drug B may be less pronounced.
+
+## Example: Hypothetical drugs
+
+<iframe src="https://shiny.massey.ac.nz/jcmarsha/twoway/" style="border: none"></iframe>
+
+## Interactions in RStudio
+
+```{r, echo=FALSE}
+library(visreg)
+petrels <- read.csv("http://www.massey.ac.nz/~jcmarsha/227215/data/petrels.csv")
+petrels <- petrels[!is.na(petrels$Area) & !is.na(petrels$R.Wing.Lth),]
+petrels$Area <- as.factor(petrels$Area)
+petrels$Sex <- as.factor(petrels$Sex)
+```
+
+```{r}
+mod3 = lm(R.Wing.Lth ~ Sex + Area + Sex:Area, data=petrels)
+anova(mod3)
+```
+As the interaction here is between factors, it should be evaluated using the ANOVA table.
+
+## Interactions in RStudio
+
+```{r, echo=FALSE}
+pval=round(anova(mod3)[,5],3)
+names(pval)=rownames(anova(mod3))
+```
+- From the `anova` table we see the interaction term is not significant (P=`r pval["Sex:Area"]`).
+
+- Thus, there is no evidence in the data to suggest that the comparative size of male and female petrels differ between areas.
+
+## Summary table of interactions{.fragile .smaller}
+
+```{r, echo=FALSE}
+summary(mod3)
+co3=round(coef(mod3),2)
+```
+
+## Summary table of interactions
+
+- While the interaction term isn't significant (thus all the interaction coefficients could be zero in the population) let's assess what each row represents.
+
+- The Intercept contains the first levels of each factor, so females in area 1 have on average `r co3["(Intercept)"]`mm right wing lengths.
+
+- The `SexMale` term is the difference to the baseline, so this describes how males in area 1 differ. They have right wing lengths `r co3["SexMale"]`mm larger.
+
+- The `Area2` term is the difference to the baseline, so this describes how females in area 2 differ from those in area 1. Their right wing lengths are `r -co3["Area2"]`mm smaller.
+
+- The `SexMale:Area2` is the differential effect of males in area 2 over and above the `SexMale` and `Area2` effects. Compared with females in area 1, males in area 2 are $`r co3["SexMale"]`+`r co3["Area2"]`+`r co3["SexMale:Area2"]`=`r sum(co3[c("SexMale","Area2","SexMale:Area2")])`$mm larger.
+
+## Visualising models using visreg
+
+- When you have interactions, visualise the effect of one variable within the levels of another.
+
+- Allows you to see how effects interact.
+
+- Better way to present results from the model than summary table.
+
+```{r, echo=TRUE, eval=FALSE}
+library(visreg)
+visreg(mod3, "Area", by="Sex")
+visreg(mod3, "Area", by="Sex", overlay=TRUE)
+```
+
+## visreg: Model without interaction
+
+```{r, echo=FALSE, fig.width=9.5, fig.height=5.5}
+mod2 <- lm(R.Wing.Lth ~ Sex + Area, data=petrels)
+visreg(mod2, "Area", by="Sex", gg=TRUE)
+```
+
+## visreg: Model with interaction
+
+```{r, echo=FALSE, fig.width=9.5, fig.height=5.5}
+visreg(mod3, "Area", by="Sex", gg=TRUE)
+```
+
+## visreg: without interaction (`overlay=TRUE`)
+
+```{r, echo=FALSE, fig.width=9.5, fig.height=5.5, warning=FALSE}
+par(mar=c(4,4,1,0))
+visreg(mod2, "Area", by="Sex", overlay=TRUE, gg=TRUE)
+```
+
+## visreg: with interaction (`overlay=TRUE`)
+
+```{r, echo=FALSE, fig.width=9.5, fig.height=5.5, warning=FALSE}
+par(mar=c(4,4,1,0))
+visreg(mod3, "Area", by="Sex", overlay=TRUE, gg=TRUE)
+```
+
+# More types of interaction
+
+## Numeric plus factor
+
+Consider
+$$
+\mathsf{mean}(y) = \alpha + \beta_1 x + \beta_2 z
+$$
+where $x$ is a numeric variable and $z$ is an indicator variable for the 2nd level of a factor variable.
+
+Then if we're in the first level of the factor variable, $z=0$ so the equation is
+$$
+\mathsf{mean}(y) = \alpha + \beta_1 x
+$$
+If we're in the second level, $z=1$ so that
+$$
+\mathsf{mean}(y) = \alpha + \beta_1 x + \beta_2 = (\alpha + \beta_2) + \beta_1 x.
+$$
+
+The model fit is thus two parallel lines, separated by $\beta_2$.
+
+## Example: Calfweights
+
+```{r, echo=FALSE, fig.width=8.5, fig.height=5.5, fig.align='center'}
+calf <- read.csv("http://www.massey.ac.nz/~jcmarsha/227215/data/calfweight.csv")
+ggplot(calf, aes(x=Age, y=Weight, col=Breed, shape=Treatment)) + geom_point(size=3, alpha=0.8) +
+  xlab("Age (days)") + ylab("Weight (kg)")
+```
+
+## Example: Calf weights
+
+```{r}
+c1 = lm(Weight ~ BirthWeight + Breed + Treatment + Age, data=calf)
+anova(c1)
+```
+
+## Example: Calf weights
+
+```{r, fig.width=8, fig.height=5, fig.align='center'}
+visreg(c1, "Age", by="Treatment", overlay=TRUE, gg=TRUE)
+```
+
+## Example: Calf weights
+
+```{r, fig.width=8, fig.height=5, fig.align='center'}
+visreg(c1, "Age", by="Breed", overlay=TRUE, gg=TRUE)
+```
+
+## Interaction of numeric variables and factors
+
+We could add another term using the product of the numeric variable $x$ and the indicator for the second level of the factor $z$
+$$
+\mathsf{mean}(y) = \alpha + \beta_1 x + \beta_2 z + \beta_3 x z.
+$$
+
+Then if we're in the first level of the factor variable, $z=0$ so the equation is
+$$
+\mathsf{mean}(y) = \alpha + \beta_1 x
+$$
+whereas if we're in the second level, $z=1$ so that
+$$
+\mathsf{mean}(y) = \alpha + \beta_1 x + \beta_2 + \beta_3 x = (\alpha + \beta_2) + (\beta_1 + \beta_3) x.
+$$
+The model fit is thus two separate lines.
+
+## Example: Calfweights
+
+```{r, echo=FALSE, fig.width=8, fig.height=5.5, fig.align='center'}
+ggplot(calf, aes(x=Age, y=Weight, col=Breed, shape=Treatment)) + geom_point(size=3, alpha=0.8) +
+  xlab("Age (days)") + ylab("Weight (kg)")
+```
+
+## Example: Calf weights
+
+```{r}
+c2 <- lm(Weight ~ BirthWeight + Breed + Treatment + Age +
+           Age:Treatment + Age:Breed, data=calf)
+anova(c2)
+```
+
+## Calf weight summary{.fragile .smaller}
+
+```{r, echo=FALSE}
+summary(c2)
+```
+
+## Calf weights{.smaller}
+
+```{r, fig.width=8, fig.height=5, fig.align='center'}
+visreg(c2, "Age", by="Breed", overlay=TRUE, gg=TRUE)
+```
+
+## Calf weights{.smaller}
+
+```{r, fig.width=8, fig.height=5, fig.align='center'}
+visreg(c2, "Age", by="Treatment", overlay=TRUE, gg=TRUE)
+```
+
+## Diagnostics
+
+```{r, echo=FALSE, fig.width=8, fig.height=5.5, fig.align='center'}
+par(mfrow=c(2,2), mar=c(4,4,2,2))
+plot(c2, add.smooth=FALSE)
+```
+
+## Better model
+
+```{r}
+c3 <- lm(log(Weight) ~ log(BirthWeight) + Breed + Treatment + Age + 
+         Age:Treatment + Age:Breed, data=calf)
+anova(c3)
+```
+
+## Better model: Diagnostics
+
+```{r, echo=FALSE, fig.width=8, fig.height=5.5, fig.align='center'}
+par(mfrow=c(2,2), mar=c(4,4,2,2))
+plot(c3, add.smooth=FALSE)
+```
+
+## Better model: Fit{.smaller}
+
+```{r, fig.width=8, fig.height=5, fig.align='center'}
+visreg(c3, "Age", by="Breed", trans=exp, partial=TRUE, overlay=TRUE, ylab="Weight", gg=TRUE)
+```
+
+## Better model: Fit{.smaller}
+
+```{r, fig.width=8, fig.height=5, fig.align='center'}
+visreg(c3, "Age", by="Treatment", trans=exp, partial=TRUE, overlay=TRUE, ylab="Weight", gg=TRUE)
+```
+
+## Summary
+
+- Interaction between two binary factors
+
+- Interaction between two general factors
+
+- Interaction between a numerical variable and a factor
+
+- Interaction between two numerical variable?

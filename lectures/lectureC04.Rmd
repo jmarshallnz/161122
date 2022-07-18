@@ -1,0 +1,419 @@
+---
+title: "C4 - Residual Diagnostics and Transformation"
+date: "`r Sys.Date()`"
+output:
+  ioslides_presentation:
+    mathjax: "https://cdn.bootcss.com/mathjax/2.7.3/MathJax.js?config=TeX-MML-AM_CHTML"
+    highlight: tango
+    widescreen: yes
+graphics: yes
+---
+
+```{r setup, echo=FALSE}
+library(knitr)
+library(ggplot2); theme_set(theme_bw(base_size=15))
+library(patchwork)
+opts_chunk$set(dev.args=list(bg='transparent'), comment="", warning=FALSE, echo=FALSE)
+#print(knit_hooks$get('output'))
+knit_hooks$set(output=function (x, options) {
+#  cat("OPTIONS=", names(options), "\n")
+  cache_path <- unlist(strsplit(options$cache.path, '/'))
+#  cat("Cache_path length=", length(cache_path), "\n")
+  out_format <- cache_path[length(cache_path)]
+  if (out_format == "html") {
+    knitr:::escape_html(x)
+    x = paste(x, collapse = "\\n")
+    sprintf("<div class=\"%s\"><pre class=\"knitr %s\">%s</pre></div>\\n", 
+        'output', tolower(options$engine), x)
+  } else {
+    paste(c("\\begin{ROutput}",
+            sub("\n$", "", x),
+            "\\end{ROutput}",
+            ""),
+          collapse="\n")
+  }
+})
+col_points <- "#7f577492"
+col_dark   <- "#5f4354"
+```
+## Learning Outcomes
+
+- Residual Diagnostics 
+
+- Transformation
+
+## Recap
+
+- What is the assumptions for linear model? 
+
+- How can we estimate the regression coefficients based on our data?
+
+- Estimator versus estimate.
+
+- Create your own R functions and make its plot. 
+
+# Residual Diagnostics 
+
+## Focus
+
+- Check the Guass-Markov assumptions against the data and linear model. 
+
+- Remedy the problematic issues violating the assumptions in our data.
+
+## Importance of assumptions
+
+- **Linearity** is the most important. Does the form of your model equation make sense?
+
+- **Independence**. Do you have clustering of observations? Depends on data collection. Standard errors might be wrong.
+
+- **Normality**. This is the least important due to the central limit theorem that says it will hold anyway! More important for prediction intervals than model estimates.
+
+- **Equal variance**. Usually OK if linearity is OK. If not, standard errors might be wrong.
+
+## Checking the assumptions
+
+- For any real data set, we will never know if the assumptions really hold or not! 
+
+- The truth is hidden by the uncertainties. 
+
+- We seek the evidence from the data to support the assumptions in a statistical sense. 
+
+- To check the linear model assumptions, the most classical approach is to produce and examine **diagnostic plots** of the model.
+
+## Checking the assumptions
+
+- Using **diagnostic plots**, we can assess linearity, normality, and equal variance, but we usually can't assess independence without using other information from the data (such as how it was collected). (Will see an example from time series prediction.)
+
+- In addition, we can also see whether there are **outliers** in the data that have undue **influence** on our model fit.
+
+- In RStudio, we can use `plot(model)` to get 4-in-1 diagnostic plots, including *residuals (versus fits) plot*, *Normal Q-Q plot*,  *Scale-location plot*, and *(residuals versus) leverage plot*. 
+
+
+<!-- <div class="centered"> -->
+<!-- *A log transformation often fixes linearity or unequal variance.* -->
+<!-- </div> -->
+
+## Example: Donkeys
+
+```{r, fig.align='center', fig.width=8, fig.height=5}
+donkey <- read.csv("http://www.massey.ac.nz/~jcmarsha/227215/data/donkey.csv")
+mod <- lm(Bodywt ~ Heartgirth, data=donkey)
+par(mfrow=c(2,2), mar=c(4,2,2,2))
+plot(mod, pch=19, col="#00000040", xaxt="n")
+```
+
+## Diagnostic plots: Residuals versus fits
+
+```{r, results='asis', fig.height=6, fig.width=4.5, out.extra=''}
+# hack-hack
+is_pdf <- rmarkdown::all_output_formats("lectureC04.Rmd")[1] == "beamer_presentation"
+start_table <- function(is_pdf) {
+  if (is_pdf) {
+    cat("\\begin{minipage}{5cm}")
+  } else { # HTML
+    cat("<table class='container'><tr>")
+    cat("<td style='width:500px'>")
+  }
+}
+next_column <- function(is_pdf) {
+  if (is_pdf) {
+    cat("\\end{minipage}\n")
+#    cat("\\begin{minipage}{5cm}")
+  } else {
+    cat("</td>")
+    cat("<td style='vertical-align:top'>")
+  }
+}
+end_table <- function(is_pdf) {
+  if (is_pdf) {
+    cat("")
+#    cat("\\end{minipage}")
+  } else {
+    cat("</td>")
+    cat("</tr></table>")
+  }
+}
+start_table(is_pdf)
+par(omi=c(2,0,0,0), mar=rep(0,4))
+plot(mod, which=1, pch=19, col="#00000040", xaxt="n")
+next_column(is_pdf)
+```
+
+- Allows us to assess **linearity**.
+
+- There should be no curve.
+
+- Also allows assessing **equal variance**.
+
+- The points shouldn't fan out.
+
+- When either of these fail, a log transform of $y$ and/or $x$ often straightens things out.
+
+```{r, results='asis', echo=FALSE, out.extra=''}
+end_table(is_pdf)
+```
+
+## Residuals versus fits
+
+<iframe src="https://shiny.massey.ac.nz/jcmarsha/linearity/" style="border: none"></iframe>
+
+## Diagnostic plots: Normal Q-Q plot
+
+```{r, results='asis', fig.height=6, fig.width=4.5, out.extra=''}
+start_table(is_pdf)
+par(omi=c(2,0,0,0), mar=rep(0,4))
+plot(mod, which=2, pch=19, col="#00000040", xaxt="n")
+next_column(is_pdf)
+```
+- Allows us to assess **normality**.
+
+- Ideally the points will lie on the straight line.
+
+- A slight S shaped curve is OK.
+
+- Central limit theorem means this can generally be ignored.
+
+```{r, results='asis', out.extra=''}
+end_table(is_pdf)
+```
+
+## Diagnostic plots: Scale-location plot
+
+```{r, results='asis', fig.height=6, fig.width=4.5, out.extra=''}
+start_table(is_pdf)
+par(omi=c(2,0,0,0), mar=rep(0,4))
+plot(mod, which=3, pch=19, col="#00000040", xaxt="n")
+next_column(is_pdf)
+```
+- Allows us to assess **equal variance**.
+
+- Ideally should not be increasing or decreasing.
+
+- Residuals versus fit often tells you this just as well.
+
+```{r, results='asis', out.extra=''}
+end_table(is_pdf)
+```
+
+## Diagnostic plots: Residuals versus Leverage
+
+```{r, results='asis', fig.height=6, fig.width=4.5, out.extra=''}
+start_table(is_pdf)
+par(omi=c(2,0,0,0), mar=rep(0,4))
+plot(mod, which=5, pch=19, col="#00000040", xaxt="n")
+next_column(is_pdf)
+```
+- Allows us to look for **influential outliers**.
+
+- Points should ideally be inside red bands (Cook's distance) at 0.5.
+
+- Points outside Cook's distance of 1 have excessive influence.
+
+```{r, results='asis', out.extra=''}
+end_table(is_pdf)
+```
+
+## Influential outliers
+
+- Points can be outliers in two ways:
+
+    - They can have extreme $x$ values compared to the rest of the data. Such points are said to have high **leverage**.
+    
+    - They can have extreme $y$ values, given their $x$ value (i.e. a large residual.)
+
+- Points have large **influence** if they exhibit both these properties.
+
+- **Cook's distance** is a measure of influence. Cook's distance larger than 1 means the points have large influence on the model fit. Removing these points may change the model quite a bit.
+
+## Influential outliers
+
+<iframe src="https://shiny.massey.ac.nz/jcmarsha/influence/" style="border: none"></iframe>
+
+## Implication of Outliers
+
+- The challenge of outliers is that they can significantly distort research results.
+
+- We have seen the outliers in a boxplot and having them often has a significant effect on our mean and standard deviation. 
+
+- Similarly, outliers in our linear model will generally distort the regression coefficient estimates and prediction results. 
+
+- Removing them seems to be the right choice in most practical applications.
+
+- Otherwise, one can use some robust statistical estimators/methods, e.g. the median, the interquartile range, and least absolute deviation regression.  
+
+## Implication of Outliers
+
+- Be careful! Sometimes, the outliers deliver some interesting messages to us! 
+
+- They can lead us to new scientific discoveries!
+
+<div class="centered">
+*Scientific measurements are never perfect, but different teams studying the same phenomena can often produce widely different results. These “outlier” values are the cause of much consternation – but they may also be a sign of healthy scientific progress, says* 
+**David Bailey** in “Why OUTLIERS are good for science”, **Significance**, 2018, 15(1): 14-19.
+</div>
+
+https://rss.onlinelibrary.wiley.com/doi/full/10.1111/j.1740-9713.2018.01105.x
+
+## Donkeys: Residuals vs Fitted values
+
+```{r, fig.align='center', fig.width=6, fig.height=4}
+par(mar=c(2,2,2,2))
+plot(mod, which=1, pch=19, col="#00000040", xaxt="n")
+```
+
+Linearity doesn't hold. There is a curve.
+
+Equal variance doesn't hold. There is fanning in the residuals.
+
+# Transformation
+
+## Donkeys: Original scale
+
+```{r,fig.align='center', fig.width=8, fig.height=5}
+ggplot(donkey, aes(x=Heartgirth, y=Bodywt)) + geom_point()
+```
+
+## Donkeys: Log scale
+
+```{r,fig.align='center', fig.width=8, fig.height=5}
+ggplot(donkey, aes(x=log(Heartgirth), y=log(Bodywt))) + geom_point()
+```
+
+## Fit log scale model and plot
+
+```{r, fig.align='center', fig.width=6, fig.height=4}
+mod2 <- lm(log(Bodywt) ~ log(Heartgirth), data=donkey)
+plot(mod2, which=1, pch=19, col="#00000040", xaxt="n")
+```
+
+Linearity and equal variance now hold.
+
+## What have we done?
+
+- We transformed the data and then fit a straight line.
+
+- This is the same as fitting a curve to the original data (a power curve).
+
+- We can visualise that using `visreg`. 
+
+```{r, echo=TRUE, eval=FALSE}
+library(visreg)
+visreg(mod2)
+```
+
+## Visualising the model
+
+```{r, fig.align='center', fig.width=8, fig.height=5}
+library(visreg)
+visreg(mod2, xtrans=log, partial=TRUE, gg=TRUE) + ylab("log(Bodywt)") + xlab("log(Bodywt)")
+```
+
+## Visualising the model
+
+```{r, fig.align='center', fig.width=8, fig.height=5}
+library(visreg)
+visreg(mod2, trans=exp, partial=TRUE, gg=TRUE) + ylab("Bodywt")
+```
+
+## Inverse transformation
+
+- We have seen the power of log transformation which provides us an efficient remediation to **nonlinearity** and **heteroskedasticity** (i.e. such a wordy statistical terminology which means **unequal variances**.)
+
+- Notice that we take the log transformation for both `Bodywt` ($y$) and `Heartgirth` (*x*). After a log transformation, the linear model becomes
+\[
+\log(y) = \alpha + \beta \log(x) +\varepsilon.
+\]
+
+- Exponentiating both sides leads to 
+\[
+y=e^\alpha\cdot x^\beta \cdot e^\varepsilon.
+\]
+which implies a power law between `Bodywt` and `Heartgirth` with a multiplicative error term $e^\varepsilon$. $e^\varepsilon$ follows a lognormal distribution. 
+
+## More non-linear transformation
+
+- The exponential function serves as the inverse transformation for the log function.
+
+- Sometimes, we only need to take $\log(x)$ or $\log(y)$ as
+\[
+y = \alpha + \beta \log(x) +\varepsilon~~~\mbox{and}~~~\log(y) = \alpha + \beta x + \varepsilon
+\]
+
+- These two imply a log or exponential law between $y$ and $x$. 
+
+- The log transformation allows us to use various non-linear functions to fit the relationship between $x$ and $y$ in our bivariate data. 
+
+- The key is to transform the original nonlinear relationship into a linear form.
+
+## Box-Cox tranformation
+
+- log is powerful, but it is not a panacea!
+
+- Box and Cox proposed the following famous transformation named after their last names
+$$
+y^{(\lambda )}={\begin{cases}{\dfrac {y^{\lambda }-1}{\lambda }}&{\text{if }}\lambda \neq 0,\\\ln y&{\text{if }}\lambda =0,\end{cases}}
+$$
+
+- A bit calculus will show that ${(y^{\lambda}-1)}/{\lambda}\to \log(y)$ if $\lambda\to 0$.
+
+- A Box-Cox transformation is a way to transform non-normal dependent variables into a normal shape. 
+
+- Notice that it is mainly used to transform **positive** dependent variables (will fail with any $y\le 0$.)
+
+## Box-Cox tranformation in R
+
+- To use the Box-Cox tranformation in R, we have to load the package `MASS` first.
+
+- We then fit a linear model with `lm()` under the original scale and store the results in the object `mod`.
+
+- Passing `mod` to the function `boxcox()` will compute an optimal $\lambda$ for your box cox transformation 
+
+```{r, echo=TRUE, eval=FALSE}
+library(MASS)
+mod <- lm(Bodywt ~ Heartgirth, data=donkey)
+boxcox(mod)
+```
+
+- `boxcox()` returns you a graphical way to choose the most suitable $\lambda$.
+
+## Let's have a try
+
+- We test the box cox tranformation on the linear model for `Bodywt ~ Heartgirth` under the original scale.
+
+
+```{r, echo=FALSE, fig.align='center', fig.width=7, fig.height=5}
+mod <- lm(Bodywt ~ Heartgirth, data=donkey)
+MASS::boxcox(mod)
+```
+
+
+
+## Let's have a try
+
+- The middle dash line specifies the best possible value for $\lambda$ while any values between the left and right dash lines would be reasonable. 
+
+- So we can pick $\lambda=0$, i.e. a log transformation on $y$, for a neat expression.
+
+- **Task**: Box-coxing different candidate models with the following codes
+```{r, echo=TRUE, eval=FALSE}
+mod2 <- lm(log(Bodywt) ~ log(Heartgirth), data=donkey)
+boxcox(mod2)
+mod3 <- lm(Bodywt ~ log(Heartgirth), data=donkey)
+boxcox(mod3)
+```
+
+- Specify a neat expression for your model from each box-cox plot.
+
+## Summary
+
+- Residuals Diagnostics 
+
+    - The residuals vs fitted plot should be looked at first. If you see curvature or increasing scatter from left to right, try a log transform and re-fit the model.
+
+    - Next look at residuals vs leverage. If you have influential outliers then look at the effect of removing those observations.
+
+- Transformation
+    
+    - The versatility of the log transformation.
+    
+    - Use the Box-Cox transformation.
