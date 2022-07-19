@@ -878,6 +878,35 @@ c(Adelie = "darkgreen", Chinstrap = "maroon", Gentoo = "orange")
 ---
 
 .left-code[
+## Changing colours
+```{r peng_col2b, eval=FALSE}
+peng_colour = c( #<<
+      Adelie = "darkgreen", #<<
+      Chinstrap = "maroon", #<<
+      Gentoo = "orange" #<<
+    ) #<<
+ggplot(data = penguins) +
+  geom_point(
+    mapping = aes(
+      x = flipper_length_mm,
+      y = body_mass_g,
+      col = species
+      )
+    ) +
+  scale_colour_manual( #<<
+    values = peng_colour #<<
+  ) #<<
+```
+]
+
+.right-plot[
+```{r, ref.label="peng_col2b", echo=FALSE, message=FALSE}
+```
+]
+
+---
+
+.left-code[
 ## Changing colours: palettes
 ```{r peng_col3, eval=FALSE}
 ggplot(data = penguins) +
