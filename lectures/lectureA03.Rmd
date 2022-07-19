@@ -45,7 +45,7 @@ class: middle, inverse
 
 We'll use the *E. coli* count data from rivers in the Horizons Region again today.
 
-```{r, echo=FALSE, message=FALSE}
+```{r, message=FALSE}
 hrc <- read_csv("https://www.massey.ac.nz/~jcmarsha/data/hrc/horizons_river_ecoli.csv")
 hrc
 ```
