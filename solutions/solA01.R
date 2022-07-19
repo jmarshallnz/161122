@@ -15,53 +15,49 @@ data(quakes)
 ggplot(data=quakes) +
   geom_point(mapping=aes(x=long, y=lat))
 
-# Let's break down this code piece by piece:
-# The ggplot() bit produces a fresh plot and associates our data
-# 'quakes' with it.
+# You can add more code or comments below here.
+# The ggplot() function creates a new plot and associates the data with it (quakes)
 ggplot(data=quakes)
 
-# what about the aes() bit?
-# Running the aes() bit by itself is an example of an expression:
+# The aes() function creates an 'aesthetic mapping' - it defines how `x` and `y` on the plot
+# should be derived from our quakes data. In this case we're saying that `x` should be taken
+# from the `long` column, and `y` taken from the `lat` column.
 aes(x=long, y=lat)
 
-# This is an example of an assignment, where we take the output
-# from an expression (the aes bit) and assign it (via =) to the
-# object called 'mapping'
-mapping=aes(x=long, y=lat)
-mapping
-
-# the geom_point bit create a 'layer' of geometry in the form
-# of points that could be added to a plot.
-geom_point(mapping = aes(x=long, y=lat))
-
-# bringing it all together:
+# The geom_point() bit then adds a geometry layer to our plot.
 ggplot(data=quakes) +
-  geom_point(mapping = aes(x=long, y=lat))
+  geom_point(mapping=aes(x=long, y=lat))
 
-# Let's try altering the plot by changing colour etc.
-# When specifying colour names (or names in general for things on the plot),
-# e.g. for plot labels (title, subtitle, x axis label etc) we
-# use quotes around the character string/word:
+# We can change other aspects of our plot:
 ggplot(data=quakes) +
-  geom_point(mapping=aes(x=long, y=lat), colour='maroon', size=2)
+  geom_point(mapping=aes(x=long, y=lat), col='pink', size=2)
 
+# NOTE: When setting aesthetics, make sure you put them outside the mapping=aes() bit, but
+# inside the geom_*() bit. e.g. this is wrong:
 ggplot(data=quakes) +
-  geom_point(mapping=aes(x=long, y=lat), colour="maroon", size=2)
+  geom_point(mapping=aes(x=long, y=lat, col='pink'), size=2)
 
-# To find all the colours we can use colors()
-colors()
+# We can also change the shape:
+ggplot(data=quakes) +
+  geom_point(mapping=aes(x=long, y=lat), col='maroon', shape = 'square', size=2)
+
+# We can also change the transparency with alpha. 1 is completely opaque, and 0 is completely
+# transparent. 0.5 is 50% transparent.
+ggplot(data=quakes) +
+  geom_point(mapping=aes(x=long, y=lat), col='maroon', shape = 'square', size=2, alpha=0.5)
+
+# Finding help:
+?geom_point
+vignette("ggplot2-specs")
+
+# Colours:
 colours()
 
-# Let's try some other stuff.
+# using a hex colour (google a colour picker, pick a colour, copy the hex value)
 ggplot(data=quakes) +
-  geom_point(mapping=aes(x=long, y=lat), colour="maroon", size=3)
+  geom_point(mapping=aes(x=long, y=lat), col='#5a6e47', shape="diamond open")
 
-# Finding help on geom_point: Place cursor on function name
-# and press F1, or type ? in front of function names:
-?geom_point
-# we find the aesthetics, and a note to read more using:
-vignette("ggplot2-specs")
-# Names of shapes:
+# Shapes:
 shape_names <- c(
   "circle", paste("circle", c("open", "filled", "cross", "plus", "small")), "bullet",
   "square", paste("square", c("open", "filled", "cross", "plus", "triangle")),
@@ -70,32 +66,27 @@ shape_names <- c(
   paste("triangle down", c("open", "filled")),
   "plus", "cross", "asterisk"
 )
-shape_names
 
-# Adding some transparency to reduce overplotting:
-ggplot(data=quakes) +
-  geom_point(mapping=aes(x=long, y=lat), colour="maroon", size=3,
-             alpha = 0.5)
-
-ggplot(data=quakes) +
-  geom_point(mapping=aes(x=long, y=lat), colour="maroon", size=3,
-             alpha = 0.1)
+shapes <- data.frame(
+  shape_names = shape_names,
+  x = c(1:7, 1:6, 1:3, 5, 1:3, 6, 2:3, 1:3),
+  y = -rep(1:6, c(7, 6, 4, 4, 2, 3))
+)
+shapes
 
 ggplot(data=quakes) +
-  geom_point(mapping=aes(x=long, y=lat), colour="maroon", size=3,
-             alpha = 0.8)
+  geom_point(mapping=aes(x=long, y=lat), col='black', shape="diamond filled",
+             fill='yellow', stroke=0.1)
 
-# Changing these aesthetics based on the data: Put it inside the aes()
+# Mapping the colour to another column in our data.
 ggplot(data=quakes) +
-  geom_point(mapping=aes(x=long, y=lat, colour=mag), size=3,
-             alpha = 0.8)
+  geom_point(aes(x=long, y=lat, col=mag))
 
-# Let's try stations instead of magnitude:
+# Colouring by station
 ggplot(data=quakes) +
-  geom_point(mapping=aes(x=long, y=lat, colour=stations), size=3,
-             alpha = 0.8)
+  geom_point(aes(x=long, y=lat, col=stations))
 
-# These trends are pretty much the same! This makes sense as
-# larger earthquakes (high magnitude) will be felt at more
-# stations.
-
+# Changing colours! Viridis is quite a nice palette to use:
+ggplot(data=quakes) +
+  geom_point(aes(x=long, y=lat, col=stations)) +
+  scale_colour_viridis_c()
