@@ -4,7 +4,6 @@ subtitle: 'Tidy data, long and wide, missingness, reordering groups'
 output:
   xaringan::moon_reader:
     css: [default, default-fonts, "custom.css"]
-    mathjax: "https://cdn.bootcss.com/mathjax/2.7.3/MathJax.js?config=TeX-MML-AM_CHTML"
     nature:
       highlightStyle: tomorrow
       highlightLines: true
