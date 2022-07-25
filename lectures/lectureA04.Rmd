@@ -1046,8 +1046,8 @@ ggplot(data = cases) +
 But if we look at the number of cases we're letting through
 it could be quite bad - we've missed 36!
 
-Thus the reason we isolate for 14 days at the border,
-even if a day 0 or day 3 test returns negative.
+Thus the reason we had people isolate for 14 days at the border,
+even when their day 0 or day 3 test returned negative.
 ]
 
 .right-plot[
