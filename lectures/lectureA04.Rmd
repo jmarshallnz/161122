@@ -210,6 +210,7 @@ There are two additional measures we can use: **covariance** and **correlation**
 
 ---
 
+.left-code[
 ## Covariance
 
 Recall that the **variance** of a single variable $x$ is given by:
@@ -225,6 +226,162 @@ $$
 $$
 
 In RStudio, we use the `cov()` function for this.
+
+$(x, y)$ pairs where $x$ and $y$ are both greater or both less than their mean
+contribute positively to the covariance.
+]
+
+.right-plot[
+```{r, echo=FALSE, warning=FALSE}
+set.seed(3)
+x <- rnorm(100, 0, 5)
+y <- x + rnorm(100, 0, 2)
+
+dat <- data.frame(x, y)
+
+ggplot(dat) +
+  geom_point(mapping=aes(x=x, y=y, alpha=(x - mean(x))*(y - mean(y)) > 0)) +
+  geom_hline(yintercept=mean(dat$x), linetype='dashed') +
+  geom_vline(xintercept=mean(dat$y), linetype='dashed') +
+  scale_x_continuous(breaks=mean(dat$x), labels=expression(bar(x))) +
+  scale_y_continuous(breaks=mean(dat$y), labels=expression(bar(y))) +
+  theme_minimal() +
+  theme(axis.ticks=element_blank(),
+        panel.grid=element_blank()) +
+  scale_alpha_manual(values=c(0.3,0.8), guide='none') +
+  labs(x=NULL, y=NULL)
+```
+]
+---
+.left-code[
+## Covariance
+
+Recall that the **variance** of a single variable $x$ is given by:
+
+$$
+\mathsf{var}(x) = \frac{1}{n}\sum_{i=1}^n (x_i - \bar{x})^2.
+$$
+
+The **covariance** of $x$ and $y$ is given by
+
+$$
+\mathsf{cov}(x,y) = \frac{1}{n}\sum_{i=1}^n (x_i - \bar{x})(y_i - \bar{y}).
+$$
+
+In RStudio, we use the `cov()` function for this.
+
+$(x, y)$ pairs where only one of $x$ or $y$ are greater than the mean
+contribute negatively to the covariance.
+]
+
+.right-plot[
+```{r, echo=FALSE, warning=FALSE}
+set.seed(3)
+x <- rnorm(100, 0, 5)
+y <- x + rnorm(100, 0, 2)
+
+dat <- data.frame(x, y)
+
+ggplot(dat) +
+  geom_point(mapping=aes(x=x, y=y, alpha=(x - mean(x))*(y - mean(y)) < 0)) +
+  geom_hline(yintercept=mean(dat$x), linetype='dashed') +
+  geom_vline(xintercept=mean(dat$y), linetype='dashed') +
+  scale_x_continuous(breaks=mean(dat$x), labels=expression(bar(x))) +
+  scale_y_continuous(breaks=mean(dat$y), labels=expression(bar(y))) +
+  theme_minimal() +
+  theme(axis.ticks=element_blank(),
+        panel.grid=element_blank()) +
+  scale_alpha_manual(values=c(0.3,0.8), guide='none') +
+  labs(x=NULL, y=NULL)
+```
+]
+
+---
+.left-code[
+## Covariance
+
+Recall that the **variance** of a single variable $x$ is given by:
+
+$$
+\mathsf{var}(x) = \frac{1}{n}\sum_{i=1}^n (x_i - \bar{x})^2.
+$$
+
+The **covariance** of $x$ and $y$ is given by
+
+$$
+\mathsf{cov}(x,y) = \frac{1}{n}\sum_{i=1}^n (x_i - \bar{x})(y_i - \bar{y}).
+$$
+
+In RStudio, we use the `cov()` function for this.
+
+$(x, y)$ pairs where only one of $x$ or $y$ are greater than the mean
+contribute negatively to the covariance.
+]
+
+.right-plot[
+```{r, echo=FALSE, warning=FALSE}
+set.seed(3)
+x <- rnorm(100, 0, 5)
+y <- -x + rnorm(100, 0, 3)
+
+dat_neg <- data.frame(x, y)
+
+ggplot(dat_neg) +
+  geom_point(mapping=aes(x=x, y=y, alpha=(x - mean(x))*(y - mean(y)) < 0)) +
+  geom_hline(yintercept=mean(dat_neg$x), linetype='dashed') +
+  geom_vline(xintercept=mean(dat_neg$y), linetype='dashed') +
+  scale_x_continuous(breaks=mean(dat_neg$x), labels=expression(bar(x))) +
+  scale_y_continuous(breaks=mean(dat_neg$y), labels=expression(bar(y))) +
+  theme_minimal() +
+  theme(axis.ticks=element_blank(),
+        panel.grid=element_blank()) +
+  scale_alpha_manual(values=c(0.3,0.8), guide='none') +
+  labs(x=NULL, y=NULL)
+```
+]
+
+---
+.left-code[
+## Covariance
+
+Recall that the **variance** of a single variable $x$ is given by:
+
+$$
+\mathsf{var}(x) = \frac{1}{n}\sum_{i=1}^n (x_i - \bar{x})^2.
+$$
+
+The **covariance** of $x$ and $y$ is given by
+
+$$
+\mathsf{cov}(x,y) = \frac{1}{n}\sum_{i=1}^n (x_i - \bar{x})(y_i - \bar{y}).
+$$
+
+In RStudio, we use the `cov()` function for this.
+
+Where the quadrants balance, the covariance is 0.
+]
+
+.right-plot[
+```{r, echo=FALSE, warning=FALSE}
+set.seed(3)
+x <- rnorm(100, 0, 5)
+y <- rnorm(100, 0, 5)
+
+dat <- data.frame(x, y)
+
+ggplot(dat) +
+  geom_point(mapping=aes(x=x, y=y, alpha=(x - mean(x))*(y - mean(y)) < 0)) +
+  geom_hline(yintercept=mean(dat$x), linetype='dashed') +
+  geom_vline(xintercept=mean(dat$y), linetype='dashed') +
+  scale_x_continuous(breaks=mean(dat$x), labels=expression(bar(x))) +
+  scale_y_continuous(breaks=mean(dat$y), labels=expression(bar(y))) +
+  theme_minimal() +
+  theme(axis.ticks=element_blank(),
+        panel.grid=element_blank()) +
+  scale_alpha_manual(values=c(0.3,0.8), guide='none') +
+  labs(x=NULL, y=NULL)
+```
+]
 
 ---
 
