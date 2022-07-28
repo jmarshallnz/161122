@@ -139,7 +139,7 @@ It consists of a set of verbs that help us solve the most common data manipulati
 
 - `select` to choose variables (columns) by name.
 - `filter` to choose observations (rows) by value.
-- `mutate` to add new variables based of existing variables.
+- `mutate` to add new variables based on existing variables.
 - `summarise` to reduce multiple values down to a single summary.
 - `arrange` changes the order of rows.
 
@@ -452,13 +452,13 @@ hrc
 
 ---
 
-## The magittr pipe `%>%`
+## The magrittr pipe `%>%`
 
-Prior to R version 4.1, the `|>` (base) pipe didn't exist. Instead, people used a pipe from the `magittr` package which uses `%>%`.
+Prior to R version 4.1, the `|>` (base) pipe didn't exist. Instead, people used a pipe from the `magrittr` package which uses `%>%`.
 
 Generally, these are basically the same. You will see `%>%` used 'in the wild' when googling - that's OK, it'll work just fine.
 
-In RStudio, by default the keyboard combination Ctrl-Shift-M (Cmd-Shift-M on Mac) inserts the magittr pipe `%>%`.
+In RStudio, by default the keyboard combination Ctrl-Shift-M (Cmd-Shift-M on Mac) inserts the magrittr pipe `%>%`.
 
 **We suggest you change this in RStudio**
 
