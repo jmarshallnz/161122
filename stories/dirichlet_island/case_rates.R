@@ -1,7 +1,7 @@
 library(tidyverse)
 
-load('manawatu.rda')
-load('mb2013.rda')
+load('stories/dirichlet_island/manawatu.rda')
+load('stories/dirichlet_island/mb2013.rda')
 
 # Our region is that covered by Mid Central Public Health Unit, which is the intersection
 # of the Mid Central District Health Board and the Manawatu-Wanganui region:
