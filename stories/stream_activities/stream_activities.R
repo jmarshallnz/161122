@@ -2,9 +2,9 @@ library(tidyverse)
 library(lubridate)
 library(patchwork)
 
-log <- read_csv("stories/stream_activities/logs_161122_2022_S2FS_20220729-0929.csv")
+log <- read_csv("stories/stream_activities/logs_161122_2022_S2FS_20220729-1450.csv")
 
-remove_users <- c("-", "Admin User", "Julio Pereira", "Adam Smith", "Jonathan Marshall")
+remove_users <- c("-", "Ray Khanthaporn", "Admin User", "Julio Pereira", "Adam Smith", "Jonathan Marshall")
 
 first_access <- log |>
   mutate(Time = dmy_hm(Time),
@@ -14,16 +14,17 @@ first_access <- log |>
   filter(!User %in% remove_users,
          Day >= '2022-07-15') |>
   filter(str_detect(Item, "A0[1-8]"),
-         str_detect(Item, "URL"),
-         !str_detect(Item, "recording")) |>
-  extract(Item, into=c("Type", "Item"),
-          regex="URL: (.*) A(0[1-8])", convert=TRUE) |>
+         str_detect(Item, "URL")) |>
+  extract(Item, into=c("Type", "Item", "Extra"),
+          regex="URL: (.*) A(0[1-8])(.*)", convert=TRUE) |>
   filter(Item <= 4) |>
-  mutate(Item = paste0("A0", Item)) |>
+  mutate(Item = paste0("A0", Item),
+         Type = if_else(str_detect(Extra, "recording"), "Video", Type)) |>
   group_by(User, Type, Item) |>
   summarise(Day = first(Day))
 
-g1 = first_access |>
+g1 = first_access |> 
+  filter(Type != "Video") |>
   group_by(Day, Type, Item) |>
   summarise(n=n()) |>
   ggplot() +
@@ -35,6 +36,7 @@ g1 = first_access |>
   guides(col='none')
 
 g2 = first_access |>
+  filter(Type != "Video") |>
   ggplot() +
   geom_bar(aes(x=Type, fill=Item), position='dodge', alpha=0.8) +
   scale_fill_brewer(palette='Dark2') +
