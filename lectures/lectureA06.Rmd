@@ -309,17 +309,6 @@ hrc |> mutate(Year = year(Date)) |>
 
 ---
 
-```{r}
-hrc |>
-  mutate(Year = year(Date)) |>
-  group_by(Year) |> 
-  summarise(Median = median(Value))
-```
-
-Notice the message: `summarise` has ungrouped the output. This is because each group has just 1 row anyway.
-
----
-
 ## Grouping multiple variables
 
 When you `group_by()` more than one variable, the other verbs operate within unique combinations of those variables.
@@ -335,28 +324,65 @@ hrc |>
 
 ---
 
+.left-code[
+## Grouping multiple variables
+
 This means that subsequent operations happen at the `Site` level:
 
-```{r}
+```{r, eval=FALSE}
 hrc |>
   mutate(Year = year(Date)) |>
   group_by(Site, Year) |>
-  summarise(Median = median(Value)) |>
-  mutate(Overall = median(Median))
+  summarise(Med = median(Value)) |>
+  mutate(Overall = median(Med))
 ```
 
+The `Overall` column here
+will be the median of `Med`
+within each site.
+]
+
+.right-plot[
+```{r, echo=FALSE}
+hrc |>
+  mutate(Year = year(Date)) |>
+  group_by(Site, Year) |>
+  summarise(Med = median(Value)) |>
+  mutate(Overall = median(Med)) |>
+  print(n=20)
+```
+]
 ---
+
+.left-code[
+## Grouping multiple variables
 
 You can remove grouping with `ungroup()`:
 
-```{r}
+```{r, eval=FALSE}
 hrc |>
   mutate(Year = year(Date)) |>
   group_by(Site, Year) |>
-  summarise(Median = median(Value)) |>
+  summarise(Med = median(Value)) |>
   ungroup() |>
-  mutate(Overall = median(Median))
+  mutate(Overall = median(Med))
 ```
+
+Now the `Overall` column will be the median
+of `Med` across all rows.
+]
+
+.right-plot[
+```{r, echo=FALSE}
+hrc |>
+  mutate(Year = year(Date)) |>
+  group_by(Site, Year) |>
+  summarise(Med = median(Value)) |>
+  ungroup() |>
+  mutate(Overall = median(Med)) |>
+  print(n=20)
+```
+]
 
 ---
 
@@ -515,16 +541,13 @@ class: middle, inverse
 
 ## Bird of the Year 2019
 
-Forest and Bird, who run Bird of the Year every year published all the votes from last year's contest.
+Forest and Bird, who run Bird of the Year every year published all the votes from the 2019 contest.
 
-```{r, echo=FALSE}
-boty <- read_csv(here::here("stories/boty2019/BOTY-votes-2019.csv"),
+```{r, message=FALSE}
+boty <- read_csv("https://www.massey.ac.nz/~jcmarsha/data/boty/BOTY-votes-2019.csv",
                  col_types = cols(country = "c"))
-```
-
-```{r}
 boty
 ```
 
-You can download them here: https://www.dragonfly.co.nz/news/2019-11-12-boty.html
+You can download the source data here: https://www.dragonfly.co.nz/news/2019-11-12-boty.html
 
