@@ -3,57 +3,58 @@ library(tidyverse)
 boty <- read_csv("stories/boty2019/BOTY-votes-2019.csv", col_types = cols(country = "c"))
 
 # Votes by date
-boty %>%
+boty |>
   count(date)
 
-boty %>%
+boty |>
   ggplot() +
   geom_bar(aes(x=date))
 
 # Votes by hour
 
-boty %>%
+boty |>
   ggplot() +
   geom_bar(aes(x=hour))
 
 # First preferences (i.e. first vote)
-boty %>% count(vote_1) %>%
+boty |> count(vote_1) |>
   slice_max(n, n=10)
 
-boty %>% count(vote_1) %>%
-  slice_max(n, n=10) %>%
+boty |> count(vote_1) |>
+  slice_max(n, n=10) |>
   ggplot() + 
   geom_col(aes(y=vote_1, x=n))
 
 # Fifth preferences:
-boty %>% count(vote_5) %>%
-  slice_max(n, n=10) %>%
+boty |> count(vote_5) |>
+  slice_max(n, n=10) |>
   ggplot() + 
   geom_col(aes(y=vote_5, x=n))
 
 # Total votes: Make long
-long <- boty %>%
-  tibble::rowid_to_column("Voter") %>%
-  pivot_longer(vote_1:vote_5, names_to = "Vote", values_to = "Bird") %>%
-  extract(Vote, into="Vote", regex="vote_([1-5])", convert=TRUE) %>%
+long <- boty |>
+  tibble::rowid_to_column("Voter") |>
+  pivot_longer(vote_1:vote_5, names_to = "Vote", values_to = "Bird",
+               names_prefix = "vote_") |>
   filter(!is.na(Bird))
 
 # Hoiho is in front overall, so almost certainly wins, as it has more first preference
 # votes and more overall votes.
-long %>% count(Bird) %>%
+long |> count(Bird) |>
   slice_max(n, n=10)
 
 library(ggrepel)
 
-long %>%
-  group_by(date) %>%
-  count(Bird) %>%
-  group_by(Bird) %>%
-  mutate(Total = cumsum(n)) %>%
-  group_by(date) %>%
-  slice_max(Total, n=10) %>%
-  ungroup() %>%
-  mutate(label = if_else(date == max(date), Bird, NA_character_)) %>%
+long |>
+  group_by(date) |>
+  count(Bird) |>
+  group_by(Bird) |>
+  arrange(date) |>
+  mutate(Total = cumsum(n)) |>
+  group_by(date) |>
+  slice_max(Total, n=10) |>
+  ungroup() |>
+  mutate(label = if_else(date == max(date), Bird, NA_character_)) |>
   ggplot() +
   geom_line(aes(x=date, y=Total, col=Bird)) +
   geom_label_repel(aes(x=date, y=Total, col=Bird, label=label))+
@@ -72,7 +73,7 @@ long %>%
   arrange(date) %>%
   mutate(votes = cumsum(n)) %>%
   group_by(date) %>%
-  split_min(votes, n=10) %>%
+  slice_max(votes, n=10) %>%
   ungroup() %>%
   mutate(label = if_else(date == max(date), Bird, NA_character_)) %>%
   ggplot() +
