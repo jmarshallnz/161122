@@ -1,11 +1,8 @@
 ---
-title: 'Workshop A04: RMarkdown and grouped numeric variables'
-author: 'Jonathan M'
-date: 'Today!'
-output:
-  html_document: default
-  pdf_document: default
-  word_document: default
+title: "Workshop A04: RMarkdown and grouped numeric variables"
+date: "Today!"
+author: "Jonathan"
+output: html_document
 ---
 
 ## Introduction
@@ -52,14 +49,35 @@ Notice there's a small Play button in the top right. Clicking on this will run a
 
 We can also do plotting, which again is shown inline. In the chunk below we create a new dataset `quakes_cat` with a new variable `how_deep`, categorising the depth into shallow (less than 300 m) or deep, and then produce a boxplot of the magnitude by depth. Try running this code chunk.
 
+
 ```{r}
 quakes_cat <- mutate(quakes, how_deep = if_else(depth < 300, "shallow", "deep"))
 
-ggplot(quakes_cat) +
-  geom_boxplot(mapping=aes(x=how_deep, y=mag))
+ggplot(data=quakes_cat) +
+  geom_boxplot(mapping=aes(x=how_deep, y=mag, fill=how_deep)) +
+  guides(fill='none') +
+  labs(y="Magnitude", x="Depth", title="Shallower earthquakes are larger")
 ```
 
-This plot shows us that the shallow quakes tend to have higher magnitudes compared to the deep quakes (center + box shifted up). The shapes and spreads are somewhat similar.
+```{r}
+ggplot(data=quakes_cat) +
+  geom_histogram(mapping=aes(x=mag, fill=how_deep, ..density..),
+                 boundary=4.05, binwidth = 0.2,
+                 position='identity', alpha=0.5, col='black', size=0.1)
+```
+
+We see that the red histogram (deep earthquakes) are generally lower magnitude than the shallower earthquakes on average (center shifted lower). The shapes and spreads for both
+are about the same.
+
+```{r}
+ggplot(data=quakes_cat) +
+  geom_density(mapping=aes(x=mag, fill=how_deep),
+               alpha=0.5)
+```
+```{r}
+ggplot(data=quakes_cat) +
+  geom_boxplot(mapping=aes(x=mag, y=how_deep))
+```
 
 Once we've finished our document, we can `Knit` it (with the button on the toolbar) which:
 
@@ -72,24 +90,9 @@ Try this now!
 
 ### Your turn
 
-1. Go through and have a play with the markdown syntax to get various things **bolded** or in *italics* ***bolditalics*** (or written in `code` font). There's an R Markdown cheat sheet available under the `Help` menu.
+1. Go through and have a play with the markdown syntax to get various things bolded or in italics (or written in `code` font). There's an R Markdown cheat sheet available under the `Help` menu.
 
 2. Try altering the plot as well. Experiment with using a histogram for this, or perhaps density plots. You might use `fill=how_deep` or `col=how_deep` to show the groups. You might need to experiment with the `position` argument for the histogram (e.g. try `position="identity"`), or `alpha` argument for densities if you use `fill` to colour them.
-
-```{r}
-ggplot(quakes_cat) +
-  geom_boxplot(mapping=aes(x=how_deep, y=mag, colour=how_deep)) +
-  guides(colour = 'none')
-```
-```{r}
-ggplot(quakes_cat) +
-  geom_histogram(mapping=aes(x=mag, fill=how_deep), bins=12, position='identity',
-                 alpha=0.5)
-```
-```{r}
-ggplot(quakes_cat) +
-  geom_density(mapping=aes(x=mag, fill=how_deep), alpha=0.5)
-```
 
 3. The block of code at the top of the markdown file (with the title and output mode defined) is called a "metadata" block. This is where you can add things like the author or date, as well as control how the final document is created in finer detail. Try adding an author field here with your name.
 

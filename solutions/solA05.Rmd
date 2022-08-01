@@ -5,7 +5,7 @@ output: html_document
 
 ## Introduction
 
-The data we'll be using is the count of students of each gender, ethnic group and year level among schools in New Zealand in 2020 from:
+The data we'll be using is the count of students of each gender, ethnic group and year level among schools in New Zealand in 2021 from:
 
 https://www.educationcounts.govt.nz/statistics/school-rolls
 
@@ -14,13 +14,13 @@ We'll start by reading the data in. If you're on a slower internet connect, you 
 ```{r message=FALSE}
 library(tidyverse)
 
-roll <- read_csv("http://www.massey.ac.nz/~jcmarsha/161122/data/roll_nomacrons.csv")
+roll <- read_csv("https://www.massey.ac.nz/~jcmarsha/data/schools/roll_nomacrons.csv")
 #roll <- read_csv("roll_nomacrons.csv") # for loading from a local copy
 
 roll
 ```
 
-You should see there are 103,598 rows for 5 different variables (`School`, `Gender`, `EthnicGroup`, `Level`, `Students`)
+You should see there are 103,666 rows for 5 different variables (`School`, `Gender`, `EthnicGroup`, `Level`, `Students`)
 
 *Notice how we've added `message=FALSE` to the R code chunk above - this will stop R from putting messages in the resulting document - messages are output given by R about what it's doing that isn't actually output, such as the messages about which tidyverse version is being loaded*
 
@@ -49,7 +49,7 @@ A helper function for 'one of these options' is `%in%`. e.g. these two are equiv
 
 ```{r}
 filter(roll, Level == "Year 1" | Level == "Year 2")
-filter(roll, Level %in% c("Year 1", "Year 2", "Year 3"))
+filter(roll, Level %in% c("Year 1", "Year 2"))
 ```
 
 ### Try yourself:
@@ -69,7 +69,7 @@ filter(roll, EthnicGroup == "Asian", Level == "Year 9", Students > 100)
 3. Find all rows where the school name starts with the letter 'G' (hint: you can use School > 'G' for this, but using `str_starts` might be better!)
 
 ```{r}
-filter(roll, School > 'G', School < 'H')
+filter(roll, School > "G", School < "H") # School starts with G -> must be less than "H..."
 filter(roll, str_starts(School, "G"))
 ```
 
@@ -95,16 +95,17 @@ arrange(roll, Students)
 2. Find all rows where the ethnicity is Pacific, arranging them by decreasing number of students. (Hint: First filter down to Pacific students, then arrange)
 
 ```{r}
-pacific = filter(roll, EthnicGroup == "Pacific")
-arrange(pacific, desc(Students))
+pacific_students <- filter(roll, EthnicGroup == "Pacific")
+arrange(pacific_students, desc(Students))
 ```
 
 3. Which school has the highest number of International fee paying students at Year 13? (Hint: 'International fee paying' is an option for `EthnicGroup`)
 
 ```{r}
-internationals = filter(roll, EthnicGroup == 'International fee paying', Level == "Year 13")
+internationals <- filter(roll, EthnicGroup == "International fee paying", Level == "Year 13")
 arrange(internationals, desc(Students))
 ```
+
 
 ## The pipe
 
@@ -124,12 +125,16 @@ The data frames `internationals` and `y13internationals` here are really only te
 arrange(filter(filter(roll, EthnicGroup == "International fee paying"), Level == "Year 13"), desc(Students))
 ```
 
-But this is hard to read! Instead, we could use the pipe operator, `%>%` (insertable via `Ctrl`-`Shift`-`M`) What this does is takes what you provide on the left hand side and "pipes" it as the first argument into the function you provide on the right hand side. Any other arguments to the function then just get placed in the function as usual. So the above could be written:
+But this is hard to read! Instead, we could use the pipe operator, `|>` (insertable via `Ctrl`-`Shift`-`M`, or `Cmd`-`Shift`-`M` on a Mac).
+
+*NOTE: If you press that key combination and instead get `%>%`, then go to Tools->Global Options->Code and select "use native pipe operator, |>".*
+
+What this does is takes what you provide on the left hand side and "pipes" it as the first argument into the function you provide on the right hand side. Any other arguments to the function then just get placed in the function as usual. So the above could be written:
 
 ```{r}
-roll %>%
-  filter(EthnicGroup == "International fee paying") %>%
-  filter(Level == "Year 13") %>%
+roll |>
+  filter(EthnicGroup == "International fee paying") |>
+  filter(Level == "Year 13") |>
   arrange(desc(Students))
 ```
 
@@ -137,11 +142,13 @@ And be read "Take roll, filter so that EthnicGroup is International fee paying, 
 
 ### Try yourself
 
-Try doing a few of the above exercises utilising the pipe instead. i.e. all statements should start `roll %>%`
+Try doing a few of the above exercises utilising the pipe instead. i.e. all statements should start `roll |>`
+
+Find the row with the greatest number of Pacific students:
 
 ```{r}
-roll %>%
-  filter(EthnicGroup == "Pacific") %>%
+roll |> 
+  filter(EthnicGroup == "Pacific") |> 
   arrange(desc(Students))
 ```
 
@@ -157,26 +164,31 @@ The `select` command from `dplyr` allows you to select columns you wish to keep 
 Try the following examples to understand what they do:
 
 ```{r}
-roll %>% select(School, EthnicGroup, Students)
-roll %>% select(-School, Number=Students)
-roll %>% select(Students, Level, everything())
-roll %>% relocate(Students, Level) # An alternate way to rearrange columns
+roll |> select(School, EthnicGroup, Students)
+roll |> select(-School, Number=Students) # Drops the School column, renames Students to Number
+roll |> select(Students, Level, everything()) # Choose the Students and Level columns first, then everything else.
+roll |> relocate(Students, Level) # Pull Students and Level to the left, returning all columns.
 ```
 
 **Try yourself**
 
 1. Rearrange the `roll` data set so that `Students` and `Level` are first.
+
 ```{r}
-roll %>% select(Students, Level, everything())
+roll |> relocate(Students, Level) # Pull Students and Level to the left, returning all columns.
 ```
+
 2. Rename the `School` column to `Name` keeping all other columns.
+
 ```{r}
-roll %>% select(Name = School, Gender, EthnicGroup, Level, Students)
+roll |> select(Name = School, Gender, EthnicGroup, Level, Students)
+roll |> select(Name = School, everything())
 ```
+
 3. Try part 2 using `rename` instead of `select`.
 
 ```{r}
-roll %>% rename(Name = School, Ethnicity = EthnicGroup)
+roll |> rename(Name = School) # Rename one or more columns while making sure all columns are kept.
 ```
 
 ## Using `mutate` to add or change column
@@ -184,8 +196,21 @@ roll %>% rename(Name = School, Ethnicity = EthnicGroup)
 `mutate()` adds new variables using functions of existing columns. You can overwrite columns as well.
 
 ```{r}
-roll %>% mutate(Proportion = Students/sum(Students))
-clean = roll %>% mutate(Level = as.numeric(substring(Level, 6)))
+roll |> mutate(Proportion = Students/sum(Students))
+clean = roll |> mutate(Level = as.numeric(substring(Level, 6)))
+
+# When we arrange 'roll' by Level, Year 10 sorts after Year 1 and before Year 2. Reason is
+# it's sorting alphabetically.
+roll |> filter(Level %in% c("Year 1", "Year 2", "Year 10"),
+               str_starts(School, "G")) |>
+  arrange(Level)
+
+# Break down what is happening with clean:
+roll |> mutate(NewLevel = substring(Level, 6),
+               NewLevel2 = as.numeric(NewLevel))
+
+# Could also use the pipe for the commands inside mutate!
+roll |> mutate(Level = Level |> substring(6) |> as.numeric())
 ```
 
 ### Try yourself
@@ -193,24 +218,28 @@ clean = roll %>% mutate(Level = as.numeric(substring(Level, 6)))
 1. Using the `clean` dataset, create a new column combining ethnicgroup and gender with `paste`.
 
 ```{r}
-clean %>% mutate(EthnicGender = paste(EthnicGroup, Gender))
+clean |>
+  mutate(EthGender = paste(EthnicGroup, Gender))
 ```
 
 2. Redo part 1, so that the original two columns are removed.
 
 ```{r}
-clean %>% mutate(EthnicGender = paste(EthnicGroup, Gender)) %>%
-  select(-EthnicGroup, -Gender)
+clean |>
+  mutate(EthGender = paste(EthnicGroup, Gender)) |>
+  select(-Gender, -EthnicGroup) # remove the columns we don't need anymore.
 ```
 
 3. Create a new variable "Age" with the typical age of students in each year level (Year 1 students are typically 5 years old).
 
 ```{r}
-clean %>% mutate(Age = Level + 5)
+clean |>
+  mutate(Age = Level + 4)
 ```
 
 4. Investigate using the `unite` function from `tidyr` to do what you did in part 1 and 2.
 
 ```{r}
-clean %>% unite(EthnicGender, EthnicGroup, Gender, sep=" ")
+clean |> unite("EthGender", EthnicGroup, Gender, sep=" ")
 ```
+
