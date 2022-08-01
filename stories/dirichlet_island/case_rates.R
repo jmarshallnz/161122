@@ -1,7 +1,7 @@
 library(tidyverse)
 
-load('stories/dirichlet_island/manawatu.rda')
-load('stories/dirichlet_island/mb2013.rda')
+manawatu <- read_csv('https://www.massey.ac.nz/~jcmarsha/data/island/manawatu.csv', guess_max = 10000)
+mb2013   <- read_csv('https://www.massey.ac.nz/~jcmarsha/data/island/mb2013.csv')
 
 # Our region is that covered by Mid Central Public Health Unit, which is the intersection
 # of the Mid Central District Health Board and the Manawatu-Wanganui region:
@@ -38,7 +38,7 @@ rates <- case_rates %>% ungroup %>% mutate(Group = ifelse(UR2006_num > 0, "Urban
   mutate(Year = factor(Year))
 
 
-pdf('fig_case_rates.pdf', width=6, height=3.5)
+#pdf('fig_case_rates.pdf', width=6, height=3.5)
 ggplot(rates, aes(x=Year, y=CaseRate, fill=Group)) +
   geom_col(position='dodge') +
   theme_bw() +
@@ -48,4 +48,4 @@ ggplot(rates, aes(x=Year, y=CaseRate, fill=Group)) +
         legend.background = element_rect(fill = 'transparent')) +
   scale_fill_manual(NULL, values=c("grey30", "grey70")) +
   ylab("Cases per 100,000 population")
-dev.off()
+#dev.off()
