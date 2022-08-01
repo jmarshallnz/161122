@@ -5,7 +5,7 @@ output: html_document
 
 ## Introduction
 
-The data we'll be using is the count of students of each gender, ethnic group and year level among schools in New Zealand in 2020 from:
+The data we'll be using is the count of students of each gender, ethnic group and year level among schools in New Zealand in 2021 from:
 
 https://www.educationcounts.govt.nz/statistics/school-rolls
 
