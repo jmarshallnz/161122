@@ -41,7 +41,7 @@ class: middle, inverse
 
 We'll use the data from Horizons Regional council on river quality again today.
 
-```{r, echo=FALSE, message=FALSE}
+```{r, message=FALSE}
 hrc <- read_csv("https://www.massey.ac.nz/~jcmarsha/data/hrc/horizons_river_ecoli.csv")
 hrc
 ```
