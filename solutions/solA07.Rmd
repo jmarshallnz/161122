@@ -10,12 +10,12 @@ https://www.educationcounts.govt.nz/statistics/school-rolls
 ```{r, message=FALSE}
 library(tidyverse)
 
-roll <- read_csv("http://www.massey.ac.nz/~jcmarsha/161122/data/roll_nomacrons.csv")
-schools <- read_csv("http://www.massey.ac.nz/~jcmarsha/161122/data/schools.csv")
+roll <- read_csv("https://www.massey.ac.nz/~jcmarsha/data/schools/roll_nomacrons.csv")
+schools <- read_csv("https://www.massey.ac.nz/~jcmarsha/data/schools/schools.csv")
 #roll <- read_csv("roll_nomacrons.csv") # for loading from a local copy
 #schools <- read_csv("schools.csv") # for loading from a local copy
 
-clean <- roll %>% mutate(Level = as.numeric(substring(Level, 6)))
+clean <- roll |> mutate(Level = as.numeric(substring(Level, 6)))
 clean
 ```
 
@@ -34,8 +34,8 @@ This makes it easy to do data manipulation, and also makes it easy to plot stuff
 But, sometimes we want things in other forms. The following example tables up the total number of students by gender and ethnicity:
 
 ```{r}
-ethnicity_by_gender <- clean %>%
-  group_by(EthnicGroup, Gender) %>%
+ethnicity_by_gender <- clean |>
+  group_by(EthnicGroup, Gender) |>
   summarise(Students = sum(Students))
 ethnicity_by_gender
 ```
@@ -43,7 +43,7 @@ ethnicity_by_gender
 It would be nicer if we could make this into a table so that we had one row for each ethnic group, and separate columns for the gender totals. We can do this using `pivot_wider`. The key arguments are `names_from` which is the column that provides the new column names, and `values_from` which is the column that provides the values that should go in the new columns.
 
 ```{r}
-ethnicity_by_gender %>%
+ethnicity_by_gender |>
   pivot_wider(names_from = Gender, values_from = Students)
 ```
 
@@ -54,48 +54,71 @@ Notice we have the exact same information, it's just in a more human-readable fo
 1. Create a table with total number of male and female students in each year level. (Hint: `group_by` sex and year level then `summarise`. Once done, `pivot_wider` to a table).
 
 ```{r}
-clean %>%
-  group_by(Gender, Level) %>%
-  summarise(Students = sum(Students)) %>%
-  pivot_wider(names_from = Gender, values_from = Students)
+clean |>
+  group_by(Level, Gender) |>
+  summarise(Total = sum(Students)) |>
+  pivot_wider(names_from=Gender, values_from=Total)
 ```
 
 2. Create a table with the number of each ethnic group in each year level.
 
 ```{r}
-clean %>%
-  group_by(EthnicGroup, Level) %>%
-  summarise(Students = sum(Students)) %>%
-  pivot_wider(names_from = EthnicGroup, values_from = Students)
+clean |>
+  group_by(Level, EthnicGroup) |>
+  summarise(Total = sum(Students)) |>
+  pivot_wider(names_from=EthnicGroup, values_from=Total)
 ```
 
 3. Try adding a "Total" column to the ethnic group by gender table. You could do this before the `pivot_wider` by using a `mutate` with `sum(Students)`.
 
-One way is to just generate the table as before and then add `Male` and `Female` together.
-
 ```{r}
-ethnicity_by_gender %>%
-  pivot_wider(names_from = Gender, values_from = Students) %>%
+# option 1: Just add up the columns we need to add up!
+clean |>
+  group_by(EthnicGroup, Gender) |>
+  summarise(Total = sum(Students)) |>
+  pivot_wider(names_from = Gender, values_from = Total) |>
   mutate(Total = Female + Male)
-```
 
-The other way to do this is to compute the total using the tidy data and then pivot:
+# option 2: Total the number of students up when the data are tidy (before pivotting)
+#           and then pivot:
+clean |>
+  group_by(EthnicGroup, Gender) |>
+  summarise(Students = sum(Students)) |> # this is grouped by EthnicGroup, so total them up within Ethnicity
+  mutate(Total = sum(Students)) |> # Compute our totals within ethnicgroup
+  pivot_wider(names_from=Gender, values_from=Students) |>
+  relocate(Total, .after = last_col())
 
-```{r}
-ethnicity_by_gender %>%
-  mutate(Total = sum(Students)) %>%
-  pivot_wider(names_from = Gender, values_from = Students) %>%
-  relocate(Total, .after=Male)
+# option 3: Use a helper function! The `janitor` package is for cleaning things up:
+library(janitor)
+clean |>
+  group_by(EthnicGroup, Gender) |>
+  summarise(Students = sum(Students)) |>
+  pivot_wider(names_from=Gender, values_from=Students) |>
+  adorn_totals(where = "col") |>
+  knitr::kable() # Use the kable() function from the knitr package.
 ```
 
 4. Try creating a table with the percentage of female and male students within each ethnic group. You can add a new column with `mutate()` and get the percentage by using `Students/sum(Students)` within each ethnic group.
 
 ```{r}
-ethnicity_by_gender %>%
-  mutate(Proportion = round(Students/sum(Students)*100,1)) %>%
-  select(-Students) %>%
-  pivot_wider(names_from=Gender, values_from=Proportion)
+# option 1: do the table of counts, then convert to percentages
+clean |>
+  group_by(EthnicGroup, Gender) |>
+  summarise(Total = sum(Students)) |>
+  pivot_wider(names_from = Gender, values_from = Total) |>
+  mutate(FemalePerc = Female / (Female + Male)*100,
+         MalePerc = Male / (Female + Male)*100) |>
+  select(-Female, -Male)
+
+# option 2: Compute the percentages in tidy/long form first, then pivot:
+clean |>
+  group_by(EthnicGroup, Gender) |>
+  summarise(Total = sum(Students)) |>
+  mutate(Percentage = round(Total/sum(Total)*100, digits=1), .keep='unused') |>
+#  select(-Total) |>
+  pivot_wider(names_from=Gender, values_from=Percentage)
 ```
+
 
 ## Looking at the `schools` data
 
@@ -110,52 +133,34 @@ schools
 1. How many schools are there in the Palmerston North Territorial Authority?
 
 ```{r}
-palmy <- schools %>% filter(TerritorialAuthority == "Palmerston North")
-palmy
+schools |> filter(TerritorialAuthority == "Palmerston North")
 ```
-
-There are 44 schools in the Palmerston North territorial authority.
 
 2. Of the schools in Palmerston North, how many are co-ed, single-sex girls or single-sex boys? *You can use `count(SchoolGender)` for this - see Lecture A07.*
 
-I can do this by grouping and then summarising with `n()`:
-
 ```{r}
-palmy %>% group_by(SchoolGender) %>%
+# optoin 1: with group_by/summarise
+schools |>
+  filter(TerritorialAuthority == "Palmerston North") |>
+  group_by(SchoolGender) |>
   summarise(Count = n())
-```
-
-Or, we can use the `count()` shortcut:
-
-```{r}
-palmy %>% count(SchoolGender)
-```
-
-Which ones are they?
-
-```{r}
-palmy %>% filter(SchoolGender != "Co-Ed")
+# option 2: count()
+schools |>
+  filter(TerritorialAuthority == "Palmerston North") |>
+  count(SchoolGender)
 ```
 
 3. Produce a chart of the decile distribution of schools in Palmerston North in the Primary sector.
 
-We can use `ggplot` to do the counting:
-
 ```{r}
-palmy %>%
-  filter(Sector == "Primary") %>%
+schools |>
+  filter(TerritorialAuthority == "Palmerston North",
+         Sector == "Primary") |>
   ggplot() +
-  geom_bar(mapping=aes(x=as_factor(Decile)))
-```
-
-Or we can count ourselves:
-
-```{r}
-palmy %>%
-  filter(Sector == "Primary") %>%
-  count(Decile) %>%
-  ggplot() +
-  geom_col(mapping=aes(x=as_factor(Decile), y=n))
+  geom_bar(aes(x=Decile)) +
+  scale_x_continuous(breaks = 1:10) +
+  labs(title = "Deciles of Primary schools in Palmerston North",
+       y = "Number of Schools")
 ```
 
 ## Joining datasets with `left_join`
@@ -165,7 +170,7 @@ If we want to summarise the student information across schools, we'll need to jo
 The following will do this:
 
 ```{r}
-all_data <- clean %>% left_join(schools)
+all_data <- clean |> left_join(schools)
 all_data
 ```
 
@@ -178,39 +183,46 @@ We can now use the `all_data` dataset to answer questions using the variables fr
 1. How many students are there in each Regional Council?
 
 ```{r}
-all_data %>% group_by(RegionalCouncil) %>%
-  summarise(Total = sum(Students))
+all_data |>
+  group_by(RegionalCouncil) |>
+  summarise(Students = sum(Students))
 ```
 
 2. How many girls and boys are in schools with a religious affiliation?
 
-How to figure out what to filter on:
-
 ```{r}
-all_data %>% count(AffiliationType)
-```
-
-Now filter them down:
-
-```{r}
-all_data %>% filter(AffiliationType == "Religious Affiliation") %>%
-  group_by(Gender) %>%
-  summarise(Total = sum(Students))
+# Look in the data, notice we have an "AffiliationType" column. What is in it?
+all_data |> count(AffiliationType)
+# Yay, we need AffiliationType of "Religious Affiliation"
+all_data |>
+  filter(AffiliationType == "Religious Affiliation") |>
+  group_by(Gender) |>
+  summarise(Students = sum(Students))
 ```
 
 3. Produce a chart to compare the ethnic makeup of secondary schools in Decile 10 versus those in Decile 1, excluding international fee paying students.
 
-```{r}
-secondary_decile_1_vs10 <- all_data %>%
-  filter(Sector == "Secondary", EthnicGroup != "International fee paying") %>%
-  filter(Decile %in% c(1, 10))
+NOTE: This is a chart that is potentially problematic. One thing to be cautious of when producing charts, particularly charts that contain things like socioeconomic status or ethnicity is that your readers
+will have some biases. And it's important when we develop charts to ensure we don't compound those.
 
-secondary_decile_1_vs10 %>%
-  group_by(EthnicGroup, Decile) %>%
-  summarise(Total = sum(Students)) %>%
-  group_by(Decile) %>%
-  mutate(Proportion = Total/sum(Total)) %>%
+One way this happens is when we show differences (e.g. differences between ethnicities) but don't highlight
+the context. In this case, this chart highlights that ethnic makeup of Decile 1 and Decile 10 schools is very different in total. But what it doesn't show is that the ethnic makeup likely differs from school to school and region to region. The variation in the ethnic makeup within decile 1 and decile 10 schools has not been shown. The result is that the reader sees the difference and is potentially led to think that everything is like that total, as the within-group variation is suppressed.
+
+The following article is a good description of this problem:
+
+https://3iap.com/what-can-go-wrong-racial-equity-data-visualization-deficit-thinking-VV8acXLQQnWvvg4NLP9LTA/
+
+```{r}
+# Where do we get Secondary schools from?
+all_data |> count(Sector) # ok, Sector == "Secondary"
+
+all_data |>
+  filter(Sector == "Secondary") |>
+  filter(EthnicGroup != "International fee paying") |>
+  filter(Decile %in% c(1, 10)) |>
+  group_by(EthnicGroup, Decile) |>
+  summarise(Students = sum(Students)) |>
   ggplot() +
-  geom_col(mapping=aes(x=EthnicGroup, y=Proportion, fill=as_factor(Decile))) +
-  facet_wrap(vars(Decile))
+  geom_col(mapping = aes(x=EthnicGroup, y=Students, fill=as_factor(Decile)), position='dodge')
 ```
+
