@@ -53,7 +53,7 @@ class: middle, inverse
 Consider the following data on COVID-19 case and testing numbers from New Zealand and Australia in 2020.
 
 ```{r, message=FALSE}
-covid1 <- read_csv("http://www.massey.ac.nz/~jcmarsha/161122/data/covid_au_nz.csv")
+covid1 <- read_csv("http://www.massey.ac.nz/~jcmarsha/data/covid_au_nz.csv")
 covid1
 ```
 
@@ -64,7 +64,7 @@ covid1
 Consider the following data on COVID-19 case and testing numbers from New Zealand and Australia in 2020.
 
 ```{r, message=FALSE}
-covid2 <- read_csv("http://www.massey.ac.nz/~jcmarsha/161122/data/covid_au_nz2.csv")
+covid2 <- read_csv("http://www.massey.ac.nz/~jcmarsha/data/covid_au_nz2.csv")
 covid2
 ```
 
@@ -75,7 +75,7 @@ covid2
 Consider the following data on COVID-19 case and testing numbers from New Zealand and Australia in 2020.
 
 ```{r, message=FALSE}
-covid3 <- read_csv("http://www.massey.ac.nz/~jcmarsha/161122/data/covid_au_nz3.csv")
+covid3 <- read_csv("http://www.massey.ac.nz/~jcmarsha/data/covid_au_nz3.csv")
 covid3
 ```
 
@@ -86,8 +86,8 @@ covid3
 Consider the following data on COVID-19 case and testing numbers from New Zealand and Australia in 2020.
 
 ```{r, message=FALSE}
-covid4a <- read_csv("http://www.massey.ac.nz/~jcmarsha/161122/data/covid_au_nz4a.csv")
-covid4b <- read_csv("http://www.massey.ac.nz/~jcmarsha/161122/data/covid_au_nz4b.csv")
+covid4a <- read_csv("http://www.massey.ac.nz/~jcmarsha/data/covid_au_nz4a.csv")
+covid4b <- read_csv("http://www.massey.ac.nz/~jcmarsha/data/covid_au_nz4b.csv")
 covid4a
 covid4b
 ```
@@ -424,7 +424,7 @@ The opposite of `separate()` is `unite()`. You don't tend to need this so often,
 our data instead came like this:
 
 ```{r, message=FALSE}
-covid5 <- read_csv("http://www.massey.ac.nz/~jcmarsha/161122/data/covid_au_nz5.csv")
+covid5 <- read_csv("http://www.massey.ac.nz/~jcmarsha/data/covid_au_nz5.csv")
 covid5
 ```
 
