@@ -451,18 +451,16 @@ class: middle, inverse
 
 ## Missing values
 
-Let's look at what happens when we look at new entrants from Freyberg Community School in Palmerston North:
+Let's look at what happens when we look at year 5 students from Freyberg Community School in Palmerston North:
 
 ```{r, message=FALSE, echo=FALSE}
 roll <- read_csv("https://www.massey.ac.nz/~jcmarsha/data/schools/roll.csv")
-freyberg_new_entrants <- roll |> filter(School == "Freyberg Community School") |>
-  filter(Level %in% c("Year 1"))
 ```
 
 ```{r}
-freyberg_new_entrants <- roll |> filter(School == "Freyberg Community School",
-                                         Level %in% c("Year 1"))
-freyberg_new_entrants
+freyberg_year5 <- roll |> filter(School == "Freyberg Community School",
+                                         Level %in% c("Year 5"))
+freyberg_year5
 ```
 
 ---
@@ -472,7 +470,7 @@ freyberg_new_entrants
 Let's produce a table of these data by pivoting wider:
 
 ```{r}
-freyberg_new_entrants |>
+freyberg_year5 |>
   pivot_wider(names_from = Gender, values_from = Students)
 ```
 
@@ -480,7 +478,7 @@ Where did that `NA` come from??
 
 --
 
-The `NA` is there because there was no entry in the data for Female Other students in Year 1 at Freyberg Community School.
+The `NA` is there because there was no entry in the data for Male Other students in Year 5 at Freyberg Community School.
 
 The value should be 0 (no students) but it was **implicitly missing**.
 
@@ -488,12 +486,12 @@ The value should be 0 (no students) but it was **implicitly missing**.
 
 ## Missing values
 
-The `NA` was **implicitly missing** because there was no entry in the data for Female Other students in Year 1 at Freyberg Community School.
+The `NA` was **implicitly missing** because there was no entry in the data for Male Other students in Year 5 at Freyberg Community School.
 
 By pivoting to wide, we've now made the missingness **explicit**. In this case, we know what the value should be, so when we produce the table, we could tell it via `values_fill`:
 
 ```{r}
-freyberg_new_entrants |>
+freyberg_year5 |>
   pivot_wider(names_from = Gender, values_from = Students, values_fill = 0)
 ```
 
@@ -501,10 +499,10 @@ freyberg_new_entrants |>
 
 ## Completing data
 
-Another important tool is `complete()`. You specify which columns you want and it will find all unique combinations, filling in where it was previously missing:
+Another useful tool is `complete()`. You specify which columns you want and it will find all unique combinations, filling in where it was previously missing:
 
 ```{r}
-freyberg_new_entrants |>
+freyberg_year5 |>
   complete(School, EthnicGroup, Gender, Level)
 ```
 
@@ -515,7 +513,7 @@ freyberg_new_entrants |>
 You can specify what the implicitly missing values should be via the `fill` argument:
 
 ```{r}
-freyberg_new_entrants |>
+freyberg_year5 |>
   complete(School, EthnicGroup, Gender, Level, fill=list(Students=0))
 ```
 
