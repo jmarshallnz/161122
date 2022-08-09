@@ -1,6 +1,6 @@
 library(exams)
 
-set.seed(2021)
+set.seed(2022)
 
 Quiz4 <- list( # done
   c("BasicProb1.Rmd", "BasicProb4.Rmd", "BasicProb6.Rmd"),
