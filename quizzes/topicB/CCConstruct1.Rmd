@@ -51,7 +51,7 @@ Solution
 We could use RStudio for this with the `qcc` function with `type='c'`.
 
 ```{r gen1, echo=FALSE, message=FALSE, comment = "", results='asis', fig.show='hide'}
-src <- knitr::knit_expand(text=c('```{r gend, message=FALSE, fig.dim=c(7,5), results="hide"}',
+src <- knitr::knit_expand(text=c('```{r gend, message=FALSE, fig.dim=c(7,5), fig.cap="", results="hide"}',
                    'library(tidyverse)',
                    'library(qcc)',
                    'dat <- read_csv("{{file}}")',
