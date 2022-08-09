@@ -1,4 +1,5 @@
 ```{r data generation, echo = FALSE, results = "hide"}
+library(exams)
 SampleSize=sample(100,1)+50
 SampleMean=sample(100,1)+60
 SampleSD=sample(10,1)+20
@@ -10,6 +11,7 @@ questions[3] <- round(sqrt(SampleSD/SampleSize), 2)
 questions[4] <- round(SampleSD^2/(SampleSize), 2)
 questions[5] <- round(SampleSD/SampleSize, 2)
 solutions <- c(TRUE, FALSE, FALSE, FALSE, FALSE)
+explanations = character(5)
 
 ## permute order of solutions/questions
 Order <- sample(1:5)
