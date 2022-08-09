@@ -68,7 +68,7 @@ Alternatively, we could use the formula: $UCL = \bar{p} + 3 \sqrt{\frac{\bar{p}(
 
 ```{r name_me3, message=FALSE}
 library(tidyverse)
-dat %>% summarise(p = mean(Faults/75),
+dat |> summarise(p = mean(Faults/75),
                   ucl = p + 3 * sqrt(p*(1-p)/75))
 ```
 

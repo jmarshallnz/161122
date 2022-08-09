@@ -41,8 +41,8 @@ The seeds of a certain variety of peas can be classified into four distinct grou
 
 ```{r, echo=FALSE}
 peas <- data.frame(`Pea Type` = "P(Pea Type)", RY, RG, AY = '?', AG, check.names=FALSE)
-peas %>%
-  knitr::kable(format='html', booktabs=TRUE, align='lrrrr') %>%
+peas |>
+  knitr::kable(format='html', booktabs=TRUE, align='lrrrr') |>
   kableExtra::kable_styling(bootstrap_options = "bordered", full_width = FALSE, position = "center")
 ```
 

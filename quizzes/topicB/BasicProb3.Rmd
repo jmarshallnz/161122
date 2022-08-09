@@ -48,9 +48,9 @@ Joint problems are common in older dogs. To ease the problem, vets recommend a c
 
 ```{r, echo=FALSE}
 foods <- data.frame(` ` = c(paste("Food", c("A", "B", "C")), "Total"), `Supplement X` = c(AX, BX, CX, XT), `Supplement Y` = c(AY, BY, CY, YT), `Supplement Z` = c(AZ, BZ, CZ, ZT), Total = c(AT, BT, CT, GT), check.names=FALSE)
-foods %>%
-  knitr::kable(format='html', booktabs=TRUE, align='lrrrrr') %>%
-  kableExtra::kable_styling(bootstrap_options = "bordered", full_width = FALSE, position = "center") %>%
+foods |>
+  knitr::kable(format='html', booktabs=TRUE, align='lrrrrr') |>
+  kableExtra::kable_styling(bootstrap_options = "bordered", full_width = FALSE, position = "center") |>
   kableExtra::column_spec(column = 1, bold = TRUE)
 ```
 

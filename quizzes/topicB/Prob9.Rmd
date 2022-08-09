@@ -42,8 +42,8 @@ A panel of wine enthusiasts are given 4 labeled bottles, and 4 unlabeled glasses
 ```{r, echo=FALSE}
 probs <- data.frame(matrix(probs, nrow=1))
 names(probs) <- 0:4
-cbind(`Correct matches` = "Probability", probs) %>%
-  knitr::kable(format='html', booktabs=TRUE) %>%
+cbind(`Correct matches` = "Probability", probs) |>
+  knitr::kable(format='html', booktabs=TRUE) |>
   kableExtra::kable_styling(bootstrap_options = "bordered", full_width = FALSE, position = "center")
 ```
 

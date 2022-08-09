@@ -65,7 +65,7 @@ Alternatively, we could use the formula: $UCL = \bar{c} + 3 \sqrt{\bar{c}}$.
 
 ```{r ans2, message=FALSE}
 library(tidyverse)
-dat %>% summarise(c = mean(Faults),
+dat |> summarise(c = mean(Faults),
                   ucl = c + 3 * sqrt(c))
 ```
 

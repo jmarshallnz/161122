@@ -42,8 +42,8 @@ The colors of m\&m's chocolate candy follow the distribution given below.  Imagi
 ```{r, echo=FALSE}
 colors <- data.frame(matrix(colors, nrow=1))
 names(colors) <- c("Yellow", "Red", "Orange", "Green", "Brown")
-cbind(Colour = 'Probability', colors) %>%
-  knitr::kable(format='html', booktabs=TRUE, align='lrrrrr') %>%
+cbind(Colour = 'Probability', colors) |>
+  knitr::kable(format='html', booktabs=TRUE, align='lrrrrr') |>
   kableExtra::kable_styling(bootstrap_options = "bordered", full_width = FALSE, position = "center")
 ```
 
