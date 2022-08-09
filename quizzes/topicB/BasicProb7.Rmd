@@ -37,7 +37,7 @@ explanations <- explanations[Order]
 Question
 ========
 
-The colors of m\&m's chocolate candy follow the distribution given below.  Imagine that you are colour blind and can tell that a particular m\&m is not yellow, orange, or brown, but cannot tell if it is red or green.  What is the probability that it is green?
+The colors of m&m's chocolate candy follow the distribution given below.  Imagine that you are colour blind and can tell that a particular m&m is not yellow, orange, or brown, but cannot tell if it is red or green.  What is the probability that it is green?
 
 ```{r, echo=FALSE}
 colors <- data.frame(matrix(colors, nrow=1))

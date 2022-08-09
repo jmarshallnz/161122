@@ -31,7 +31,7 @@ explanations <- explanations[Order]
 Question
 ========
 
-The colors of m\&m's chocolate candy follow the distribution given below.  What is the proportion of brown m\&m's
+The colors of m&m's chocolate candy follow the distribution given below.  What is the proportion of brown m&m's
 
 ```{r, echo=FALSE}
 colors <- data.frame(matrix(colors, nrow=1))
