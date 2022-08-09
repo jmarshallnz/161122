@@ -1,0 +1,50 @@
+```{r data generation, echo = FALSE, results = "hide"}
+library(exams)
+## DATA GENERATION
+## QUESTION/ANSWER GENERATION
+questions <- character(5)
+questions[1] <- "As $P(B \\vert A)$ and $P(B \\vert A')$ are not equal, the events are not independent."
+questions[2] <- "As one or other of the events must happen they are dependent."
+questions[3] <- "If $P(A)>P(B)$ then $P(A \\vert B)>0$."
+questions[4] <- "As $P(A\\vert B)=0$, and $P(A \\vert B') > 0$, the events are independent."
+questions[5] <- "As both events cannot happen at the same time they are independent."
+solutions <- c(TRUE, FALSE, FALSE, FALSE, FALSE )
+
+explanations <- character(5)
+explanations[1] <- "Yes. If $P(B \\vert A)$ = $P(B \\vert A')$ then they would be independent, as the outcome of $B$ would not depend on the outcome of $A$."
+explanations[2] <- "This assumes A and B are the only options (i.e. $B = A'$), which is not necessarily the case."
+explanations[3] <- "This cannot be the case as $P(A \\vert B) = 0$."
+explanations[4] <- "If $P(B \\vert A)$ \\neq $P(B \\vert A')$ then $B$ must depend on the outcome of $A$."
+explanations[5] <- "As both events cannot happen at the same time they must be dependent. If $A$ happens then $B$ cannot happen: $P(B \\vert A) = 0$. But if $A$ doesn't happen then $B$ can happen: $P(B \\vert A') > 0$. So the probability of $B$ happening depends on whether or not $A$ happens."
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+Question
+========
+
+Events $A$ and $B$ are mutually exclusive, which means that if one happens the other cannot happen. Which one of the following statements is **true**?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+To answer this one, note that for independence we must have $P(B \vert A) = P(B \vert A')$, as the chance that $B$ happens does not depend on whether or not $A$ happens.
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

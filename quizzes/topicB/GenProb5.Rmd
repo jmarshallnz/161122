@@ -1,0 +1,53 @@
+```{r data generation, echo = FALSE, results = "hide"}
+library(exams)
+## DATA GENERATION
+## QUESTION/ANSWER GENERATION
+questions <- character(5)
+questions[1] <- "the two events must not be independent."
+questions[2] <- "the two events can be independent or dependent, depending on the probabilities of the two events."
+questions[3] <- "it is possible that $P(A) + P(B) > 1$."
+questions[4] <- "the two events must be independent."
+questions[5] <- "none of the above is correct."
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE,FALSE)
+explanations <- character(5)
+explanations[1] <- "Yes, the events must be dependent."
+explanations[2] <- "No, the events must be dependent"
+explanations[3] <- "If $P(A) + P(B) > 1$, then we must have $P(A \\mbox{ and } B) > 0$, as $P(A \\mbox{ or } B) = P(A) + P(B) - P(A \\mbox{ and } B) \\le 1$ as it is a probability."
+explanations[4] <- "No, disjoint events are dependent."
+explanations[5] <- "No, one of the above is correct."
+
+## permute order of solutions/questions
+Order <- c(sample(1:4),5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+
+Question
+========
+
+Suppose that events $A$ and $B$ are disjoint with $P(A) \ne 0$,and $P(B) \ne 0$, then
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+As $A$ and $B$ are disjoint, we know that $P(A \mbox{ and } B) = 0$, as they can't both occur. To be
+independent, we have $P(A \mbox{ and } B) = P(A) \times P(B) = 0$, so this means that one of $P(A)$ or $P(B)$ must
+be zero, but we know they're not. Thus, they must be dependent.
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

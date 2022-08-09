@@ -1,0 +1,53 @@
+```{r data generation, echo = FALSE, results = "hide"}
+library(exams)
+## DATA GENERATION
+## QUESTION/ANSWER GENERATION
+questions <- character(5)
+questions[1] <- "Events $A$ and $B$ are not independent."
+questions[2] <- "There is not enough information to judge the independence/dependence between events $A$ and $B$."
+questions[3] <- "Events $A$ and $B$ are independent."
+questions[4] <- "The conditional probability $P(B|A)>0$."
+questions[5] <- "The conditional probability $P(A|B)>0$."
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE,FALSE)
+explanations <- character(5)
+explanations[1] <- "Yes, we know they cannot be independent."
+explanations[2] <- "We know $P(A \\mbox{ and } B) \\neq P(A) \\times P(B)$."
+explanations[3] <- "We know $P(A \\mbox{ and } B) \\neq P(A) \\times P(B)$."
+explanations[4] <- "$P(B|A) = \\frac{P(B \\mbox{ and } A)}{P(A)} = 0$."
+explanations[5] <- "$P(A|B) = \\frac{P(A \\mbox{ and } B)}{P(B)} = 0$."
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]
+```
+
+Question
+========
+
+Two events, say event $A$ and event $B$, are disjoint (i.e. $A$ and
+$B$ do not have common outcomes), and neither of
+them is an impossible event (i.e.
+$P(A) \neq 0$ and $P(B) \neq 0$. Which following statement is correct?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+The two events are disjoint, so they cannot both occur so $P(A \mbox{ and } B) = 0$. If two events are independent then $P(A \mbox{ and } B) = P(A)P(B) = 0$, but in this case we know  $P(A) \neq 0$ and $P(B) \neq 0$ so that $P(A)P(B) \neq 0$.
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

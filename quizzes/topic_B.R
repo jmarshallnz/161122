@@ -6,8 +6,8 @@ Quiz4 <- list( # done
   c("BasicProb1.Rmd", "BasicProb4.Rmd", "BasicProb6.Rmd"),
   c("BasicProb5.Rmd", "BasicProb8.Rmd"),
   c("BasicProb2.Rmd", "BasicProb7.Rmd", "BasicProb3.Rmd"),
-  c("GenProb1.rnw", "GenProb2.rnw", "GenProb5.rnw", "GenProb4.rnw", "GenProb6.rnw", "GenProb7.rnw", "GenProb9.rnw"),
-  c("Prob8.rnw", "Prob3.Rmd", "Prob9.Rmd")
+  c("GenProb1.Rmd", "GenProb2.Rmd", "GenProb5.Rmd", "GenProb4.Rmd", "GenProb6.Rmd", "GenProb7.Rmd", "GenProb9.Rmd"),
+  c("Prob8.Rmd", "Prob3.Rmd", "Prob9.Rmd")
 )
 
 exams2moodle(Quiz4, edir = 'quizzes/topicB', name = "quizB1", n=40, mchoice = list(shuffle = TRUE))

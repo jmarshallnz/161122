@@ -1,5 +1,7 @@
-% created MBJ, JG says too hard for MT1, used in MT3
-<<echo=FALSE, results=hide>>=
+```{r data generation, echo = FALSE, results = "hide"}
+library(exams)
+# created MBJ, JG says too hard for MT1, used in MT3
+
 ## DATA GENERATION
 Which=sample(3,1)
 What=c("wine", "beer", "whisky")[Which]
@@ -25,40 +27,34 @@ Order <- sample(1:5)
 questions <- questions[Order]
 solutions <- solutions[Order]
 explanations <- explanations[Order]  
-@
+```
 
+Question
+========
 
-\begin{question}
-A panel of \Sexpr{What} enthusiasts are given 4 labelled bottles, and 4
-unlabelled glasses of \Sexpr{What}. They are asked to match each \Sexpr{What} with the
+A panel of `r What` enthusiasts are given 4 labelled bottles, and 4
+unlabelled glasses of `r What`. They are asked to match each `r What` with the
 correct bottle. Consider the event that the first two glasses tasted are
 correctly assigned to their bottles. Which of the following events are
 mutually exclusive with (disjoint from) this event?
 
-%%%make no adjustments past this point!!!
-\begin{answerlist}
-  \item \Sexpr{questions[1]}
-  \item \Sexpr{questions[2]}
-  \item \Sexpr{questions[3]}
-  \item \Sexpr{questions[4]}
-  \item \Sexpr{questions[5]}
-\end{answerlist}
-\end{question}
 
-%% SOLUTIONS
-\begin{solution}
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
 Mutually exclusive means two events cannot happen at the same time.
-\begin{answerlist}
-  \item \Sexpr{mchoice2text(solutions[1])}: \Sexpr{explanations[1]}
-  \item \Sexpr{mchoice2text(solutions[2])}: \Sexpr{explanations[2]}
-  \item \Sexpr{mchoice2text(solutions[3])}: \Sexpr{explanations[3]}
-  \item \Sexpr{mchoice2text(solutions[4])}: \Sexpr{explanations[4]}
-  \item \Sexpr{mchoice2text(solutions[5])}: \Sexpr{explanations[5]}
-\end{answerlist}
-\end{solution}
 
-%% META-INFORMATION
-%% \extype{schoice}
-%% \exsolution{\Sexpr{mchoice2string(solutions)}}
-%% \exname{Multiple choice}
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
 
+Meta-information
+================
+
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice

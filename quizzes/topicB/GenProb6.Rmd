@@ -1,0 +1,49 @@
+```{r data generation, echo = FALSE, results = "hide"}
+library(exams)
+## DATA GENERATION
+## QUESTION/ANSWER GENERATION
+questions <- character(5)
+questions[1] <- "$P(A \\mbox{ or } B) = P(A) + P(B) - P(A \\mbox{ and } B)$"
+questions[2] <- "$P(A \\mbox{ and } B) = P(A) + P(B)$"
+questions[3] <- "$P(A \\mbox{ and } B) = P(A)\\times P(B)$"
+questions[4] <- "$P(A \\mbox{ or } B) = P(A) + P(B)$"
+questions[5] <- "$P(A \\mbox{ or } B) = P(A) \\times P(B)$"
+
+solutions <- c(TRUE,FALSE,FALSE,FALSE,FALSE)
+explanations <- character(5)
+explanations[1] <- "Yes, this is always true."
+explanations[2] <- "This is only possible if $P(A) = 0$ and $P(B) = 0$, as $P(A \\mbox{ and } B) \\le P(A)$ and $P(A)+P(B) \\ge P(A)$."
+explanations[3] <- "This is true if and only if $A$ and $B$ are independent."
+explanations[4] <- "This is true if and only if $A$ and $B$ are independent."
+explanations[5] <- "This is rarely possible as $P(A \\mbox{ or } B) \\ge P(A)$ while $P(A) \\times P(B) \\le P(A)$."
+
+## permute order of solutions/questions
+Order <- sample(1:5)
+questions <- questions[Order]
+solutions <- solutions[Order]
+explanations <- explanations[Order]  
+```
+
+
+Question
+========
+
+For any two events $A$ and $B$, which of the following statements is **always** true?
+
+```{r questionlist, echo = FALSE, results = "asis"}
+answerlist(questions, markup = "markdown")
+```
+
+Solution
+========
+
+```{r solutionlist, echo = FALSE, results = "asis"}
+answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
+```
+
+Meta-information
+================
+
+extype: schoice
+exsolution: `r mchoice2string(solutions)`
+exname: Multiple Choice
