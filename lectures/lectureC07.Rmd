@@ -185,9 +185,9 @@ https://www.rbnz.govt.nz/statistics/series/economic-indicators/housing
 
 ```{r,echo=FALSE}
 
-exchangerate <- read_rnzb("Data/hb1-daily.xlsx", skippy=1) %>%
-  bind_rows(read_rnzb("Data/hb1-daily-1999-2017.xlsx", skippy=1)) %>%
-  bind_rows(read_rnzb("Data/hb1-daily-1973-1998.xlsx", skippy=1))
+exchangerate <- read_rnzb("data/hb1-daily.xlsx", skippy=1) %>%
+  bind_rows(read_rnzb("data/hb1-daily-1999-2017.xlsx", skippy=1)) %>%
+  bind_rows(read_rnzb("data/hb1-daily-1973-1998.xlsx", skippy=1))
 
 exchangerate %>% select(date, united_states_dollar, chinese_renminbi) %>% drop_na() %>%
   ggplot(aes(x=date, y=united_states_dollar)) +  geom_line() + 
@@ -218,7 +218,7 @@ https://www.rbnz.govt.nz/statistics/series/exchange-and-interest-rates/exchange-
 ## Run Chart - NZ population
 
 ```{r,echo=FALSE, message=FALSE}
-population <- read_rnzb("Data/hm12.xlsx") %>%
+population <- read_rnzb("data/hm12.xlsx") %>%
   rename(
     "resident_population" = "estimated_resident_population",
     "passenger_arrivals" = "passenger_travel_by_direction_3",
@@ -253,7 +253,7 @@ https://www.rbnz.govt.nz/statistics/series/economic-indicators/population-and-mi
 ## Run Chart - NZ exports
 
 ```{r,echo=FALSE, message=FALSE}
-overseastrade <- read_rnzb("Data/hm8.xlsx") %>%
+overseastrade <- read_rnzb("data/hm8.xlsx") %>%
   transmute(date = date,
             export_values = export_values_9 )
 
