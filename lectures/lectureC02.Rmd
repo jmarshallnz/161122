@@ -19,7 +19,8 @@ editor_options:
   chunk_output_type: console
 ---
 
-```{r setup, echo=FALSE}
+```{r setup, include=FALSE}
+library(tidyverse)
 library(broom)
 library(knitr)
 library(ggplot2); theme_set(theme_bw(base_size=15))

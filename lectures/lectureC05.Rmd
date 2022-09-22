@@ -20,7 +20,8 @@ editor_options:
 ---
 
 
-```{r setup, echo=FALSE}
+```{r setup, include=FALSE}
+library(tidyverse)
 library(knitr)
 library(ggplot2); theme_set(theme_bw(base_size=15))
 library(patchwork)
