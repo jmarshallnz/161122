@@ -1,52 +1,38 @@
 ---
-title: "C7 - Time Series and its Components"
-date: "`r Sys.Date()`"
+title: "Lecture C07"
+date: "Time series analysis"
 output:
-  ioslides_presentation:
-    mathjax: "https://cdn.bootcss.com/mathjax/2.7.3/MathJax.js?config=TeX-MML-AM_CHTML"
-    highlight: tango
-    widescreen: yes  
-graphics: yes
+  xaringan::moon_reader:
+    css: [default, default-fonts, "part_c.css"]
+    # mathjax: "https://cdn.bootcss.com/mathjax/2.7.3/MathJax.js?config=TeX-MML-AM_CHTML"
+    nature:
+      highlightStyle: tomorrow
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: "16:9"
+      slideNumberFormat: |
+        <div class="progress-bar-container">
+          <div class="progress-bar" style="width: calc(%current% / %total% * 100%);">
+          </div>
+        </div>
+editor_options:
+  chunk_output_type: console
 ---
 
-```{r setup, echo=FALSE}
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(janitor)
 library(knitr)
 library(ggplot2); theme_set(theme_bw(base_size=15))
 library(patchwork)
-opts_chunk$set(dev.args=list(bg='transparent'), comment="", echo=FALSE)
-#print(knit_hooks$get('output'))
-knit_hooks$set(output=function (x, options) {
-#  cat("OPTIONS=", names(options), "\n")
-  cache_path <- unlist(strsplit(options$cache.path, '/'))
-#  cat("Cache_path length=", length(cache_path), "\n")
-  out_format <- cache_path[length(cache_path)]
-  if (out_format == "html") {
-    knitr:::escape_html(x)
-    x = paste(x, collapse = "\\n")
-    sprintf("<div class=\"%s\"><pre class=\"knitr %s\">%s</pre></div>\\n", 
-        'output', tolower(options$engine), x)
-  } else {
-    paste(c("\\begin{ROutput}",
-            sub("\n$", "", x),
-            "\\end{ROutput}",
-            ""),
-          collapse="\n")
-  }
-})
-col_points <- "#7f577492"
-col_dark   <- "#5f4354"
-```
-
-```{r global-options, include=FALSE}
-knitr::opts_chunk$set( fig.width=10, fig.height=4.5,echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE)
-```
-
-```{r, echo=FALSE, message=FALSE}
-library(tidyverse)
-library(RBNZ)
-library(janitor)
-housing.M10 <- getSeries('M10')
-housing <- housing.M10$data %>% tibble() %>% clean_names()  
+library(fontawesome)
+library(visreg)
+opts_chunk$set(#dev.args=list(bg='transparent'), 
+               comment="", warning=FALSE, echo=FALSE)
+knitr::opts_knit$set(root.dir = "../")
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.dim=c(8,5), out.width="70%", fig.retina=2)
 ```
 
 ## Learning Outcomes
@@ -57,13 +43,15 @@ housing <- housing.M10$data %>% tibble() %>% clean_names()
 
 - Time Series Components
 
-    - Trend 
-    
-    - Seasonality
-    
-    - Cycle
-    
-    - Irregularity
+  - Trend 
+  
+  - Seasonality
+  
+  - Cycle
+  
+  - Irregularity
+
+---
 
 ## Recap
 
@@ -71,119 +59,279 @@ housing <- housing.M10$data %>% tibble() %>% clean_names()
 
 - Inference and diagnostics
 
-- Multivariable linear model
+- Multivariate linear model
 
 - Factors and interactions
 
 
+---
+
+class: middle, inverse
+
 # Time Series
+
+---
+
 
 ## What do we see over time?
 
-- Data obtained from observations collected sequentially over time are extremely common.
+--
 
-    - In business, we observe weekly interest rates, daily closing stock prices, monthly price indices, yearly sales figures, and so forth. 
+Data obtained from observations collected sequentially over time are extremely common.
 
-    - In meteorology, we observe daily high and low temperatures, annual precipitation and drought indices, and hourly wind speeds. 
+--
 
-    - In agriculture, we record annual figures for crop and livestock production, soil erosion, and export sales. 
+In business, we observe weekly interest rates, daily closing stock prices, monthly price indices, yearly sales figures, and so forth. 
 
-    - In the biological sciences, we observe the electrical activity of the heart at millisecond intervals. 
+--
 
-    - In ecology, we record the abundance of an animal species.
+In meteorology, we observe daily high and low temperatures, annual precipitation and drought indices, and hourly wind speeds. 
+
+--
+
+In agriculture, we record annual figures for crop and livestock production, soil erosion, and export sales. 
+
+--
+
+In the biological sciences, we observe the electrical activity of the heart at millisecond intervals. 
+
+--
+
+In ecology, we record the abundance of an animal species.
+
+---
+
 
 ## Why do we study this? 
 
-- The list of areas in which time series are studied is virtually endless. 
+--
 
-- The purpose of time series analysis is generally twofold: 
+The list of areas in which time series are studied is virtually endless. 
 
-    - to understand or model the stochastic mechanism that gives rise to an observed series and
+--
+
+The purpose of time series analysis is generally twofold: 
+
+--
+
+- to understand or model the stochastic mechanism that gives rise to an observed series and
     
-    - to predict or forecast the future values of a series based on the history of that series and, possibly, other related series or factors.
+- to predict or forecast the future values of a series based on the history of that series and, possibly, other related series or factors.
+
+--
     
-- Just like linear models - inference and prediction.
+These are generally the same goals as for linear models - inference and prediction.
 
-## Fundamental Concepts
+---
 
-- A **time series** is a series of data points indexed (or listed or graphed) in time order observed at successive equally spaced points in time. 
 
-- A **time series**  can be written as $Y_1,Y_2,\ldots,Y_T$ which is an ordered sequence of random variables.
+## Fundamental concepts
 
-- The observations are made at times $t = 1,2,\ldots,T$.
+--
 
-- A somewhat unique feature of time series and their models is that we usually cannot assume that the observations arise independently from a common population. 
+A **time series** is a series of data points indexed (or listed or graphed) in time order observed at successive equally spaced points in time. 
 
-- Studying models that incorporate dependence is the key concept in time series analysis.
+--
+
+A **time series**  can be written as $Y_1,Y_2,\ldots,Y_T$ which is an ordered sequence of random variables.
+
+--
+
+The observations are made at times $t = 1,2,\ldots,T$.
+
+--
+
+A somewhat unique feature of time series and their models is that we usually cannot assume that the observations arise independently from a common population. 
+
+--
+
+Time series models incorporate various types of dependence among samples.
+
+---
 
 ## Run Chart - Total value of NZ housing stock 
 
-- A **run chart** is a **scatter-line plot** of time series observations over time. It is the basic visualisation tool for time series data.
+A **run chart** is a simple plot of time series observations over time.
 
-```{r,echo=FALSE}
-housing %>% ggplot(aes(x=date,y=m)) + geom_point(col='blue',alpha=0.3) + geom_line() +
-  xlab('Time') + ylab('Total Value of Housing Stock') + ggtitle('Is housing market always prospering?')
+```{r,echo=FALSE, out.width = "65%", message = FALSE}
+# data downloaded from https://www.rbnz.govt.nz/statistics/series/economic-indicators/housing
+
+read_rnzb <- function(file, skippy = 0) {
+  require(readxl)
+  require(janitor)
+  read_xlsx(file, skip=5, 
+              col_names = c("Date", read_xlsx(file, n_max=0, skip=skippy) %>% names ) ) %>%
+  clean_names
+}
+
+housing <- read_rnzb("data/rbnz/hm10.xlsx")
+
+housing %>% 
+  ggplot() + aes(x=date,y=total_value_of_housing_stock) + 
+  geom_point() + geom_line() +
+  xlab('Time') + ylab('Total value of NZ housing stock') + 
+  ggtitle('Is the housing market always prospering?') +
+  scale_y_continuous(labels = scales::dollar_format(prefix="$", scale=1/1e6, suffix = "T", accuracy=.5))
 ```
+
+.small[
+https://www.rbnz.govt.nz/statistics/series/economic-indicators/housing
+]
+
+---
+
 
 ## Run Chart - NZD/USD exchange rate
 
 ```{r,echo=FALSE}
-exchangerate.B1 <- getSeries('B1')
-exchangerate <- exchangerate.B1$data %>% tibble() %>% clean_names() 
-exchangerate %>% select(date,united_states_dollar,chinese_renminbi) %>% drop_na() %>%
-  ggplot(aes(x=date,y=united_states_dollar)) +  geom_line() + 
-  xlab('Time') + ylab('NZD to USD Exchange Rate')+ ggtitle('Why IPhone is expensive in NZ?')
+
+exchangerate <- read_rnzb("data/rbnz/hb1-daily.xlsx", skippy=1) %>%
+  bind_rows(read_rnzb("data/rbnz/hb1-daily-1999-2017.xlsx", skippy=1)) %>%
+  bind_rows(read_rnzb("data/rbnz/hb1-daily-1973-1998.xlsx", skippy=1))
+
+exchangerate %>% select(date, united_states_dollar, chinese_renminbi) %>% drop_na() %>%
+  ggplot(aes(x=date, y=united_states_dollar)) +  geom_line() + 
+  xlab('Time') + ylab('NZD to USD Exchange Rate') + 
+  ggtitle('Is the value of the NZ dollar increasing over time?')
 ```
+
+.small[
+https://www.rbnz.govt.nz/statistics/series/exchange-and-interest-rates/exchange-rates-and-the-trade-weighted-index
+]
+---
+
+## Run Chart - NZD/USD exchange rate
+
+```{r,echo=FALSE}
+
+exchangerate %>% select(date, united_states_dollar) %>% drop_na() %>%
+  ggplot(aes(x=date, y=united_states_dollar)) +  geom_line() + 
+  xlab('Time') + ylab('NZD to USD Exchange Rate') + 
+  ggtitle('What if we look further back?')
+```
+
+.small[
+https://www.rbnz.govt.nz/statistics/series/exchange-and-interest-rates/exchange-rates-and-the-trade-weighted-index
+]
+---
 
 ## Run Chart - NZ population
 
-```{r,echo=FALSE}
-population.M12 <- getSeries('M12')
-population <- population.M12$data %>% tibble() %>% clean_names() 
-population %>% select(date,number ) %>% drop_na() %>%
-  ggplot(aes(x=date,y=number )) + geom_point(col='blue',alpha=0.4) + geom_line() + 
-  xlab('Time') + ylab('NZ Population')+ ggtitle('How many kiwis in our country?')
+```{r,echo=FALSE, message=FALSE}
+population <- read_rnzb("data/rbnz/hm12.xlsx") %>%
+  rename(
+    "resident_population" = "estimated_resident_population",
+    "passenger_arrivals" = "passenger_travel_by_direction_3",
+    "passenger_departures" = "passenger_travel_by_direction_4",
+    "migration_arrivals" = "estimated_migration_by_direction_5",
+    "migration_departures" = "estimated_migration_by_direction_6",
+    "migration_net" = "estimated_migration_by_direction_7",
+    "short_term_arrivals" = "estimated_short_term_travel_by_direction_8",
+    "short_term_departures" = "estimated_short_term_travel_by_direction_9"
+  )
+
+
+gp1 <- population %>% 
+  select(date, resident_population  ) %>% 
+  drop_na() %>%
+  ggplot(aes(x=date, y=resident_population)) + 
+    geom_point() + geom_line() +
+    xlab('Time') + ylab('NZ resident population') +
+    scale_y_continuous(labels = scales::unit_format(unit = "M", 
+                                                    scale = 1e-6),
+                       limits = c(3400000,5500000))
+
+gp1
+
 ```
 
-## Run Chart - NZ export
+.small[
+https://www.rbnz.govt.nz/statistics/series/economic-indicators/population-and-migration
+]
+---
 
-```{r,echo=FALSE}
-overseastrade.M8 <- getSeries('M8')
-overseastrade <- overseastrade.M8$data %>% tibble() %>% clean_names() 
-overseastrade %>% select(date,x_m) %>% drop_na() %>%
-  ggplot(aes(x=date,y=x_m)) + geom_point(col='blue',alpha=0.4) + geom_line() + 
-  xlab('Time') + ylab('Export Values (NZD million)')+ ggtitle('Goods sold by Kiwis to the world')
+## Run Chart - NZ exports
+
+```{r,echo=FALSE, message=FALSE}
+overseastrade <- read_rnzb("data/rbnz/hm8.xlsx") %>%
+  transmute(date = date,
+            export_values = export_values_9 )
+
+overseastrade %>% 
+  ggplot(aes(x=date, y=export_values)) + 
+  geom_point() + geom_line() + 
+  scale_y_continuous(labels = scales::dollar_format(prefix="$", 
+                                                    scale=1/1000, 
+                                                    suffix = "B", 
+                                                    accuracy=1)) + 
+  xlab('Time') + ylab('Export value per quarter') + ggtitle('Goods sold by kiwis to the world') 
+
 ```
+
+.small[
+https://www.rbnz.govt.nz/statistics/series/economic-indicators/overseas-trade
+]
+
+---
+
+class: middle, inverse
 
 # Components of time series
 
+---
+
 ## Components of time series
 
-- Below is an extract from "Statistics for Business and Economics" by Prem S. Mann (1995), published by John Wiley, that gives a gentle introduction to the various components of a time series. 
+--
 
-- *A time series may contain one or more of the following four components: trend, seasonal, cyclical, and irregular (unobserved or remainder).* 
+A time series may contain one or more of the following four components: 
 
-- These components, explained over the next few slides, describe how a time series behaves over time $t$.
+  - trend, 
+  - seasonal, 
+  - cyclical, and 
+  - irregular (unobserved or remainder)
 
-# Trend
+--
+
+These components, explained over the next few slides, describe how a time series behaves over time $t$.
+
+--
+
+The text book "Statistics for Business and Economics" by Prem S. Mann (1995), published by John Wiley,  gives a gentle introduction to the various components of a time series. 
+
+
+---
+
+class: middle, inverse
+
+# Trend component
+
+---
 
 ## Trend component
 
- - **Trend** is defined as the long-term movement (increase or decrease) in a time series. 
+--
+
+'Trend' is defined as the long-term movement (increase or decrease) in a time series. 
  
- - In other words, an increase or decrease in the values of a variable occurring over a
-period of several years gives a trend. 
+--
 
- - If the values of a time series do not change on average over time, then that time series has no trend.
+In other words, a trend is an increase or decrease in the values of a variable occurring over a
+period of several years gives a trend.
 
- - A trend curve shows the long-run pattern in the growth or decline in a
-time series that may represent a variable such as sales, inventories,
-revenues, profits, employment, population, housing starts, gross national
-product, consumer expenditure, investment, or interest rates, etc.
+--
 
-## Typical trend curves
+If the values of a time series do not change on average over time, then that time series has no trend.
+ 
+--
 
-```{r,echo=FALSE, fig.height=5.8}
+A trend shows the long-run pattern in the growth or decline in a time series that may represent a variable such as sales, inventories, revenues, profits, employment, population, housing starts, gross national product, consumer expenditure, investment, interest rates, etc.
+
+---
+
+## Some trends over time
+
+```{r,echo=FALSE, fig.dim=c(12, 6), out.width="90%"}
 set.seed(2020)
 T<-24
 freq <- 4
@@ -204,49 +352,35 @@ d$y6 <- -d$y1 + c * (d$t-25)^2
 m1 <- lm(y1~t,data=d)
 library(broom)
 g1 <- augment(m1,d) %>% ggplot(aes(x=t,y=y1)) +geom_line(alpha=0.5) + geom_point(alpha=0.5) +
-  geom_line(aes(y=.fitted,x=t),col='red')  + theme(axis.title.x = element_blank(),axis.title.y = element_blank())
+  geom_line(aes(y=.fitted,x=t),col='red')  + theme(axis.title.x = element_blank(),axis.title.y = element_blank()) + ggtitle("Linear increase")
 
 m2 <- lm(y2~t,data=d)
 g2 <- augment(m2,d) %>% ggplot(aes(x=t,y=y2)) +geom_line(alpha=0.5) + geom_point(alpha=0.5) +
-  geom_line(aes(y=.fitted,x=t),col='red')  + theme(axis.title.x = element_blank(),axis.title.y = element_blank())
+  geom_line(aes(y=.fitted,x=t),col='red')  + theme(axis.title.x = element_blank(),axis.title.y = element_blank())+ ggtitle("Linear decrease")
 
 
 m3 <- lm(y3~t+I(t^2),data=d)
 g3 <- augment(m3,d) %>% ggplot(aes(x=t,y=y3)) +geom_line(alpha=0.5) + geom_point(alpha=0.5) +
-  geom_line(aes(y=.fitted,x=t),col='red')  + theme(axis.title.x = element_blank(),axis.title.y = element_blank())
+  geom_line(aes(y=.fitted,x=t),col='red')  + theme(axis.title.x = element_blank(),axis.title.y = element_blank()) + ggtitle("Accelerating increase")
 
 
 m4 <- lm(y4~t+I(t^2),data=d)
 g4 <- augment(m4,d) %>% ggplot(aes(x=t,y=y4)) +geom_line(alpha=0.5) + geom_point(alpha=0.5) +
-  geom_line(aes(y=.fitted,x=t),col='red') + theme(axis.title.x = element_blank(),axis.title.y = element_blank())
+  geom_line(aes(y=.fitted,x=t),col='red') + theme(axis.title.x = element_blank(),axis.title.y = element_blank()) + ggtitle("Decelerating increase")
 
 m5 <- lm(y5~t+I(t^2),data=d)
 g5 <- augment(m5,d) %>% ggplot(aes(x=t,y=y5)) +geom_line(alpha=0.5) + geom_point(alpha=0.5) +
-  geom_line(aes(y=.fitted,x=t),col='red') + theme(axis.title.x = element_blank(),axis.title.y = element_blank())
+  geom_line(aes(y=.fitted,x=t),col='red') + theme(axis.title.x = element_blank(),axis.title.y = element_blank()) + ggtitle("Accelerating decrease")
 
 m6 <- lm(y6~t+I(t^2),data=d)
 g6 <- augment(m6,d) %>% ggplot(aes(x=t,y=y6)) +geom_line(alpha=0.5) + geom_point(alpha=0.5) +
-  geom_line(aes(y=.fitted,x=t),col='red') + theme(axis.title.x = element_blank(),axis.title.y = element_blank())
+  geom_line(aes(y=.fitted,x=t),col='red') + theme(axis.title.x = element_blank(),axis.title.y = element_blank()) + ggtitle("Decelerating decrease")
 
-(g1 + g2)/(g3 + g4)/(g5 + g6)
+(g1 + g3 + g4)/(g2 + g5 + g6)
 
 ```
 
-## Typical trend curves{.smaller}
-
-  - Top-left figure shows the linear trend for a time series that grows
-continuously,
-
-  - Top-right figure shows the linear trend for a time series that declines
-continuously,
-
-  - Middle-left figure shows the (nonlinear) trend curve for a time series for which the increase in the value of the variable occurs at an increasing rate for each successive period,
-
-  - Middle-right figure gives the (nonlinear) trend curve for a time series that grows at an increasing rate in the beginning but eventually reaches a maximum point where there is very little increase in the value of the variable.
-  
-  - Bottom-left figure shows the nonlinear trend pattern for a time series that has a slow decline in the initial periods but very rapid decline in later periods.
-
-  - Bottom-right figure exhibits the nonlinear trend pattern for a time series that has a rapid decline in the initial periods but a very slow decline in later periods.
+---
 
 ## Trend
 
@@ -258,216 +392,448 @@ The long-term movement in a time series may occur due to many factors such as
   
   -   demographic changes (changes in population and structure of population), 
 
-  -   social and cultural changes.
+  -   social and cultural changes
+  
+  -   etc.
+
+---
 
 ## Trend
 
-- The trend analysis of historical data helps evaluate past policies. 
+--
 
-- For example, the trend patterns of variables such as sales, revenues, and profits of a company for the past decade can tell us how successful the managerial policies of this period have been.
+Analysis of trends in historical data helps evaluate past policies.
 
-- Knowing the trend of a time series is useful for making decisions about the
-future values of business and economic activities. 
+--
 
-- An important question is how to extract the trend component from a time series.
+For example, the trend patterns of variables such as sales, revenues, and profits of a company for the past decade can tell us how successful the managerial policies of this period have been.
 
-    - We can use `lm()` i.e. linear models to extract various trends from time series.
+--
+
+Knowing the trend of a time series is useful for making decisions about the future values of business and economic activities. 
+
+--
+
+An important question is how to extract the trend component from a time series.
+
+- We can fit linear models with `lm()` to extract various trends from time series.
     
-    - We can also use `geom_smooth()` to extract a smoothed trend.
+- We can fit more flexible 'smoother' lines using `geom_smooth()`.
 
-## Linear trend in NZ population
+---
 
-```{r,echo=FALSE}
-population %>% select(date,number ) %>% drop_na() %>%
-  ggplot(aes(x=date,y=number )) + geom_point(col='red',alpha=0.4) + geom_line() + geom_smooth(method='lm') +
-  xlab('Time') + ylab('NZ Population')+ ggtitle('How many kiwis in our country?')
+### NZ resident population over time
+
+```{r,echo=FALSE, fig.dim = c(10,5), out.width="100%",  message=FALSE}
+gp1
+```
+
+---
+
+### NZ resident population over time with 'smoother' line
+
+```{r,echo=FALSE, fig.dim = c(10,5), out.width="100%", message=FALSE}
+gp1 + geom_smooth(col=7) 
+  
+  
+```
+
+---
+
+### NZ resident population over time with 'smoother' line and linear regression
+
+```{r,echo=FALSE, fig.dim = c(10,5), out.width="100%", message=FALSE}
+gp1 + geom_smooth(col=7) +
+    geom_smooth(method='lm', col=2) + 
+    xlab('Time') + ylab('NZ resident population')
+```
+
+---
+
+### Total value of NZ housing stock
+
+```{r,echo=FALSE, fig.dim = c(10,5), out.width="100%", message=FALSE}
+gh1 <- housing %>% 
+  ggplot() + 
+  aes(x=date,y=total_value_of_housing_stock) + 
+  geom_hline(yintercept=0) + 
+  geom_point() + geom_line() +
+  xlab('Time') + ylab('Total calue of NZ housing stock') +
+  scale_y_continuous(labels = scales::dollar_format(prefix="$", scale=1/1e6, suffix = "T",accuracy=.5),
+                     limits = c(-120000,1800000) )
+
+gh1
 ```
 
 
-## Smoothed trend in NZ population
+---
 
-```{r,echo=FALSE}
-population %>% select(date,number ) %>% drop_na() %>%
-  ggplot(aes(x=date,y=number )) + geom_point(col='red',alpha=0.4) + geom_line() + geom_smooth() +
-  xlab('Time') + ylab('NZ Population')+ ggtitle('How many kiwis in our country?')
+### Total value of NZ housing stock with smoother
+
+```{r,echo=FALSE, fig.dim = c(10,5), out.width="100%", message=FALSE}
+gh2 <- gh1 + 
+  geom_smooth(col=7) +
+  annotate(geom="text", x = housing$date[40], y = 1.5e5, label="Smoother", col=7)
+  
+gh2
 ```
 
+---
 
-## Linear trend in total value of NZ housing stock
+### Total value of NZ housing stock with smoother and linear trend
 
-```{r,echo=FALSE}
-housing %>% ggplot(aes(x=date,y=m)) + geom_point(col='blue',alpha=0.3) + geom_line() + geom_smooth(method='lm')+
-  xlab('Time') + ylab('Total Value of Housing Stock') + ggtitle('Is housing market always prospering?')
+```{r,echo=FALSE, fig.dim = c(10,5), out.width="100%", message=FALSE}
+
+gh3 <- gh2 + 
+  geom_smooth(method='lm', formula = y ~ x, col=2) + 
+  annotate(geom="text", x = housing$date[15], y = -60000, label="Linear", col=2) 
+gh3 
+
 ```
+  
 
-## Quadratic or Smoothed?
+---
 
-```{r,echo=FALSE}
-library(broom)
-housing.ts <- housing %>% mutate(time=1:n())
-hpi.qm <- lm(m~time+I(time^2), data=housing.ts)
-augment(hpi.qm,housing.ts) %>% ggplot(aes(x=date,y=m)) + geom_point(col='red',alpha=0.2) + geom_line() +
-  geom_smooth(alpha=0.2) + geom_line(aes(y=.fitted),col='green')+
-  xlab('Time') + ylab('Total Value of Housing Stock') + ggtitle('Is housing market always prospering?')
+### Total value of NZ housing stock with smoother and linear trend and quadratic trend
+
+```{r,echo=FALSE, fig.dim = c(10,5), out.width="100%", message=FALSE}
+
+gh3 + geom_smooth(method='lm', formula = y ~ x + I(x^2), col=4) +
+  annotate(geom="text", x = housing$date[8], y = 270000, label="Quadratic", col=4)
+
 ```
+  
+  
+---
 
-# Seasonality
+class: middle, inverse
+
+# Seasonal component
+
+---
 
 ## Seasonal component 
 
-- Seasonal variations in a time series are defined as the movement that occurs in a time series periodically within a fixed time period. 
+--
 
-- Many business activities, such as production and sales, exhibit seasonal patterns over different time periods (e.g. months or quarters) of a year. 
+Seasonal variations in a time series are defined as the movement that occurs in a time series periodically within a fixed time period. 
 
-- These seasonal variations may occur due to weather, holidays, or institutional factors. For example:
+--
 
-    - Sales of ski equipment are very high during winter and almost nonexistent during other seasons.
-    - Sales at department stores around Christmas holidays are much higher than during other times of the year.
-    - Power bills are expected to be higher during winter than in other seasons.
+Many business activities, such as production and sales, exhibit seasonal patterns over different time periods (e.g. months or quarters) of a year. 
 
-## Seasonality 
+--
 
-- Such fluctuations are repeated every year, although not in an identical fashion. 
+These seasonal variations may occur due to weather, holidays, or institutional factors. For example:
 
-- Nevertheless, with good data and appropriate statistical analysis, many seasonal variations in business and economic activities can be predicted.
+  - Sales of ski equipment are very high during winter and almost nonexistent during other seasons.
+  - Sales at department stores around Christmas holidays are much higher than during other times of the year.
+  - Power bills are expected to be higher during winter than in other seasons.
 
-- An important question is how to extract the seasonal component from a time series.
+---
 
-    - We can use linear models with factors to extract seasonalities from time series
+## Seasonal component 
+
+--
+
+Such fluctuations occur every year, although they can vary in magnitude. 
+
+--
+
+Nevertheless, with good data and appropriate statistical analysis, many seasonal variations in business and economic activities can be predicted.
+
+--
+
+An important question is how to extract the seasonal component from a time series.
+
+  - We can use linear models with factors to extract seasonality from time series
     
-    - Need to address trend together!
+  - Need to address trends and seasonality together!
     
-    - The variability of seasonalities may increase over time. Take a log to fix it.
+  - The variability of seasonality may increase over time. This can be modelled by taking the log of $y$.
     
-## Seasonalities in NZ export between 1990 to 2000
+---
 
-```{r,echo=FALSE}
+## Seasonality in NZ exports between 1990 to 2000
+
+```{r,echo=FALSE, fig.dim = c(10,5), out.width="100%", message=FALSE}
 library(lubridate)
-overseastrade.ts <- overseastrade %>% select(date,x_m) %>% drop_na() %>%  mutate(time=1:n()) %>% mutate(quarter=factor(quarter(date))) %>%  filter(date < ymd('2000-01-01'))
-rts.lm.q <- lm(x_m~time+quarter,data=overseastrade.ts)
-augment(rts.lm.q,overseastrade.ts) %>% ggplot(aes(x=date,y=x_m)) + geom_point(col='red',alpha=0.3) + geom_line() + geom_line(aes(y=.fitted),col='blue')+
-  xlab('Time') + ylab('Export Values (NZD million)')+ ggtitle('Goods sold by Kiwis to the world')
+overseastrade.ts <- overseastrade %>% 
+  drop_na() %>% 
+  mutate(time=1:n()) %>% 
+  mutate(quarter=factor(quarter(date))) %>% 
+  mutate(Quarter = recode_factor(quarter, '1'='Mar','2'='Jun','3'='Sep','4'='Dec')) %>%
+  dplyr::filter(date < ymd('2000-01-01'))
+
+rts.lm.q <- lm(export_values ~ time + quarter, data=overseastrade.ts)
+gexp1 <- augment(rts.lm.q, overseastrade.ts) %>% 
+  ggplot(aes(x=date, y=export_values)) + 
+  geom_line(lwd=1, alpha=.5) + 
+  geom_point(size =3, aes(col = Quarter)) + 
+  scale_y_continuous(labels = scales::dollar_format(prefix="$", 
+                                                    scale=1/1000, 
+                                                    suffix = "B", 
+                                                    accuracy=1),
+                     limits = c(3.4e3,6.2e3)) + 
+  xlab('Time') + ylab('Export value per quarter') + ggtitle('Goods sold by kiwis to the world') 
+
+gexp1
 ```
     
+---
+
+## Seasonality in NZ exports between 1990 to 2000
+
+```{r,echo=FALSE, fig.dim = c(10,5), out.width="100%", message=FALSE}
+gexp1 + geom_line(aes(y=.fitted),col=1, lwd=1.2)+
+  annotate(geom="text", x = housing$date[32], y = 6000, label="Model with trend and quarter", col=1)
+
+```
+
+---
+
+class: middle, inverse
+
 # Irregularity
+
+---
 
 ## Irregular component
 
-- Irregular fluctuations are random or chance variations in a time series. 
+--
 
-- They are the residuals after trend, *cyclical*, and seasonal components have been removed from the time series data.
+Irregular fluctuations are random or chance variations in a time series. 
 
-- Such movements may occur due to unpredictable events such as strikes, wars, earthquakes, hurricanes, floods, etc. 
+--
 
-- These events can significantly affect the production of goods and services and other economic and business activities.
+They are the residuals after trend, *cyclical*, and seasonal components have been removed from the time series data.
 
-- For example, floods usually cause a reduction in agricultural and industrial production. 
+--
+
+Such movements may occur due to unpredictable events such as strikes, wars, earthquakes, hurricanes, floods, etc. 
+
+--
+
+These events can significantly affect the production of goods and services and other economic and business activities.
+
+--
+
+For example, floods usually cause a reduction in agricultural and industrial production. 
+
+---
 
 ## Irregularity or residuals?
 
-- Due to the nature of irregular variations, they are impossible to predict.
+--
 
-- They are similar to residuals after removing trend and seasonality from the time series regression!
+Due to the nature of irregular variations, they are impossible to predict.
 
-- However, we have observed that the residuals in time series regression look peculiar. 
+--
 
-- They are not independent! 
+They are similar to residuals after removing trend and seasonality from the time series regression!
 
-- Something evil is hidden in the irregular component.
+--
+
+However, we have observed that the residuals in time series regression look peculiar. 
+
+--
+
+They are not independent! 
+
+--
+
+Something evil lurks in the irregular component.
+
+---
 
 ## Residuals of NZ housing
 
-```{r,echo=FALSE}
-augment(hpi.qm,housing.ts) %>% ggplot(aes(x=date,y=m)) + geom_point(col='red',alpha=0.2) + geom_line() +
-  geom_smooth(alpha=0.2) + geom_hline(yintercept=0) + geom_line(aes(y=.resid),col='green') +
-  xlab('Time') + ylab('Total Value of Housing Stock') + ggtitle('Is housing market always prospering?')
+```{r,echo=FALSE,fig.dim = c(10,5), out.width="100%", message=FALSE}
+housing.ts <- housing %>% mutate(time=1:n())
+hpi.qm <- lm(total_value_of_housing_stock ~ time+I(time^2), data=housing.ts)
+
+gh1 +
+  geom_smooth(data = augment(hpi.qm, housing.ts),
+              method='lm', formula = y ~ x + I(x^2), col=4) +
+  # geom_smooth(alpha=0.2) + 
+  geom_hline(yintercept=0) + 
+  geom_point(data = augment(hpi.qm, housing.ts),
+            aes(y=.resid), col=6, size=1.2) +
+  geom_line(data = augment(hpi.qm, housing.ts),
+            aes(y=.resid), col=6, lwd=1) +
+  annotate(geom="text", x = housing$date[7], y = 270000, label="Quadratic fit", col=4) +
+  annotate(geom="text", x = housing$date[70], y = 220000, label="Residuals", col=6)
+
 ```
 
+
+---
+
+class: middle, inverse
 
 # Cycle
 
+---
+
+
 ## Cyclical component
 
-- Usually a time series exhibits fluctuations around the trend line. 
+--
 
-- That is, for some periods the actual time series curve is above the trend line and for other periods it is below the trend line. 
+Usually a time series exhibits fluctuations around the trend line. 
 
-- The non-periodic fluctuations in time series data around the trend line are referred to as the cyclical component or cyclical fluctuations. 
+--
 
-- Note that the cyclical fluctuations do not last for any specific amount of time. They may last from more than one year to a period of 20 years.
+That is, for some periods the actual time series curve is above the trend line and for other periods it is below the trend line. 
 
-- Recession, depression, recovery and boom cause variations in time series
+--
+
+The non-periodic fluctuations in time series data around the trend line are referred to as the cyclical component or cyclical fluctuations. 
+
+--
+
+Note that the cyclical fluctuations do not last for any specific amount of time. They may last from more than one year to a period of 20 years.
+
+--
+
+Recession, depression, recovery and boom cause variations in time series
 data, and these variations make up business cycles. 
 
-- These business cycles fluctuations are called the cyclical component or fluctuations.
+--
 
-## Cycle versus Seasonality
+These business cycles fluctuations are called the cyclical component or fluctuations.
 
-- A seasonal pattern exists when a series is influenced by seasonal factors
+---
+
+## Cyclicity versus seasonality
+
+--
+
+A seasonal pattern exists when a series is influenced by seasonal factors
 (e.g., the quarter of the year, the month, or day of the week). 
 
-    - Seasonality is always of a fixed and known period no larger than one year.
+  - Seasonality is always of a fixed and known period no larger than one year.
 
-- A cyclic pattern exists when data exhibit rises and falls that are not of fixed period. 
+--
 
-    - The duration of these fluctuations is usually of at least 2 years.
+A cyclic pattern exists when data exhibit rises and falls that are not of fixed period. 
 
-- The two are very different: 
+  - The duration of these fluctuations is usually of at least 2 years.
 
-    - If the fluctuations are not of fixed period then they are cyclic; 
+--
+
+The two are very different: 
+
+  - If the fluctuations are not of fixed period then they are cyclic; 
     
-    - if the period is unchanging and associated with some aspect of the calendar, then the pattern is seasonal.
+  - if the period is unchanging and associated with some aspect of the calendar, then the pattern is seasonal.
+
+---
 
 ## What can I do with the cyclic component?
 
-- This can be the component that has the most to offer in terms of understanding where the series may be headed in the short/medium term.
+--
 
-- The length and amplitude of previous cycles may forecast the next turning point in the current cycle.
+This can be the component that has the most to offer in terms of understanding where the series may be headed in the short/medium term.
 
-- "**20/20 hindsight**" can often explain cyclic movements around the trend line in terms of past events or other variables
+--
 
-- By looking at those variables or events in the present, we may be able to predict the likely future direction of the cycle movement.
+The length and amplitude of previous cycles may forecast the next turning point in the current cycle.
 
-- **The Theory of Mean Reversion.**
+--
 
-## Business Cycles
+"**20/20 hindsight**" can often explain cyclic movements around the trend line in terms of past events or other variables
 
-- There are a variety of economic indicators, such as interest rates, unemployment rates, migration rates, etc.
+--
 
-- It is possible that some of these, or an index summarising them, may be useful in predicting the cycle factor in a time series.
+By looking at those variables or events in the present, we may be able to predict the likely future direction of the cycle movement.
 
-- This could be done in regression analysis with the cycle factor (an estimate of the position in the cycle) as a dependent variable. 
+--
 
-- Forecasting would involve predicting the rest of the cycle (not sure we're making progress here ...) using the index as the independent variable in a regression model.
+**The Theory of Mean Reversion.**
 
-- In this course, we de-emphasize the cyclical component as we may lump it together with the residuals.
+---
+
+## Business cycles
+
+--
+
+There are a variety of economic indicators, such as interest rates, unemployment rates, migration rates, etc.
+
+--
+
+It is possible that some of these, or an index summarising them, may be useful in predicting the cycle factor in a time series.
+
+--
+
+This could be done in regression analysis with the cycle factor (an estimate of the position in the cycle) as a dependent variable. 
+
+--
+
+Forecasting would involve predicting the rest of the cycle (not sure we're making progress here ...) using the index as the independent variable in a regression model.
+
+--
+
+In this course, we won't emphasize the cyclical component as we may lump it together with the residuals.
+
+---
 
 ## Cycle of NZ housing?
 
-```{r,echo=FALSE}
-augment(hpi.qm,housing.ts) %>% ggplot(aes(x=date,y=m)) + geom_point(col='red',alpha=0.2) + geom_line() +
-  geom_smooth(alpha=0.2) + geom_hline(yintercept=0) + geom_line(aes(y=.resid),col='green') +
-  xlab('Time') + ylab('Total Value of Housing Stock') + ggtitle('Is housing market always prospering?')
+```{r,echo=FALSE, fig.dim = c(10,5), out.width="100%", message=FALSE}
+housing.ts <- housing %>% mutate(time=1:n())
+hpi.qm <- lm(total_value_of_housing_stock ~ time+I(time^2), data=housing.ts)
+
+gh1 +
+  geom_smooth(data = augment(hpi.qm, housing.ts),
+              method='lm', formula = y ~ x + I(x^2), col=4) +
+  # geom_smooth(alpha=0.2) + 
+  geom_hline(yintercept=0) + 
+  geom_point(data = augment(hpi.qm, housing.ts),
+            aes(y=.resid), col=6, size=1.2) +
+  geom_line(data = augment(hpi.qm, housing.ts),
+            aes(y=.resid), col=6, lwd=1) +
+  annotate(geom="text", x = housing$date[7], y = 270000, label="Quadratic fit", col=4) +
+  annotate(geom="text", x = housing$date[70], y = 220000, label="Residuals", col=6) +
+  xlab('Time') + ylab('Total Value of Housing Stock') 
 ```
+
+
+
+---
 
 ## Assemble or decompose? 
 
-- The components can be integrated via addition:
+--
+
+The components can be integrated via addition:     
 $Y_t=\mbox{Trend}_t+\mbox{Cycle}_t+\mbox{Seasonality}_t+\mbox{Irregularity}_t$
 
-- The components can also be integrated via multiplication:
+--
+
+The components can also be integrated via multiplication:     
 $Y_t=\mbox{Trend}_t\times\mbox{Cycle}_t\times\mbox{Seasonality}_t\times\mbox{Irregularity}_t$
 
-- The above two are equivalent by calling a log transformation
+--
 
-- We merely have $Y_t$, not any one from components. 
+The above two are equivalent by log-transforming $y$.
 
-- Linear models is one possible choice to do **time series decomposition**. 
+--
 
-- More will be covered in future statistics papers. 
+Linear models are just one way to do time series decomposition. 
+
+--
+
+More will be covered in future statistics papers. 
+
+---
 
 ## Summary
 
-- Time series and its visualisation
+- Time series models and visualisation
 
-- Four components in time series
+- Four components in time series:
+  - trend
+  - seasonality
+  - cyclicity
+  - irregularity

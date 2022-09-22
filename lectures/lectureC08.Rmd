@@ -1,53 +1,59 @@
 ---
-title: "C8 - Autoregression and Autocorrelation"
-date: "`r Sys.Date()`"
+title: "Lecture C08"
+subtitle: "Autoregression and Autocorrelation"
 output:
-  ioslides_presentation:
-    mathjax: "https://cdn.bootcss.com/mathjax/2.7.3/MathJax.js?config=TeX-MML-AM_CHTML"
-    highlight: tango
-    widescreen: yes  
-graphics: yes
+  xaringan::moon_reader:
+    css: [default, default-fonts, "part_c.css"]
+    # mathjax: "https://cdn.bootcss.com/mathjax/2.7.3/MathJax.js?config=TeX-MML-AM_CHTML"
+    nature:
+      highlightStyle: tomorrow
+      highlightLines: true
+      countIncrementalSlides: false
+      ratio: "16:9"
+      slideNumberFormat: |
+        <div class="progress-bar-container">
+          <div class="progress-bar" style="width: calc(%current% / %total% * 100%);">
+          </div>
+        </div>
+editor_options:
+  chunk_output_type: console
 ---
 
-```{r setup, echo=FALSE}
+
+```{r setup, echo=FALSE, message=FALSE}
 library(knitr)
+library(forecast)
+library(TSA)
+library(tsibble)
 library(ggplot2); theme_set(theme_bw(base_size=15))
-library(patchwork)
-library(latex2exp)
-opts_chunk$set(dev.args=list(bg='transparent'), comment="", echo=FALSE)
-#print(knit_hooks$get('output'))
-knit_hooks$set(output=function (x, options) {
-#  cat("OPTIONS=", names(options), "\n")
-  cache_path <- unlist(strsplit(options$cache.path, '/'))
-#  cat("Cache_path length=", length(cache_path), "\n")
-  out_format <- cache_path[length(cache_path)]
-  if (out_format == "html") {
-    knitr:::escape_html(x)
-    x = paste(x, collapse = "\\n")
-    sprintf("<div class=\"%s\"><pre class=\"knitr %s\">%s</pre></div>\\n", 
-        'output', tolower(options$engine), x)
-  } else {
-    paste(c("\\begin{ROutput}",
-            sub("\n$", "", x),
-            "\\end{ROutput}",
-            ""),
-          collapse="\n")
-  }
-})
-col_points <- "#7f577492"
-col_dark   <- "#5f4354"
-```
-
-```{r global-options, include=FALSE}
-knitr::opts_chunk$set( fig.width=10, fig.height=4.5,echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE)
-```
-
-```{r, echo=FALSE, message=FALSE}
+library(visreg)
 library(tidyverse)
 library(RBNZ)
 library(janitor)
-housing.M10 <- getSeries('M10')
-housing <- housing.M10$data %>% tibble() %>% clean_names()  
+library(patchwork)
+library(latex2exp)
+library(broom)
+opts_chunk$set(#dev.args=list(bg='transparent'), 
+               comment="", warning=FALSE, echo=FALSE)
+knitr::opts_knit$set(root.dir = "../")
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.dim=c(8,5), out.width="80%", fig.retina=2, echo=TRUE, eval=TRUE, warning=FALSE, message=FALSE)
+```
+
+```{r, echo=FALSE, message=FALSE}
+
+# data downloaded from https://www.rbnz.govt.nz/statistics/series/economic-indicators/housing
+
+read_rnzb <- function(file, skippy = 0) {
+  require(readxl)
+  require(janitor)
+  read_xlsx(file, skip=5, 
+              col_names = c("Date", read_xlsx(file, n_max=0, skip=skippy) %>% names ) ) %>%
+  clean_names
+}
+
+housing <- read_rnzb("data/rbnz/hm10.xlsx")
+
 ```
 
 
@@ -59,523 +65,1453 @@ housing <- housing.M10$data %>% tibble() %>% clean_names()
 
 - Autocorrelation
 
+---
+
 ## Recap
 
 - Time Series
 
 - Trend, Cycle, Seasonality, Irregularity
 
-# Time Series Residuals 
+---
 
-## Time series residuals diagnostics 
+class: middle, inverse
+
+# Residuals of time series 
+
+---
+
+## NZ housing time series
 
 ```{r,echo=FALSE}
-library(broom)
-housing.ts <- housing %>% mutate(time=1:n())
-tvhm.qm <- lm(m~time+I(time^2), data=housing.ts)
-augment(tvhm.qm,housing.ts) %>% ggplot(aes(x=date,y=m)) + geom_point(col='red',alpha=0.2) + geom_line() +geom_line(aes(y=.fitted),col='blue',alpha=0.5) +  geom_hline(yintercept=0) + geom_line(aes(y=.resid),col='green') +
-  xlab('Time') + ylab('Total Value of Housing Stock') + ggtitle('Is housing market always prospering?')
+
+gh1 <- housing %>% 
+  ggplot() + 
+  aes(x=date, y=total_value_of_housing_stock) + 
+  geom_hline(yintercept=0) + 
+  geom_point() + geom_line() +
+  xlab('Time') + ylab('Total value of NZ housing stock') +
+  scale_y_continuous(labels = 
+   scales::dollar_format(prefix="$", scale=1e-6, suffix = "T",accuracy=.5),
+   limits = c(-120000,1800000) 
+   )
+
+gh1
 ```
 
-## Time series residuals diagnostics 
+.small[
+https://www.rbnz.govt.nz/statistics/series/economic-indicators/housing
+]
+
+---
+
+## Fitting a quadratic model
+
+Here's a quadratic ('second-order polynomial') model. 
+
+$$y_t = \alpha + \beta_1 t + \beta_2 t^2 + \varepsilon_t$$
+where
+
+$\ \ \ \ \ \ y_t$ is the total value of NZ housing stock at time $t=1,2,\ldots,T$ ,    
+$\ \ \ \ \ \ \alpha$ is the intercept,    
+$\ \ \ \ \ \ \beta_1$ is the linear trend through time,    
+$\ \ \ \ \ \ \beta_2$ is the quadratic (curvy) trend through time, and     
+$\ \ \ \ \ \ \varepsilon_t$ are the residuals. 
+
+
+--
+
+In `R`, polynomial models are best fit with the `poly(x,2)` syntax. 
+
+```{r,echo=TRUE}
+housing <- housing %>% mutate( time = 1:n() )
+mod_h_q <- lm(total_value_of_housing_stock ~ poly(time,2), data=housing)
+
+```
+
+---
+
+## Quadratic model of NZ housing time series
+
+```{r echo=FALSE}
+aug_h_q <- augment(mod_h_q, housing)
+
+gh1 +
+  geom_smooth(data = aug_h_q,
+              method='lm', formula = y ~ poly(x,2), col=4) +
+  geom_hline(yintercept=0) + 
+  annotate(geom="text", x = housing$date[7], y = 270000, label="Quadratic fit", col=4) 
+```
+
+
+---
+
+## Quadratic model of NZ housing time series with residuals
+
+```{r echo=FALSE}
+
+
+gh1 +
+  geom_smooth(data = aug_h_q,
+              method='lm', formula = y ~ poly(x,2), col=4) +
+  geom_hline(yintercept=0) + 
+  annotate(geom="text", x = housing$date[7], y = 270000, label="Quadratic fit", col=4) +
+  geom_segment(data = aug_h_q,
+               aes(x=date,
+                   xend=date,
+                   y=total_value_of_housing_stock,
+                   yend=.fitted),
+               col=6) +
+  annotate(geom="text", x = housing$date[63], y = 230000, label="Residuals", col=6) + 
+  annotate('curve', curvature = 0.2, col = 6,
+           x=housing$date[69], xend = housing$date[69], 
+           y=2.5e5, yend = 5.2e5, 
+           arrow=arrow(angle=20, type='closed', length=unit(0.1, 'inches'))) 
+```
+
+---
+
+
+## Quadratic model of NZ housing time series with residuals
+
+```{r echo=FALSE}
+
+gh1 +
+  geom_smooth(data = aug_h_q,
+              method='lm', formula = y ~ poly(x,2), col=4) +
+  geom_hline(yintercept=0, col=4, lwd=1.2) + 
+  geom_point(data = aug_h_q,
+            aes(y=.resid), col=6, size=1.2) +
+  geom_line(data = aug_h_q,
+            aes(y=.resid), col=6, lwd=.9) +
+  geom_segment(data = aug_h_q,
+               aes(x=date,
+                   xend=date,
+                   y=0,
+                   yend=.resid),
+               col=6) +
+  geom_segment(data = aug_h_q,
+               aes(x=date,
+                   xend=date,
+                   y=total_value_of_housing_stock,
+                   yend=.fitted),
+               col=6) +
+  annotate(geom="text", x = housing$date[7], y = 270000, label="Quadratic fit", col=4) +
+  annotate(geom="text", x = housing$date[63], y = 230000, label="Residuals", col=6) + 
+  annotate('curve', curvature = 0.2, col = 6,
+           x=housing$date[69], xend = housing$date[69], 
+           y=2.5e5, yend = 5.2e5, 
+           arrow=arrow(angle=20, type='closed', length=unit(0.1, 'inches'))) + 
+  annotate('curve', curvature = 0.2, col = 6,
+           x=housing$date[56]+4e6, xend = housing$date[56], 
+           y=2e5, yend = 5e4, 
+           arrow=arrow(angle=20, type='closed', length=unit(0.1, 'inches'))) 
+```
+
+---
+
+## NZ housing time series with residuals
+
+```{r echo=FALSE}
+
+gh1 +
+  geom_smooth(data = aug_h_q,
+              method='lm', formula = y ~ poly(x,2), col=4) +
+  geom_hline(yintercept=0, col=4, lwd=1.2) + 
+  geom_point(data = aug_h_q,
+            aes(y=.resid), col=6, size=1.2) +
+  geom_line(data = aug_h_q,
+            aes(y=.resid), col=6, lwd=.9) +
+  annotate(geom="text", x = housing$date[7], y = 270000, label="Quadratic fit", col=4) +
+  annotate(geom="text", x = housing$date[80], y = 230000, label="Residuals (observed - predicted)", col=6)
+```
+
+---
+
+## Residual diagnostics for housing time series
 
 ```{r,echo=FALSE,fig.height=5.8}
-par(mfrow=c(2,2))
-plot(tvhm.qm)
+par(mfrow=c(2,2), mar=c(4,4,2,2))
+plot(mod_h_q)
 ```
 
-## Residuals versus time plot 
+---
 
-- **Residuals versus time plot** is a tool to check issues in time series residuals. 
+## Plot of residuals versus time 
 
-```{r,echo=FALSE}
-augment(tvhm.qm,housing.ts) %>% ggplot(aes(x=date,y=.resid)) +  geom_hline(yintercept=0) + geom_line(col='green') + geom_smooth() +
-  xlab('Time') + ylab('Residuals') + ggtitle('Residuals or Cycle?')
+```{r,echo=FALSE, fig.dim=c(8,5)}
+
+ghr1 <- aug_h_q %>%
+  ggplot() + 
+  aes(x=date,y=.resid) + 
+  geom_hline(yintercept=0, col=4, lwd=1.2) + 
+  xlab('Time') + ylab('Residuals from quadratic model') + 
+  ggtitle('Residuals: independent or cyclical?') +
+  scale_y_continuous(labels = 
+                       scales::dollar_format(prefix="$", scale=1/1e6, 
+                                             suffix = "T",accuracy=.1),
+                     limits = c(-150000,2.5e5) ) +
+  geom_point(col=6, size=1.2) +
+  geom_line(col=6, lwd=.5) +
+  geom_smooth(col=7) +
+  annotate(geom="text", x = housing$date[70], y = 170000, label="Residuals", col=6) +
+  annotate(geom="text", x = housing$date[45], y = 60000, label="Smoother", col=7)
+
+ghr1
 ```
 
-## Residuals versus time plot 
+---
 
-- The unusual patterns in the above residuals versus time plot (and its smoothed curve) are not hard to observe. 
+## Plot of residuals versus time 
 
-- We can compare the above residuals versus time plot with the plot of some well-behaved residuals.
+--
 
-- Recall that residuals in linear models shall follow a normal distribution with zero mean and constant variance independently. 
+The lack of independence in the residuals in the previous plot is clear.
 
-- Therefore, the standardised residuals shall follow a standard normal distribution with zero mean and constant variance independently.
+--
 
-## Bad residuals versus good residuals
+Recall that residuals in linear models ideally follow a normal distribution with zero mean, constant variance, and should vary independently. Basically, they should be a complete mess!
 
-- Let's simulate some values from a standard normal distribution and plot them over time.
+--
+
+Let's compare the actual residuals to what they should look like...
+
+---
+
+## Comparing the residuals to what our model assumes them to be... oops
 
 ```{r,echo=FALSE}
 set.seed(2020)
-g1<- augment(tvhm.qm,housing.ts) %>% ggplot(aes(x=date,y=.std.resid)) +  geom_hline(yintercept=0) + geom_line(col='green') + geom_smooth() +
-  xlab('Time') + ylab('Residuals') + ggtitle('Fitted Residuals (with Cycle)')
-g2<- augment(tvhm.qm,housing.ts) %>% mutate(e=rnorm(n()))  %>% ggplot(aes(x=date,y=e))  +  geom_hline(yintercept=0) + geom_line(col='green') + geom_smooth() +
-  xlab('Time') + ylab('Residuals') + ggtitle('Simulated Residuals (without Cycle)')
-g1/g2
+
+ghr2 <- ghr1 + xlab('Time') + ylab('Residuals') + 
+  ggtitle('Actual residuals (what they are)')  +
+  scale_y_continuous(limits = c(-250000,250000), 
+                     labels = 
+                       scales::dollar_format(prefix="$", scale=1/1e6, 
+                                             suffix = "T",accuracy=.1)) + 
+  theme(plot.title = element_text(size = 14))
+
+ghrs1 <- aug_h_q %>%
+  mutate(e=rnorm(n(), sd = mod_h_q %>% sigma))  %>% 
+  ggplot(aes(x=date,y=e))  +  
+  geom_hline(yintercept=0, col=4, lwd=1.2) +  
+  xlab('Time') + ylab('Residuals')  + 
+  ggtitle('Simulated residuals (what they should be)')+
+  theme(plot.title = element_text(size = 14)) +
+  scale_y_continuous(limits = c(-250000,250000), 
+                     labels = 
+                       scales::dollar_format(prefix="$", scale=1/1e6, 
+                                             suffix = "T",accuracy=.1)) + 
+  geom_point(col=6, size=1.2) +
+  geom_line(col=6, lwd=.5) +
+  geom_smooth(col=7) 
+
 ```
 
 
+.pull-left[
+```{r,echo=FALSE, fig.dim = c(6,4), out.width="120%"}
+ghr2
+```
+
+- Multi-year cycles of consistently positive or consistently negative residuals     
+- Most residuals are very close to their immediate neighbours 
+]
+
+--
+
+.pull-right[
+```{r,echo=FALSE, fig.dim = c(6,4), out.width="120%"}
+ghrs1
+```
+
+- random fluctuation     
+- no discernible pattern 
+]
+
+---
+
 ## Bad residuals versus good residuals
 
-- It is not easy to have good residuals with time series regression.
+--
 
-- More sophisticated models (e.g. Box-Jenkins's ARIMA) are needed to extract the information in time series residuals.
+It is common for time series to have dependence structures. We can spot them by looking for patterns in plots of residuals, and there are tools we can use to measure them.
 
-- But we can still figure out the issues without getting into those hard pieces.
+--
 
-- Some simple visualisation tools and quantitative measures can help us to spot the problems in time series residuals.
+But why are non-independent residuals problematic? 
 
-- We can then further build better linear models for our time series.
+--
+
+- We fit linear models to estimate parameters (e.g., linear change over time).    
+
+--
+
+- Importantly, linear models give us **measures of uncertainty** for our estimates. These measure the strength of evidence for a particular effect, and allow us to make conclusions and predictions.    
+
+--
+
+- For the measures of uncertainty to be accurate, certain assumptions must be met. One of these assumptions is independence of residuals.    
+
+--
+
+- If this assumption is not met, **we cannot trust our measures of uncertainty, and therefore our conclusions and predictions**.     
+
+
+---
 
 ## Bad residuals versus good residuals
 
-- Some observations can be made for the two residuals plots
+It is common for time series to have dependence structures. We can spot them by looking for patterns in plots of residuals, and there are tools we can use to measure them.
 
-    - The simulated residuals which enjoys the independence assumption just fluctuate without any obvious pattern. 
+But why are non-independent residuals problematic? 
 
-    - The fitted residuals containing the information about cycles can be roughly divided into several increasing or decreasing segments with a few turning points. 
+--
 
-    - In each segment, a small value is followed by an even smaller value and a large value is followed by an even larger value except for those turning points.
-    
-- How can we extract this piece of information?
+- Data are the currency of information. The more data we have, the more evidence we have. This is why 'degrees of freedom' are important.     
 
-- Lag plot is the simplest one, but we have to know the concept of **lag** in time series first.
+--
 
-# Lag plot
+- Independent residuals imply that each data point represents an independent piece of information.     
 
-## Lag
+--
 
-- A **lag** is a fixed time displacement in a time series. 
+- If the data points are not independent (conditional on the model; i.e. residuals), we have **less information** than data points.     
 
-- For example, given a data set $Y_1, Y_2,\ldots,Y_T$, $Y_2$ and $Y_7$ have lag 5 since $7 - 2 = 5$. 
+--
 
-- A **lag plot** of lag $k$ is a plot of the values of $Y_t$ versus $Y_{t-k}$
+- If we assume the residuals are independent when, in reality, they're not, we're pretending we have more information than we actually have.
 
-    - Vertical axis ($y$): $Y_t$ for all $t=1,2,\ldots,T-k$
-    - Horizontal axis ($x$): $Y_{t-k}$ for all $t=k+1,k+2,\ldots,T$
+--
 
-- Lag plots can be generated for any arbitrary lag, although the most commonly used lag is 1.
+- **We therefore risk overstating the strength of our evidence and conclusions and the accuracy of our predictions**, if we make assumptions that are not true.
+
+--
+
+On the other hand, if the model adequately accounts for the dependence structures, the residuals will be independent, and we can trust our conclusions. 
+
+--
+
+Options to improve the model include incorporating more useful predictors in a linear model, or explicitly model the dependence structures (e.g., Box-Jenkins's autoregression).
+
+---
+
+## Bad residuals versus good residuals
+
+.pull-left[
+```{r,echo=FALSE, fig.dim = c(6,4), out.width="120%"}
+ghr2 + ggtitle("Actual residuals")
+```
+
+- Multi-year cycles of consistently positive or consistently negative residuals     
+- Most residuals are very close to their immediate neighbours 
+]
+
+
+.pull-right[
+```{r,echo=FALSE, fig.dim = c(6,4), out.width="120%"}
+ghrs1 + ggtitle("Simulated 'ideal' residuals")
+```
+
+- random fluctuation     
+- no discernible pattern 
+]
+
+--
+
+.center[
+**'Lag plots' are a useful tool for examining and diagnosing dependence patterns.**
+]
+
+
+---
+
+class: middle, inverse
+
+# Lag plots
+
+---
+
+## Lag plots
+
+A **lag** is a displacement of a certain amount of time; for example, one day, two hours.
+
+Given a data set $y_1, y_2,\ldots,y_T$,     
+$\ \ \ \ \ \ y_2$ and $y_7$ have lag 5 since $7 - 2 = 5$. 
+
+A **lag plot** of lag $k$ is a plot of the values of $y_t$ versus $y_{t-k}$
+
+  - Vertical axis: $\ \ \ \ \ \ \ Y_t$ for all $t=1,2,\ldots,T-k$
+  - Horizontal axis: $\ \ Y_{t-k}$ for all $t=k+1,k+2,\ldots,T$
+
+Lag plots can be generated for any arbitrary lag, although the most commonly used lag is 1.
+
+---
 
 ## How to get the lagged values 
 
-- We can use `zlag()` function from `TSA` package. `d=1` specifies the lag one and you can change it to other integers.
+We can use `zlag()` function from `TSA` package. The argument `d=1` specifies a lag of one,  and it can be changed to another integer.
 
 ```{r,echo=TRUE}
 library(TSA)
-tibble(x=5:10) %>% mutate(x.lag1=zlag(x,d=1),x.lag2=zlag(x,d=2))
+tibble(x=5:10) %>% mutate(x_lag1=zlag(x,d=1),
+                          x_lag2=zlag(x,d=2))
 ```
-- An `NA` value is generated as there is no lag one observation for the first `x`.
+
+An `NA` value is generated as there is no lag-one observation for the first `x`.
+
+---
 
 ## Lag plot
 
-- Lag plots check whether a data set or time series or residuals exhibit unusual patterns.
+The lag plot is an important visualisation tool for time series data. It can reveal unusual patterns in a data set, or time series, or residuals.
 
-- Independent and identically distributed data should not exhibit any identifiable structure in the lag plot at any lag.
+Independent and identically distributed data should not exhibit any identifiable structure in the lag plot for any lag.
 
-- Any non-trivial structure in the lag plot indicates that the underlying data are either non-random or dependent. 
+Any discernible structure in the lag plot may indicate non-randomness or dependence structures in the data. 
 
-- It is an important visualisation tool for time series data.
 
-## Lag one plot of residuals
+---
 
-- This lag one plot of housing residuals exhibits a linear pattern. This shows that the data are strongly correlated.
+## Lag one plots of residuals: good vs bad
 
-```{r,echo=FALSE,message=FALSE}
+.pull-left[
+
+```{r,echo=FALSE,message=FALSE, out.width="110%"}
 set.seed(2020)
-g1<- augment(tvhm.qm,housing.ts) %>% mutate(.std.resid.lag1=zlag(.std.resid))%>%  ggplot(aes(x=.std.resid.lag1,y=.std.resid)) + geom_hline(yintercept=0) + geom_line(col='green') + geom_smooth() +
-  xlab(TeX('$\\hat{e}_{t-1}$')) + ylab(TeX('$\\hat{e}_{t}$')) + ggtitle('Fitted Residuals Lag 1 Plot')
-g2<- augment(tvhm.qm,housing.ts) %>% mutate(e=rnorm(n())) %>% mutate(e.lag1=zlag(e)) %>% ggplot(aes(x=e.lag1,y=e))  +  geom_hline(yintercept=0) + geom_line(col='green') + geom_smooth() +
-  xlab(TeX('$e_{t-1}$')) + ylab(TeX('$e_{t}$')) + ggtitle('Simulated Residuals Lag 1 Plot')
-g1+g2
+aug_h_q %>% 
+  mutate(.std.resid.lag1=zlag(.std.resid))%>%  
+  ggplot(aes(x=.std.resid.lag1,y=.std.resid)) + 
+  geom_hline(yintercept=0) + 
+  geom_vline(xintercept=0) + 
+  geom_line(lwd=1.2) + 
+  geom_smooth(col=7) +
+  xlab( TeX(r'(Previous residual $\epsilon_{t-1}$)') ) + 
+  ylab( TeX(r'(Residual $\epsilon_{t}$)') ) + 
+  ggtitle('Residuals vs lag-one residuals (actual data)')
+
 ```
 
-## Lag two plot of residuals
+- Very strong relationship between the residual at time $t$ vs residual at time $t-1$.
 
-- This lag two plot of housing residuals still exhibits a linear pattern. 
+- Residuals never move much in one time step!
 
-```{r,echo=FALSE,message=FALSE}
+]
+
+--
+
+
+.pull-right[
+```{r,echo=FALSE,message=FALSE, out.width="110%"}
+aug_h_q %>% 
+  mutate(e=rnorm(n())) %>% 
+  mutate(e.lag1=zlag(e)) %>% 
+  ggplot(aes(x=e.lag1,y=e))  +  
+  geom_hline(yintercept=0) + 
+  geom_vline(xintercept=0) + 
+  geom_line() + 
+  geom_smooth(col=7) +
+  xlab( TeX(r'(Previous residual $\epsilon_{t-1}$)') ) + 
+  ylab( TeX(r'(Residual $\epsilon_{t}$)') ) + 
+  ggtitle('Residuals vs lag-one residuals (ideal simulated data)')
+
+```
+
+- No relationship between the residual at time $t$ vs residual at time $t-1$.
+
+- Residuals separated by one time step completely unrelated!
+
+]
+
+---
+
+## Lag two plots of residuals
+
+
+.pull-left[
+
+```{r,echo=FALSE,message=FALSE, out.width="110%"}
 set.seed(2020)
-g1<- augment(tvhm.qm,housing.ts) %>% mutate(.std.resid.lag1=zlag(.std.resid,d=2))%>%  ggplot(aes(x=.std.resid.lag1,y=.std.resid)) + geom_hline(yintercept=0) + geom_line(col='green') + geom_smooth() +
-  xlab(TeX('$\\hat{e}_{t-2}$')) + ylab(TeX('$\\hat{e}_{t}$')) + ggtitle('Fitted Residuals Lag 2 Plot')
-g2<- augment(tvhm.qm,housing.ts) %>% mutate(e=rnorm(n())) %>% mutate(e.lag1=zlag(e,d=2)) %>% ggplot(aes(x=e.lag1,y=e))  +  geom_hline(yintercept=0) + geom_line(col='green') + geom_smooth() +
-  xlab(TeX('$e_{t-2}$')) + ylab(TeX('$e_{t}$')) + ggtitle('Simulated Residuals Lag 2 Plot')
-g1+g2
+aug_h_q %>% 
+  mutate( .std.resid.lag2 = zlag(.std.resid, d=2) ) %>%  
+  ggplot(aes(x = .std.resid.lag2,
+             y = .std.resid) ) + 
+  geom_hline(yintercept=0) + 
+  geom_vline(xintercept=0) + 
+  geom_line(lwd=1.2) + 
+  geom_smooth(col=7) +
+  xlab( TeX(r'(Previous previous residual $\epsilon_{t-2}$)') ) + 
+  ylab( TeX(r'(Residual $\epsilon_{t}$)') ) + 
+  ggtitle('Residuals vs lag-two residuals (actual data)')
+
 ```
 
-## Model the linear trend in residuals{.smaller}
+- Still a strong relationship between the residual at time $t$ vs residual at time $t-2$.
 
-- The lag plots of fitted residuals has a linear trend with slope 1 (approximately). 
+- Residuals don't move much in two time steps!
 
-```{r,echo=TRUE}
-housing.resid.lag<-augment(tvhm.qm,housing.ts) %>% mutate(.resid.lag1=zlag(.resid,d=1))
-lm.resid<-lm(.resid~.resid.lag1,data=housing.resid.lag)
-summary(lm.resid)
+]
+
+--
+
+
+.pull-right[
+```{r,echo=FALSE,message=FALSE, out.width="110%"}
+aug_h_q %>% 
+  mutate(e=rnorm(n())) %>% 
+  mutate(e.lag2=zlag(e,d=2)) %>% 
+  ggplot(aes(x=e.lag2,y=e))  +  
+  geom_hline(yintercept=0) + 
+  geom_vline(xintercept=0) + 
+  geom_line() + 
+  geom_smooth(col=7) +
+  xlab( TeX(r'(Previous previous residual $\epsilon_{t-2}$)') ) + 
+  ylab( TeX(r'(Residual $\epsilon_{t}$)') ) + 
+  ggtitle('Residuals vs lag-two residuals (ideal simulated data)')
+
 ```
 
-## Residuals in residuals{.smaller}
+- No relationship between the residual at time $t$ vs residual at time $t-2$.
 
-```{r,echo=FALSE,fig.height=5.8}
-par(mfrow=c(2,2))
-plot(lm.resid)
+- Residuals separated by two time steps completely unrelated!
+
+]
+
+---
+
+## Model the linear trend in residuals
+
+
+.left-code[
+.small[
+```{r echo=TRUE,eval=FALSE}
+housing_resid_lag <- 
+  aug_h_q %>% 
+  mutate(
+    .resid.lag1 = zlag(.resid, d=1)
+    )
+
+lm_r_lag1 <- lm(
+  .resid ~ .resid.lag1, 
+  data = housing_resid_lag
+  )
+
+summary(lm_resid_lag1)
+
 ```
+]]
 
+.right-plot[
+.small[
+```{r echo=FALSE}
+housing_resid_lag <- 
+  aug_h_q %>% 
+  mutate(.resid.lag1 = zlag(.resid, d=1) )
+
+lm_r_lag1 <- lm(.resid ~ .resid.lag1, 
+                data = housing_resid_lag)
+
+summary(lm_r_lag1) 
+
+```
+]]
+
+--
+
+.left-code-wide[
+
+The fitted residuals have a linear trend with a slope of 1 (approximately). 
+]
+
+
+---
+
+class: middle, inverse
 
 # Autoregression
 
-## Autoregression
-
-- Let $Y_t=\hat{e}_t$, $t=1,2,\ldots,T$. We will treat the fitted residuals as a time series in the rest few slides. 
-
-- The fitted linear model and residuals diagnostics suggest that we can address the strange pattern in $Y_t=\hat{e}_t$ by considering the previous values of a time series as a predictor.
-
-\[
-Y_t=\phi Y_{t-1}+\epsilon_t= 0.981Y_{t-1}+\epsilon_t
-\]
-
-- $\epsilon_t$ becomes the residuals of residuals (which is not really a formal terminology).
+---
 
 ## Autoregression
 
-- Such a model is called an **AutoRegressive** model with order 1, aka AR(1). 
+Our (second order polynomial) model so far:
 
-- The idea is very simple: 
-    
-    - The current observation $Y_t$ depends on the historical observation(s) $Y_{t-1}$, ($Y_{t-2},\ldots,Y_1$),
+$$y_t = \alpha+\beta_1 t + \beta_2 t^2 + \varepsilon_t$$
 
-    - The future observations $Y_{t+1}$ will depend on the current (and historical) observation(s) $Y_t$, ($Y_{t-1},\ldots,Y_1$).
-    
-- We will see an example at the end of this lecture to illustrate this idea.  
+where    
+$\ \ \ \ y_t$ is the total value of NZ houses at time $t \in \{1,2,\ldots,T\}$,     
+$\ \ \ \ \alpha$ is the intercept,    
+$\ \ \ \ \beta_1$ is the linear effect of time,      
+$\ \ \ \ \beta_2$ is the curvy effect of time, and    
+$\ \ \ \ \varepsilon_t$ are the residuals from the model.
 
-- Here, we will use an even simpler model for $Y_t$, the fitted residuals of total value of NZ housing market.
+<br>
 
-## Time series difference 
+--
 
-- As we already notice the slope of the residuals lag one plot is approximately 1, we can directly fix $\phi=1$.
+**Now, we will treat the fitted residuals** $\varepsilon_t$ **as a time series in and of itself.**
 
-- The model is then given by
-\[
-Y_t=Y_{t-1}+\epsilon_t
-\]
+--
 
-- The advantage of this model is that the residuals of residuals can be easily obtained as
-\[
-\epsilon_t=Y_t-Y_{t-1}
-\]
+We have seen that each residual $\varepsilon_t$ is strongly related to the previous $\varepsilon_{t-1}$. 
 
-- $Y_t-Y_{t-1}$ defines another time series called **time series difference**. It can be interpreted as the increments in the time series $Y_t$.
+--
+
+Well, let's explicitly model the residuals with the previous residuals as a predictor!
+
+
+---
+
+## The AutoRegressive model
+
+Now there are two layers to our model:
+
+$$\begin{align}
+y_t &= \alpha+\beta_1 t + \beta_2 t^2 + \varepsilon_t \ \ \ (1)\\
+\varepsilon_t &= \phi \varepsilon_{t-1} + \epsilon_t  \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ (2)
+\end{align}$$
+
+where       
+$\ \ \ \ \alpha+\beta_1 t + \beta_2 t^2$ is a quadratic model of the broader trend,   
+$\ \ \ \ \varepsilon_t$ are the residuals from the quadratic model,        
+$\ \ \ \ \phi$ is the effect of one residual on the next residual, and       
+$\ \ \ \ \epsilon_t$ are the residuals from the model of the residuals (phew!).
+
+
+--
+
+Each observation is a function of **(1) the broader trend** and **(2) a random walk** around or below that trend.
+
+--
+
+This is an **AutoRegressive** model with order (lag) 1, also known as an "**AR(1)**" model. 
+
+--
+
+Of course, model part (1) doesn't have to be quadratic. We can reduce it to a linear model by removing the $\beta_2 t^2$ term, if that fits the data better.
+
+Here, we will use an even simpler model for $y_t$, the fitted residuals of total value of NZ housing market.
+
+---
+
+## A simpler time-series-difference model
+
+As we already noticed, the slope of the residuals given the lag-one residuals is approximately 1, we can directly fix $\phi=1$.
+
+In this case, the model is:
+$$\varepsilon_t=\varepsilon_{t-1}+\epsilon_t$$
+
+The advantage of this model is that the residuals of residuals can be easily obtained as
+$$\epsilon_t=\varepsilon_t-\varepsilon_{t-1}$$
+
+$\varepsilon_t-\varepsilon_{t-1}$ defines another time series model called **time series difference**. It can be interpreted as the incremental shifts from one observation to the next.
+
+---
 
 ## Integrating time series differences 
 
-- We can write down the difference equations as follows,
-\[
+For each time $t$, the incremental changes in the residuals are given by:
+$$
 \begin{aligned}
-\epsilon_t&=Y_t-Y_{t-1}\\
-\epsilon_{t-1}&=Y_{t-1}-Y_{T-2}\\
-\epsilon_{t-2}&=Y_{t-2}-Y_{T-3}\\
+\epsilon_t&=\varepsilon_t-\varepsilon_{t-1}\\
+\epsilon_{t-1}&=\varepsilon_{t-1}-\varepsilon_{T-2}\\
+\epsilon_{t-2}&=\varepsilon_{t-2}-\varepsilon_{T-3}\\
 ~~&~~\vdots\\
-\epsilon_2&=Y_{2}-Y_{1}\\
-\epsilon_1&=Y_1-Y_0
+\epsilon_2&=\varepsilon_{2}-\varepsilon_{1}\\
+\epsilon_1&=\varepsilon_1-\varepsilon_0
 \end{aligned}
-\]
+$$
 
-- Summing over both LHS and RHS of the above equations gives
-\[
-\epsilon_t+\epsilon_{t-1}+\cdots+\epsilon_2+\epsilon_1=Y_t-Y_0.
-\]
+--
 
-## Integrating time series differences {.smaller}
+Summing over both LHS and RHS of the above equations gives
+$$\epsilon_t+\epsilon_{t-1}+\cdots+\epsilon_2+\epsilon_1=\varepsilon_t-\varepsilon_0$$
 
-- Letting $Y_0=0$, we have 
-\[
-\hat{e}_t=Y_t=\sum_{i=1}^{t}\epsilon_i.
-\]
+---
 
-- At time $t$, $Y_{t-1}$ walks to $Y_{t}$ with a random step size $\epsilon_t$. Such a process is called a **random walk**.
+## Integrating time series differences 
 
-- The time series $X_t$ of total value of NZ housing market can then be written as
-\[
-X_t=a+bt+ct^2+\sum_{i=1}^{t}\epsilon_i.
-\]
-where $\epsilon_i$'s are all good residuals (of residuals).
+Letting $\varepsilon_0=0$, we have $\varepsilon_t=\sum_{i=1}^{t}\epsilon_i$ .
 
-- Therefore, the NZ housing market is driven by a quadratic trend $a+bt+ct^2$ and a random walk cycle $\sum_{i=1}^{t}\epsilon_i$.
+That is, the residual at time $t$ is just the sum of all the residual-residuals, the little random increments in the series so far. 
+
+--
+
+You can think of this as a **random walk** process. At time $t$, $\varepsilon_{t-1}$ walks to $\varepsilon_{t}$ with a random step of size $\epsilon_t$. 
+
+--
+
+The time series $y_t$ of total value of NZ housing market can then be written as
+$$y_t=\alpha+\beta_1 t + \beta_2 t^2+\sum_{i=1}^{t}\epsilon_i$$
+--
+
+The model says the total value has a quadratic trend $\alpha+\beta_1 t + \beta_2 t^2$ and a random walk cycle $\sum_{i=1}^{t}\epsilon_i$.
+
+--
+
+The original residuals $\varepsilon_t$ are badly behaved, but the residual-residuals $\epsilon_t$ will be better!
+
+
+---
 
 ## A crack in lag plot and autoregression
 
-- If the data has a deterministic trend without any randomness, it can have misleading lag plots. The following demo will illustrate this issue.
+If the data has a deterministic trend without any randomness, it can have misleading lag plots. The following simulated data will illustrate this issue.
 
+We are simulating `y` as a quadratic function of `time`, and adding the `lag1` version of `y` (`y_lag1`).
+
+
+.small[
 ```{r}
-demo <- tibble(time=1:20) %>% mutate(z=time^2) %>% mutate(z.lag1=zlag(z)) 
-t(demo)
+simy <- tibble(time = 1:20) %>% 
+  mutate(y = time^2) %>% 
+  mutate(y_lag1 = zlag(y)) 
+t(simy)
 ```
+]
 
-- The function `t()` simply puts down our tidy tibble. 
+
+---
 
 ## A crack in lag plot and autoregression
-```{r,echo=TRUE,fig.height=4.3}
-g1 <- demo %>% ggplot(aes(x=time,y=z)) + geom_point() +ggtitle('Run chart')
-g2 <- demo %>% ggplot(aes(x=z.lag1,y=z)) + geom_point()+ggtitle('Lag 1 plot')
-g3 <- demo %>% ggplot(aes(x=time,y=z-z.lag1)) + geom_point()+ggtitle('Differenced run chart')
+
+.small[
+```{r,echo=TRUE,fig.dim=c(12,4),fig.width="100%"}
+g1 <- simy %>% ggplot(aes(x=time,   y=y       )) +geom_point()+ggtitle('Run chart')
+g2 <- simy %>% ggplot(aes(x=y_lag1, y=y       )) +geom_point()+ggtitle('Lag 1 plot')
+g3 <- simy %>% ggplot(aes(x=time,   y=y-y_lag1)) +geom_point()+ggtitle('Differenced run chart')
 g1+g2+g3
 ```
+]
+
+---
 
 ## A crack in lag plot and autoregression
 
-- The demo is a quadratic trend as $Z_t=t^2$.
+The simulated data is a quadratic trend as $y_t=t^2$.
 
-- We can get the corresponding difference as $$Z_t-Z_{t-1}=t^2-(t-1)^2=2t-1.$$
+We can get the corresponding differences between one value and the next as: $$y_t-y_{t-1}=t^2-(t-1)^2=2t-1$$
 
-- Differencing turns a quadratic trend in the original time series to a linear trend .
+--
 
-- **Task**: if $Z_t=a+bt$ has a linear trend, what will we get after differencing?
+'Differencing' can make a quadratic trend look like a linear trend. So, you might end up fitting a linear-plus-difference model rather than a quadratic model.
 
-- Can be tricky if we directly regress $Z_t$ on $Z_{t-1}$ for a time series with trend.
+--
+
+It pays to try to model the overall trend appropriately before messing with the residuals.
+
+---
+
+class: middle, inverse
 
 # Autocorrelation 
 
+---
+
 ## Autocorrelation
 
-- The strong linear relationship between $Y_{t-1}$ and $Y_{t}$ can be further confirmed by their correlation coefficients
+--
 
-- Notice that the sample correlation coefficient is defined for a sequence of paired observations as $(x_1,y_1),\ldots,(x_n,y_n)$.
+The strong linear relationship between $Y_{t-1}$ and $Y_{t}$ can be examined by calculating the lag-one correlation.
 
-- In time series, we have the pairs as
+--
 
-$$(Y_1,Y_2),(Y_2,Y_3),\ldots,(Y_{t-1},Y_{t}),(Y_{t},Y_{t+1}),\ldots,(Y_{T-1},Y_T)$$
+Notice that the sample correlation coefficient is defined for a sequence of paired observations as $(x_1,y_1),\ldots,(x_n,y_n)$.
 
-- This correlation coefficient is called the **autocorrelation** coefficient at order 1.
+--
 
-- Of course, we can have the **autocorrelation** coefficients at order $2,3,4,\ldots$. 
+In time series, we have the pairs as
 
-- **Task**: $k=0$?
+$$(y_1,y_2),(y_2,y_3),\ldots,(y_{t-1},y_{t}),(y_{t},y_{t+1}),\ldots,(y_{T-1},y_T)$$
+
+--
+
+The correlation between adjacent values in a series is called **autocorrelation** of order 1.
+
+--
+
+We can also calculate higher order **autocorrelation**, in steps of $2,3,4, \ldots$
+$$(y_1,y_3),(y_2,y_4),\ldots,(y_{t-2},y_{t}),(y_{t-1},y_{t+1}),(y_{t},y_{t+2}),\ldots,(y_{T-2},y_T)$$
+
+---
 
 ## Computing the autocorrelation
 
-- We can compute the autocorrelation coefficient easily by using `summarise()` and `cor()`.
+We can compute the autocorrelation coefficient easily by using `summarise()` and `cor()`.
 
 ```{r}
-housing.resid.lag %>% mutate(.resid.lag2=zlag(.resid,d=2)) %>%
-  summarise(AC1=cor(.resid,.resid.lag1,use = 'na.or.complete'),
-            AC2=cor(.resid,.resid.lag2,use = 'na.or.complete'))
+housing_resid_lag %>% 
+  mutate(.resid.lag2 = zlag(.resid,d=2)) %>%
+  summarise(AC1=cor(.resid, .resid.lag1, use = 'na.or.complete'),
+            AC2=cor(.resid, .resid.lag2, use = 'na.or.complete'))
 ```
 
-- `use = 'na.or.complete'` in `cor()` ensures that the `NA` values in the lagged series won't affect the computation of autocorrelation coefficients.
+The argument `use = 'na.or.complete'` in `cor()` ensures that the `NA` values in the lagged series won't affect the computation of autocorrelation coefficients.
+
+---
 
 ## Auto-Correlation Function (ACF)
 
-- Since we can have autocorrelation coefficients at order $k=0,1,2,\ldots$, autocorrelation coefficients can be regarded as a function of the order $k$, i.e. **Auto-Correlation Function (ACF)**.
+We can examine autocorrelation coefficients across a range orders $k=0,1,2,\ldots$ , which is known as the **Auto-Correlation Function (ACF)**.
 
-- We can plot the autocorrelation coefficients against the orders which is the **correlogram** with `ggAcf()` function from `forecast` package.
+The ACF can be plotted in a so-called a '**correlogram**', obtainable with the `ggAcf()` function in  `forecast` package.
 
+
+---
+
+## Auto-Correlation Function (ACF) and Correlograms
+
+--
+
+.pull-left[
+
+#### Correlogram of housing data residuals
+.small[
 ```{r}
-library(forecast)
-g1 <- housing.resid.lag %>% select(.resid) %>% ggAcf()
-g2 <- housing.resid.lag %>% transmute(e=rnorm(n())) %>% ggAcf()
+housing_resid_lag %>% 
+  select(.resid) %>% ggAcf() 
 ```
+]]
 
-- We also make a correlogram for a series of simulated independent normal residuals (shown in the next slide). 
+--
 
-- Any spike exceeding the blue dash line triggers a warning signal! 
-
-## Auto-Correlation Function (ACF)
-
+.pull-right[
+#### Correlogram of independent residuals
+.small[
 ```{r}
-g1+g2
+housing_resid_lag %>% 
+  transmute(e=rnorm(n())) %>% ggAcf()
 ```
+]]
 
-# Illustrative Example
+--
 
-## Air passenger data{.smaller}
+.center[
+Any values outside the blue dashed lines may indicate some autocorrelation. 
+]
 
-- The data set `AirPassengers` from the package `TSA` records monthly totals of international airline passengers, 1949 to 1960. 
+---
 
-- Perhaps, this is the eldest data set in this paper.
+class: middle, inverse
 
+# An Illustrative Example
+
+---
+
+## Air passenger data
+
+The data set `AirPassengers` from the package `TSA` contains monthly totals of international airline passengers, 1949 to 1960. 
+
+This might be the oldest data set in this paper.
+.small[
 ```{r}
 data(AirPassengers)
 AirPassengers
 ```
+]
 
-## Data preprocessing{.smaller}
+---
 
-- Turn the data to a tidy tsibble (time series version of tibble) with the function `as_tsibble()` from the package `tsibble`.
+## Data preprocessing
 
-- Add the time index and the month index as a factor with `month()` from `lubridate`.
+--
 
+Turn the data to a tidy 'tsibble' (time series version of tibble) with the function `as_tsibble()` from the package `tsibble`.
+
+--
+
+Add the time index and the month index as a factor with `month()` from `lubridate`.
+
+.small[
 ```{r}
-library(tsibble)
-library(lubridate)
-AP <- AirPassengers %>% as_tsibble() %>% mutate(time=1:n(),month=factor(month(index))) 
+library(tsibble); library(lubridate)
+AP <- AirPassengers %>% as_tsibble() %>% mutate(time = 1:n(), month = factor(month(index))) 
 AP
 ```
+]
 
-## Linear trend{.smaller}
-
-```{r}
-lm.AP=lm(value~time,data=AP)
-summary(lm.AP)
-```
-
-## Linear trend - Visualisation{.smaller}
-
-```{r}
-library(visreg)
-visreg(lm.AP)
-```
-
-## Linear trend - Residual diagnostics{.smaller}
-
-```{r,echo=FALSE,fig.height=5.5}
-par(mfrow=c(2,2))
-plot(lm.AP)
-```
-
-- Variance of residuals growing in time!
-
-## Log transformation to stablise variablity{.smaller}
-```{r}
-lm.AP.log=lm(log(value)~time,data=AP)
-summary(lm.AP.log)
-```
-
-## Log transformation - Visualisation{.smaller}
-
-```{r}
-library(visreg)
-visreg(lm.AP.log,trans=exp,partial=TRUE)
-```
-
-## Log transformation - Residuals diagnostics{.smaller}
-
-```{r,echo=FALSE,fig.height=5.5}
-par(mfrow=c(2,2))
-plot(lm.AP.log)
-```
-
-- Possible curvature ... BUT bigger problem
-
-## Log transformation - Correlogram of residuals{.smaller}
-
-```{r}
-augment(lm.AP.log) %>% select(.std.resid) %>% ggAcf()
-```
-
-- Usually indicative of seasonality (lags at 12 months)
-
-## Adding seasonlities{.smaller}
-
-```{r,include=FALSE}
-lm.AP.log.s=lm(log(value)~time+month,data=AP)
-summary(lm.AP.log.s)
-```
-
-```{r,eval=FALSE,echo=TRUE}
-lm.AP.log.s=lm(log(value)~time+month,data=AP)
-summary(lm.AP.log.s)
-```
-
-```
-
-Call:
-lm(formula = log(value) ~ time + month, data = AP)
-
-Residuals:
-      Min        1Q    Median        3Q       Max 
--0.156370 -0.041016  0.003677  0.044069  0.132324 
-
-Coefficients:
-              Estimate Std. Error t value Pr(>|t|)    
-(Intercept)  4.7267804  0.0188935 250.180  < 2e-16 ***
-time         0.0100688  0.0001193  84.399  < 2e-16 ***
-month2      -0.0220548  0.0242109  -0.911  0.36400    
-month3       0.1081723  0.0242118   4.468 1.69e-05 ***
-month4       0.0769034  0.0242132   3.176  0.00186 ** 
-month5       0.0745308  0.0242153   3.078  0.00254 ** 
-...
-month11     -0.1351861  0.0242400  -5.577 1.34e-07 ***
-month12     -0.0213211  0.0242461  -0.879  0.38082    
 ---
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-Residual standard error: 0.0593 on 131 degrees of freedom
-Multiple R-squared:  0.9835,	Adjusted R-squared:  0.982 
-F-statistic: 649.4 on 12 and 131 DF,  p-value: < 2.2e-16
-```
-
-## Adding seasonlities - Residuals diagnostics{.smaller}
-
-```{r,echo=FALSE,fig.height=5.8}
-par(mfrow=c(2,2))
-plot(lm.AP.log.s)
-```
-
-## Adding seasonlities - Residuals versus Time{.smaller}
-
+## Model 1: Simple linear regression
+.small[
 ```{r}
-augment(lm.AP.log.s) %>% ggplot(aes(x=time,y=.std.resid)) + 
-  geom_point()+ geom_line() + geom_smooth() + geom_hline(yintercept = 0,col='red')
+lm1 <- lm(value ~ time, data=AP); summary(lm1)
 ```
+]
 
-## Adding seasonlities - Correlogram of residuals{.smaller}
-
-```{r,fig.height=3}
-augment(lm.AP.log.s) %>% select(.std.resid) %>% ggAcf()
-```
-
-- This is not going to be improved by including a quadratic term (try this
-yourself as an exercise). 
-
-- Instead this is characteristic of an auto-regressive
-process.
-
-## Adding autoregression{.smaller}
-
-```{r,eval=FALSE}
-AP.lag <- AP %>% mutate(logAP=log(value))%>% mutate(logAP.lag1=zlag(logAP)) 
-lm.AP.log.s.AR <- lm(logAP~time+logAP.lag1+month,data=AP.lag)
-summary(lm.AP.log.s.AR)
-```
-
-```
-Call:
-lm(formula = logAP ~ time + logAP.lag1 + month, data = AP.lag)
-
-Residuals:
-      Min        1Q    Median        3Q       Max 
--0.098372 -0.020077  0.001508  0.021457  0.086081 
-
-Coefficients:
-              Estimate Std. Error t value Pr(>|t|)    
-(Intercept)  1.0002930  0.2584022   3.871 0.000171 ***
-time         0.0020576  0.0005592   3.679 0.000342 ***
-logAP.lag1   0.7930716  0.0548993  14.446  < 2e-16 ***
-month2      -0.0344936  0.0154346  -2.235 0.027149 *  
-...
-month12      0.0737118  0.0168065   4.386 2.38e-05 ***
 ---
-Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
 
-Residual standard error: 0.03692 on 129 degrees of freedom
-  (1 observation deleted due to missingness)
-Multiple R-squared:  0.9935,	Adjusted R-squared:  0.9929 
-F-statistic:  1524 on 13 and 129 DF,  p-value: < 2.2e-16
+## Model 1: Simple linear regression - confidence interval
+
+.left-plot[
+.small[
+.middle[
+```{r echo=FALSE, fig.dim=c(6,5), out.width="100%"}
+gAP <- AP %>% ggplot() + aes(x=index, y = value) + geom_point() +
+  xlab("Time") + ylab("Number of international passengers") + ylim(0,700)
+gAP + geom_smooth(method = lm, alpha = .3, fill = 12)
 ```
+]]]
 
-## Adding autoregression - Correlogram of residuals{.smaller}
+--
 
-```{r,eval=TRUE,echo=TRUE, include=FALSE}
-AP.lag <- AP %>% mutate(logAP=log(value))%>% mutate(logAP.lag1=zlag(logAP)) 
-lm.AP.log.s.AR <- lm(logAP~time+logAP.lag1+month,data=AP.lag)
-summary(lm.AP.log.s.AR)
+.right-code[
+.middle[
+Looks reasonably linear.
+
+*Any patterns in the residuals?*
+
+]]
+
+
+---
+
+## Model 1: Simple linear regression - confidence and prediction intervals
+
+.left-plot[
+.small[
+.middle[
+```{r echo=FALSE, fig.dim=c(6,5), out.width="100%"}
+gAP + geom_smooth(method = lm, alpha = .3, fill = 12) + geom_line()
 ```
+]]]
 
+
+.right-code[
+.middle[
+Looks reasonably linear.
+
+*Any patterns in the residuals?*
+
+A line reveals a pattern! 
+
+*Is the residual variance constant?*
+
+]]
+
+
+---
+
+## Model 1: Simple linear regression - confidence and prediction intervals
+
+.left-plot[
+.small[
+.middle[
+```{r echo=FALSE, fig.dim=c(6,5), out.width="100%"}
+
+aug1_pi <- augment(lm1, AP, interval="prediction") 
+
+gAP + 
+  geom_smooth(method = lm, alpha = .3, fill = 12) +
+  geom_ribbon(data = aug1_pi,
+              aes(ymin = .lower, 
+                  ymax = .upper), 
+              alpha = .2) 
+```
+]]]
+
+
+.right-code[
+.middle[
+Looks reasonably linear.
+
+*Any patterns in the residuals?*
+
+A line reveals a pattern!
+
+*Is the residual variance constant?*
+
+The grey ribbon gives the 95% *prediction* interval for the data. 
+
+The model says the data should be scattered vertically around the line according to a normal distribution that is *identical* across the range of the x-axis. 
+
+Does that look right?
+
+]]
+
+---
+
+## Model 1: Simple linear regression - residual diagnostics
+.left-plot[
+```{r echo=FALSE, fig.dim=c(6,4.9), out.width="100%"}
+par(mfrow=c(2,2), mar=c(4,4,2,2))
+plot(lm1)
+```
+]
+
+--
+
+.right.code[
+Definitely an increase in residual variance!
+
+And some curvature.
+]
+
+---
+
+## Model 2: log-transformed $y$ (to stablise variablity)
+.small[
 ```{r}
-augment(lm.AP.log.s.AR) %>% select(.std.resid) %>% ggAcf()
+lm2_log = lm(log(value) ~ time, data=AP)
+summary(lm2_log)
+```
+]
+---
+
+## Model 2: log-transformed $y$ - **confidence** interval
+
+.left-code[
+.small[
+```{r eval=TRUE, echo=TRUE, fig.show="hide"}
+aug2_log_ci <- 
+  augment(lm2_log, AP, 
+          interval="confidence")
+
+g2_log_ci <- 
+  ggplot(aug2_log_ci) + 
+  aes(x = index, y = value, 
+      ymin = exp(.lower), 
+      ymax = exp(.upper)) + 
+  geom_point() + 
+  geom_ribbon(alpha = .2, fill = 12) + 
+  geom_line(aes(y = exp(.fitted)), 
+            col=4, lwd=1.2) +
+  xlab("Time") + ylim(0,700) +
+  ylab("International passengers") 
+
+g2_log_ci
+```
+]]
+
+.right-plot[
+```{r , eval= TRUE, echo=FALSE, fig.dim=c(6,4), out.width="100%"}
+g2_log_ci
 ```
 
-- Bingo!
+]
+
+---
+
+## Model 2: log-transformed $y$ - **confidence** and **prediction** intervals
+
+.left-code[
+.small[
+```{r eval=TRUE, echo=TRUE, fig.show="hide"}
+aug2_log_ci <- 
+  augment(lm2_log, AP, 
+          interval="confidence")
+
+g2_log_ci <- 
+  ggplot(aug2_log_ci) + 
+  aes(x = index, y = value, 
+      ymin = exp(.lower), 
+      ymax = exp(.upper)) + 
+  geom_point() + 
+  geom_ribbon(alpha = .2, fill = 12) + 
+  geom_line(aes(y = exp(.fitted)), 
+            col=4, lwd=1.2) +
+  xlab("Time") + ylim(0,700) +
+  ylab("International passengers") 
+
+aug2_log_pi <- 
+  augment(lm2_log, AP, 
+          interval="prediction")
+
+g2_log_ci + geom_ribbon(
+      data = aug2_log_pi, 
+      alpha = .3 ) 
+```
+]]
+
+.right-plot[
+```{r , eval= TRUE, echo=FALSE, fig.dim=c(6,4), out.width="100%"}
+g2_log_ci + geom_ribbon(
+      data = aug2_log_pi, 
+      alpha = .3 ) 
+
+```
+
+
+Better?
+]
+
+---
+
+## Model 2: log-transformed $y$ - residual diagnostics
+.left-plot[
+```{r echo=FALSE, fig.dim=c(6,4.9), out.width="100%"}
+par(mfrow=c(2,2), mar=c(4,4,2,2))
+plot(lm2_log)
+```
+]
+
+---
+
+## Comparison of models 1 and 2
+
+.pull-left[
+.center[
+#### Model 1: `y ~ x`
+
+```{r echo=FALSE, fig.dim=c(6,5), out.width="100%"}
+gAP + 
+  geom_smooth(method = lm, alpha = .3, fill = 12) +
+  ylim(0,700) +
+  geom_ribbon(data = aug1_pi,
+              aes(ymin = .lower, 
+                  ymax = .upper), 
+              alpha = .2) 
+```
+]]
+
+--
+
+.pull-right[
+.center[
+#### Model 2: `log(y) ~ x`
+
+```{r echo=FALSE, fig.dim=c(6,5), out.width="100%"}
+g2_log_ci + 
+  ylim(0,700) + 
+  geom_ribbon(
+      data = aug2_log_pi, 
+      alpha = .2 ) 
+```
+]]
+
+
+---
+
+## Comparison of models 1 and 2
+
+.pull-left[
+.center[
+#### Model 1: `y ~ x`
+
+```{r echo=FALSE, fig.dim=c(6,5), out.width="100%"}
+gAP + 
+  geom_smooth(method = lm, alpha = .3, fill = 12) +
+  ylim(0,700) +
+  geom_ribbon(data = aug1_pi,
+              aes(ymin = .lower, 
+                  ymax = .upper), 
+              alpha = .2) +
+  geom_line()
+```
+]]
+
+.pull-right[
+.center[
+#### Model 2: `log(y) ~ x`
+
+```{r echo=FALSE, fig.dim=c(6,5), out.width="100%"}
+g2_log_ci + 
+  ylim(0,700) + geom_ribbon(
+      data = aug2_log_pi, 
+      alpha = .2 ) +
+  geom_line()
+```
+]]
+
+
+--
+
+.center[
+Yes, the model of log $y$ is a better fit but we still haven't dealt with the residual correlation!
+]
+
+---
+
+## Model 2: log-transformed $y$ - correlogram of residuals
+.left-plot[
+.small[
+```{r fig.dim=c(8,6)}
+ggAcf(aug2_log_ci$.std.resid) + xlab("Lag (months)")
+```
+]]
+
+--
+
+.right-code[
+A strange pattern.
+
+Autocorrelation is:      
+- *positive* at lag≈1 month    
+- *negative* at lag≈6 months
+- *positive* at lag≈12 months
+- *negative* at lag≈18 months
+
+Thoughts?
+]
+
+
+---
+
+## Model 2: log-transformed $y$ - correlogram of residuals
+.left-plot[
+.small[
+```{r fig.dim=c(8,6)}
+ggAcf(aug2_log_ci$.std.resid) + xlab("Lag (months)")
+```
+]]
+
+.right-code[
+A strange pattern.
+
+Autocorrelation is:      
+- *positive* at lag≈1 month    
+- *negative* at lag≈6 months
+- *positive* at lag≈12 months
+- *negative* at lag≈18 months
+
+
+Thoughts?
+
+This looks like seasonality!
+
+]
+
+---
+
+## Model 3: log $y$ with seasonality
+.small[
+
+```{r eval = TRUE}
+lm3_log_s <- lm(log(value) ~ time + month, data=AP)
+summary(lm3_log_s) %>% coef %>% round(.,3)
+```
+
+]
+
+---
+
+## Model 3: log $y$ with seasonality - **confidence** and **prediction** intervals
+
+.left-code[
+.small[
+```{r eval=TRUE, echo=TRUE, fig.show="hide"}
+aug3_log_s_ci <- 
+  augment(lm3_log_s, AP, 
+          interval="confidence")
+
+aug3_log_s_pi <- 
+  augment(lm3_log_s, AP, 
+          interval="prediction")
+
+g3_log_s_ci_pi <- 
+  ggplot(aug3_log_s_ci) + 
+  aes(x = index, y = value, 
+      ymin = exp(.lower), 
+      ymax = exp(.upper)) + 
+  geom_ribbon(data = aug3_log_s_pi, 
+      alpha = .3 ) +
+  geom_ribbon(alpha = .2, fill = 12) + 
+  geom_line(aes(y = exp(.fitted)), 
+            col=4, lwd=1.2) +
+  geom_point() + 
+  xlab("Time") + 
+  ylab("International passengers") 
+
+
+g3_log_s_ci_pi
+```
+]]
+
+.right-plot[
+```{r , eval= TRUE, echo=FALSE, fig.dim=c(6,4), out.width="100%"}
+g3_log_s_ci_pi
+```
+]
+
+--
+
+Seasonality (by adding `month` as a predictor) has mopped up a lot of previously unmodelled variation.
+
+---
+
+## Model 3: log $y$ with seasonality - residual diagnostics
+
+.left-plot[
+```{r echo=FALSE, fig.dim=c(6,4.9), out.width="100%"}
+par(mfrow=c(2,2), mar=c(4,4,2,2))
+plot(lm3_log_s)
+```
+]
+
+--
+
+.right-code[
+
+Residuals are still a bit funky.
+
+]
+---
+
+## Model 3: log $y$ with seasonality - residuals versus time
+
+.left-plot[
+```{r echo=FALSE, fig.dim=c(6,4.9), out.width="100%"}
+augment(lm3_log_s, AP) %>% 
+  ggplot(aes(x=index, y=.std.resid)) + 
+  geom_hline(yintercept = 0, col=4) + xlab("Time") +
+  geom_point()+ geom_line() + geom_smooth(colour=7) 
+```
+]
+
+.right-code[
+
+Residuals are still a bit funky.
+
+]
+
+---
+
+## Model 3: log $y$ with seasonality - correlogram of residuals
+.left-plot[
+```{r echo=FALSE, fig.dim=c(6,4.9), out.width="100%"}
+augment(lm3_log_s) %>% select(.std.resid) %>% ggAcf() + ggtitle("")
+```
+]
+
+--
+
+.right-code[
+
+Residuals are still a bit funky.
+
+Still plenty of autocorrelation!
+
+This is not going to be improved by including a quadratic term (try this yourself as an exercise). 
+
+Instead, we can fit an auto-regressive term.
+
+]
+
+---
+
+## Model 4: log $y$ with seasonality and autoregression
+
+This is a rather crude way of fitting this model. Here, we're just trying to demonstrate the concepts. In practice, there are better tools for fitting autoregression and other time series models.
+
+```{r,eval=TRUE}
+AP_lag <- AP %>% 
+  mutate( log.value = value %>% log) %>%
+  mutate( log.value.lag1 = zlag(log.value) ) 
+
+AP_lag
+
+lm4_log_s_AR <- lm(log(value) ~ time + month + log.value.lag1, data = AP_lag)
+
+summary(lm4_log_s_AR) %>% coef %>% round(.,3)
+```
+
+
+---
+
+## Model 4: log $y$ with seasonality and autoregression
+
+.left-code[
+```{r eval=TRUE, echo=TRUE, fig.show="hide"}
+aug4_log_s_AR_ci <- augment(
+  lm4_log_s_AR, 
+  dplyr::filter(AP_lag, !is.na(log.value.lag1)),
+  interval="confidence")
+
+aug4_log_s_AR_pi <- augment(
+  lm4_log_s_AR, 
+  dplyr::filter(AP_lag, !is.na(log.value.lag1)),
+  interval="prediction")
+
+g4 <- ggplot(aug4_log_s_AR_ci) + 
+  aes(x = index, y = value, 
+      ymin = exp(.lower), 
+      ymax = exp(.upper)) + 
+  geom_ribbon(data = aug4_log_s_AR_pi, 
+      alpha = .3 ) +
+  geom_ribbon(alpha = .2, fill = 12) + 
+  geom_line(aes(y = exp(.fitted)), 
+            col=4, lwd=1.2) +
+  geom_point() + xlab("Time") + 
+  ylab("International passengers") 
+
+g4
+
+```
+]
+
+.right-plot[
+```{r echo=FALSE, fig.dim = c(6,4.5), out.width="100%" }
+g4
+```
+
+]
+
+---
+
+## Comparison of models 3 and 4
+
+.pull-left[
+```{r echo=FALSE, out.width="110%"}
+g3_log_s_ci_pi + 
+  ggtitle("Model 3: log y ~ time + season")
+```
+
+]
+
+
+.pull-right[
+```{r echo=FALSE, out.width="110%"}
+g4 + 
+  ggtitle("Model 4: log y ~ time + season + ar1")
+```
+
+]
+
+---
+
+## Model 4: log $y$ with seasonality and autoregression - correlogram
+
+.left-plot[
+```{r echo=FALSE, fig.dim=c(6,4.9), out.width="100%"}
+augment(lm4_log_s_AR) %>% select(.std.resid) %>% ggAcf() + ggtitle("")
+```
+]
+
+--
+
+.right-code[
+Bingo!
+
+No more unmodelled autocorrelation.
+
+Remember though, there are more sophisticated methods for modelling time series. 
+
+]
+
+
+---
+
+## A useful function for time series objects: `decompose()`
+.left-code[
+```{r echo=TRUE, eval= FALSE}
+AirPassengers %>%
+  log %>%
+  decompose %>% 
+  autoplot
+```
+]
+
+.right-plot[
+```{r echo=FALSE, eval= TRUE, fig.dim=c(6,4.9), out.width="100%" }
+AirPassengers %>%
+  log %>%
+  decompose %>% 
+  autoplot
+```
+
+]
+
+---
 
 ## Summary
 
