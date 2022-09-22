@@ -52,7 +52,7 @@ read_rnzb <- function(file, skippy = 0) {
   clean_names
 }
 
-housing <- read_rnzb("data/hm10.xlsx")
+housing <- read_rnzb("data/rbnz/hm10.xlsx")
 
 ```
 
