@@ -32,7 +32,7 @@ We'll start by taking a look at the `marketing` dataset from `datarium` package.
     library(tidyverse)
     library(datarium)
     data('marketing')
-    marketing <- marketing %>% tibble()
+    marketing <- marketing |> tibble()
     marketing
     ```
 
@@ -51,7 +51,7 @@ We'll start by taking a look at the `marketing` dataset from `datarium` package.
 3. Now let's compute the correlation between the sales units and Youtube advertising budget by `summarise()` with the R function `cor()`. *What kind of information does the correlation coefficient convey to us?* 
 
     ```{r}
-    marketing %>% summarise(correlation=cor(youtube,sales))
+    marketing |> summarise(correlation=cor(youtube,sales))
     ```
 
     **Answer:** 0.782 indicates a Strong positive linear correlation! Recall that the correlation coefficient quantifies the *linear* relationship between two variables. 
@@ -62,14 +62,14 @@ We'll start by taking a look at the `marketing` dataset from `datarium` package.
     ggplot(marketing, aes(x = facebook, y = sales)) +
       geom_point() +
       geom_smooth()
-     marketing %>% summarise(correlation=cor(facebook,sales))
+     marketing |> summarise(correlation=cor(facebook,sales))
     ```
 
     ```{r}
     ggplot(marketing, aes(x = newspaper, y = sales)) +
       geom_point() +
       geom_smooth()
-    marketing %>% summarise(correlation=cor(newspaper,sales))
+    marketing |> summarise(correlation=cor(newspaper,sales))
     ```
 
 5. *Which variable do you think shows the* **strongest** *relationship with the sales? What criteria are you using to determine this? You might want to add a sentence or two to your notebook about this.*
@@ -138,14 +138,14 @@ where $a$ is the **intercept**, and $b$ is the **slope** of the relationship. We
     ```{r}
     ab <- coef(lm.youtube)
     ab
-    marketing.fitted <- marketing %>% mutate(fitted = ab[1] + ab[2]*youtube) 
+    marketing.fitted <- marketing |> mutate(fitted = ab[1] + ab[2]*youtube) 
     marketing.fitted
     ```
 
     Alternatively, an easy way to get all fitted values is to use `fitted.values()`.
   
     ```{r}
-    marketing %>% mutate(fitted = fitted.values(lm.youtube))
+    marketing |> mutate(fitted = fitted.values(lm.youtube))
     ```
 
 4. Since $y$(`sales`) is a random variable and the fitted line only captures the relationship between $mean[y]$ and $x$(youtube). You may want to measure the deviation of $y$ from the regression line, i.e. the magnitude of the points scattering around the line. We rewrite our model $mean[y]=a+bx$ in a more detailed manner as
@@ -172,20 +172,20 @@ $$
     You can directly calculate all $e_i$ using the fitted values and observed `sales` and then integrate them with `marketing.fitted` as
     
     ```{r}
-    marketing.fitted.res <-  marketing.fitted %>% mutate(res = sales - fitted) 
+    marketing.fitted.res <-  marketing.fitted |> mutate(res = sales - fitted) 
     marketing.fitted.res
     ```
 
     Unsurprisingly, we also have an easy way to get all residuals. That is to use `residuals()`.
     
     ```{r}
-    marketing.fitted %>% mutate(res = residuals(lm.youtube)) 
+    marketing.fitted |> mutate(res = residuals(lm.youtube)) 
     ```
 
     We can compute the mean of the residuals as follows
 
     ```{r}
-    marketing.fitted.res %>% summarise(mean.res=mean(res))
+    marketing.fitted.res |> summarise(mean.res=mean(res))
     ```
 
     *Compare the mean with zero and discuss your findings.*
@@ -195,8 +195,8 @@ $$
 5. We further compute the variance of the response variable `sales`($y$) amd the variance of residuals `res`($e$). 
 
     ```{r}
-      marketing.fitted.res %>% summarise(var.sales=var(sales))
-      marketing.fitted.res %>% summarise(var.res=var(res))
+      marketing.fitted.res |> summarise(var.sales=var(sales))
+      marketing.fitted.res |> summarise(var.res=var(res))
     ```
 
     *Compare the two variance you calculated. Have a think about the result.*
@@ -206,7 +206,7 @@ $$
 6. The last step is to compute the correlation between of fitted values $\hat y_i$ with the residuals $e$. 
 
     ```{r}
-      marketing.fitted.res %>% summarise(cor.fitted.res=cor(fitted,res))
+      marketing.fitted.res |> summarise(cor.fitted.res=cor(fitted,res))
     ```
 
     *Compare the correlation coefficient with zero and discuss your findings.*
@@ -221,16 +221,16 @@ $$
     coef(lm.facebook)
     ab <- coef(lm.facebook)
     ab
-    facebook.fitted <- marketing %>% mutate(fitted = ab[1] + ab[2]*facebook) 
+    facebook.fitted <- marketing |> mutate(fitted = ab[1] + ab[2]*facebook) 
     facebook.fitted
-    marketing %>% mutate(fitted = fitted.values(lm.facebook))
-    facebook.fitted.res <-  facebook.fitted %>% mutate(res = sales - fitted) 
+    marketing |> mutate(fitted = fitted.values(lm.facebook))
+    facebook.fitted.res <-  facebook.fitted |> mutate(res = sales - fitted) 
     facebook.fitted.res
-    facebook.fitted %>% mutate(res = residuals(lm.facebook))
-    facebook.fitted.res %>% summarise(mean.res=mean(res))
-    facebook.fitted.res %>% summarise(var.sales=var(sales))
-    facebook.fitted.res %>% summarise(var.res=var(res))
-    facebook.fitted.res %>% summarise(cor.fitted.res=cor(fitted,res))
+    facebook.fitted |> mutate(res = residuals(lm.facebook))
+    facebook.fitted.res |> summarise(mean.res=mean(res))
+    facebook.fitted.res |> summarise(var.sales=var(sales))
+    facebook.fitted.res |> summarise(var.res=var(res))
+    facebook.fitted.res |> summarise(cor.fitted.res=cor(fitted,res))
     ```
 
     *Try to fit another linear model to `sales` ($y$) and `newspaper` ($x$). Redo Step 1-6. Discuss your findings.*
@@ -240,16 +240,16 @@ $$
     coef(lm.newspaper)
     ab <- coef(lm.newspaper)
     ab
-    newspaper.fitted <- marketing %>% mutate(fitted = ab[1] + ab[2]*newspaper) 
+    newspaper.fitted <- marketing |> mutate(fitted = ab[1] + ab[2]*newspaper) 
     newspaper.fitted
-    marketing %>% mutate(fitted = fitted.values(lm.newspaper))
-    newspaper.fitted.res <-  newspaper.fitted %>% mutate(res = sales - fitted) 
+    marketing |> mutate(fitted = fitted.values(lm.newspaper))
+    newspaper.fitted.res <-  newspaper.fitted |> mutate(res = sales - fitted) 
     newspaper.fitted.res
-    newspaper.fitted %>% mutate(res = residuals(lm.newspaper))
-    newspaper.fitted.res %>% summarise(mean.res=mean(res))
-    newspaper.fitted.res %>% summarise(var.sales=var(sales))
-    newspaper.fitted.res %>% summarise(var.res=var(res))
-    newspaper.fitted.res %>% summarise(cor.fitted.res=cor(fitted,res))
+    newspaper.fitted |> mutate(res = residuals(lm.newspaper))
+    newspaper.fitted.res |> summarise(mean.res=mean(res))
+    newspaper.fitted.res |> summarise(var.sales=var(sales))
+    newspaper.fitted.res |> summarise(var.res=var(res))
+    newspaper.fitted.res |> summarise(cor.fitted.res=cor(fitted,res))
     ```
 
     **Answer:** Means of residuals are all zero. Correlations of residuals and fitted values are all zero. All models achieve reductions of variability in *y*.
@@ -259,7 +259,7 @@ $$
     **Answer:** You should find that `lm.facebook` has the largest slope. But the correlation between `sales` and `facebook` is smaller than that between between `sales` and `youtube`. Actually, if we check the range of each variable as follows, we shall notice that the budget on `facebook` is much smaller than the budget on `youtube`.
     
     ```{r}
-    marketing %>% summarise(across(everything(),range))
+    marketing |> summarise(across(everything(),range))
     ```
     
 8. `coef()` extracts the coefficients from the fitted linear model but this piece of information is also delivered in Step 1. The `summary()` provides us a more detailed table on the fitted linear model. *Try identify the coefficients $a$ and $b$ from the following output of `summary()`.*
@@ -280,7 +280,7 @@ $$
     *With the tidy tibble `augment(lm.youtube)`, create a scatter plot displaying the residuals versus the fitted values. Could you identify any pattern from this plot?*
 
     ```{r}
-    augment(lm.youtube) %>% ggplot(aes(x=.fitted,y=.resid)) + 
+    augment(lm.youtube) |> ggplot(aes(x=.fitted,y=.resid)) + 
       geom_point() + geom_smooth()
     ```
 

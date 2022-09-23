@@ -42,8 +42,8 @@ The response is `WeaningWeight` and the rest variables in this data set are cova
 The following R code chunk loads the data set and deletes the rows with NA values. 
 
 ```{r}
-weaning <- read_csv("https://www.massey.ac.nz/~jcmarsha/161122/data/weaning.csv") %>%
-  drop_na() %>% select(-EweTag,-LambTag)
+weaning <- read_csv("https://www.massey.ac.nz/~jcmarsha/161122/data/weaning.csv") |>
+  drop_na() |> select(-EweTag,-LambTag)
 weaning
 ```
 
@@ -63,13 +63,13 @@ ggpairs(weaning)
 1. The data set `weaning` contains many categorical variables. A categorical variable actually divides the subjects in our study (cute lambs!) into separate groups. For example, `Sex` splits lambs into two groups `Ewe` and `Ram`. We can investigate the difference of two groups via `group_by()` and `summarise()` as follows.
 
     ```{r}
-    weaning %>% group_by(Sex) %>% summarise(mean.ww.sex=mean(WeaningWeight))
+    weaning |> group_by(Sex) |> summarise(mean.ww.sex=mean(WeaningWeight))
     ```
 
     The boxplots can of course provide us more details.
 
     ```{r}
-    weaning %>% ggplot(aes(y=WeaningWeight,x=Sex)) + geom_boxplot() + ggtitle('Will Rams be heavier than Ewes?')
+    weaning |> ggplot(aes(y=WeaningWeight,x=Sex)) + geom_boxplot() + ggtitle('Will Rams be heavier than Ewes?')
     ```
 
 2. Even if `Sex` is a categorical variable, we can still fit a linear model with `Sex` as a predictor by `lm()` as follows
@@ -100,7 +100,7 @@ ggpairs(weaning)
     `lm()` won't be able to compute the regression coefficient with the characters `Ewe` or `Ram`. It turns `Ewe` or `Ram` into 0 or 1, respectively, and further computes the regression coefficients. We can mimick this process in `lm()` as 
     
     ```{r}
-    weaning.dummy <- weaning %>% mutate(SexRam.dummy=as.numeric(Sex=='Ram'))
+    weaning.dummy <- weaning |> mutate(SexRam.dummy=as.numeric(Sex=='Ram'))
     weaning.dummy
     lm.sex.dummy <- lm(WeaningWeight~SexRam.dummy,data=weaning.dummy)
     summary(lm.sex.dummy)
@@ -126,8 +126,8 @@ ggpairs(weaning)
 3. We can further investigate the effect of `EweBodyConditionScore` on `WeaningWeight`. The groupwise means and boxplots are given as follows.
 
     ```{r}
-    weaning %>% group_by(EweBodyConditionScore) %>% summarise(mean.ww.bcs=mean(WeaningWeight))
-    weaning %>% ggplot(aes(y=WeaningWeight,x=factor(EweBodyConditionScore))) + geom_boxplot() + ggtitle('Stronger Ewes, Stronger Lambs?') + xlab('Body Condition Score')
+    weaning |> group_by(EweBodyConditionScore) |> summarise(mean.ww.bcs=mean(WeaningWeight))
+    weaning |> ggplot(aes(y=WeaningWeight,x=factor(EweBodyConditionScore))) + geom_boxplot() + ggtitle('Stronger Ewes, Stronger Lambs?') + xlab('Body Condition Score')
     ```
 
     **Sidenote**: One shall notice that the body condition scores of mother ewes, `EweBCS`, can be treated as either qualitative or quantitative variables. In fact, such categorical variable with a natural ordering is called an **ordinal** variable. The other categorical variables without an ordering are **nominal** variables. Nevertheless, we will ignore the order in `EweBCS` and treat it as a nominal categorical variable.
@@ -142,7 +142,7 @@ ggpairs(weaning)
     You may feel that the above model looks more concise. But how can we interpret the regression coefficient of `EweBodyConditionScore`. A unit change in the body condition score looks peculier as these scores are some subjective grades. The difference between 2.5 and 3 may not be the same as the difference between 2 and 2.5. Therefore, a more safe choice is to turn `EweBodyConditionScore` to a nominal variable `EweBCS` as follows.
     
     ```{r}
-    weaning <- weaning %>% mutate(EweBCS=factor(EweBodyConditionScore))
+    weaning <- weaning |> mutate(EweBCS=factor(EweBodyConditionScore))
     lm.bcs.nominal <- lm(WeaningWeight~EweBCS,data=weaning)
     summary(lm.bcs.nominal)
     ```
@@ -182,7 +182,7 @@ ggpairs(weaning)
     Let's peek under the hood. Using the `model.matrix()` function on our fitted linear model object, we can get the covariates that underlies our regression. Here are the first 20 rows.
 
     ```{r}
-    model.matrix(lm.bcs.nominal) %>% as_tibble()
+    model.matrix(lm.bcs.nominal) |> as_tibble()
     ```
 
     Even though we think of the regression `WeaningWeight ~ EweBCS` as being a regression on one (factor) variable (and an intercept), it's actually a regression on two variables (and an intercept).  This is because the `EweBCS` variable gets represented as two dummy variables: one for `EweBCS == 2.5` and the other for `EweBCS == 3`. The above tibble contains essentially the dummy variables with an additional column for estimating the intercept. 
@@ -237,7 +237,7 @@ We have found that there is an effect of `Sex` on `WeaningWeight`, with `Ram` ge
     We can further make boxplots of `WeaningWeight` versus `Sex` and `EweBCS` as 
     
     ```{r}
-    weaning %>% ggplot(aes(y=WeaningWeight,x=EweBCS,filling=Sex,color=Sex)) + geom_boxplot()
+    weaning |> ggplot(aes(y=WeaningWeight,x=EweBCS,filling=Sex,color=Sex)) + geom_boxplot()
     ```
     
     *Can you answer the above question given the table of counts and boxplots.*
@@ -374,7 +374,7 @@ We have found that there is an effect of `Sex` on `WeaningWeight`, with `Ram` ge
 Our data set also contains a numerical variable `DateOfBirth`. The following scatter plot of `DateofBirth` suggests that there is a decreasing relationship between `WeaningWeight` and `DateOfBirth`. We can certainly add this numerical covariate into our linear model for a better goodness of fit. 
   
 ```{r}
-weaning %>% ggplot(aes(y=WeaningWeight,x=DateOfBirth)) + geom_point(col='red',alpha=0.3) +
+weaning |> ggplot(aes(y=WeaningWeight,x=DateOfBirth)) + geom_point(col='red',alpha=0.3) +
       geom_smooth(col='blue') + ggtitle('Birthday affects fatness?')
 ```
 
@@ -411,7 +411,7 @@ $$
 2. We can produce a similar plot by using the `geom_smooth()` function in `ggplot2`. Compare the plot above to the following one.
 
     ```{r}
-    weaning %>% ggplot(aes(x = DateOfBirth, y = WeaningWeight, color = Sex)) + geom_point() +
+    weaning |> ggplot(aes(x = DateOfBirth, y = WeaningWeight, color = Sex)) + geom_point() +
   geom_smooth(method = "lm", fullrange = TRUE)
     ```
 
@@ -470,7 +470,7 @@ $$
     **Answer**: First of all, let's try to fit a full model (with all covariates). This can be done with the formula `WeaningWeight ~.`.
     
     ```{r}
-    weaning <- weaning %>% select(-EweBodyConditionScore)
+    weaning <- weaning |> select(-EweBodyConditionScore)
     lm.all<- lm(WeaningWeight ~., data = weaning)
     anova(lm.all)
     summary(lm.all)

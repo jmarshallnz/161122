@@ -34,7 +34,7 @@ The following R chunk generates the desired sequences of `x`, `e` and `y` and or
     set.seed(2020)
     n <- 10
     ab <- c(1,1)
-    demo <- tibble(x=1:n,e=rnorm(n)) %>% mutate(y=ab[1]+ab[2]*x+e)
+    demo <- tibble(x=1:n,e=rnorm(n)) |> mutate(y=ab[1]+ab[2]*x+e)
     demo
 ```
 
@@ -47,7 +47,7 @@ The R function `rnorm(n)` generates a sample of the standard normal random varia
 1. Our simulated `x` and `y` in `demo` are ready now. Let's make a scatter plot of `y` against `x` with the true line $y=1+x$.
 
     ```{r}
-    demo %>% ggplot(aes(x=x,y=y)) + 
+    demo |> ggplot(aes(x=x,y=y)) + 
       geom_point() +
       geom_abline(intercept=ab[1],slope=ab[2]) +
       ylim(0,12) +
@@ -65,7 +65,7 @@ The R function `rnorm(n)` generates a sample of the standard normal random varia
     ```{r}
       lm.demo <- lm(y~x,data=demo)
       lm.demo
-      tibble(ab.fitted=coef(lm.demo),ab.true=ab) %>% mutate(difference = ab.fitted - ab)
+      tibble(ab.fitted=coef(lm.demo),ab.true=ab) |> mutate(difference = ab.fitted - ab)
     ```
 
     We further retrieve the coefficients from the fitted linear model via `coef()` and compare these coefficients with the true values ($a=b=1$) by computing their differences. 
@@ -91,7 +91,7 @@ Investigate the mean and variance of the residuals via `summarise()`.
     ```{r}
       library(broom)
       lm.demo.fit <- augment(lm.demo)
-      lm.demo.fit %>% summarise(mean.res=(mean(.resid)),var.res=var(.resid))
+      lm.demo.fit |> summarise(mean.res=(mean(.resid)),var.res=var(.resid))
     ```
     *Compare `mean.res` and `mean.res` with the true mean and variance of `e`. Do you find anything?*
     
@@ -100,7 +100,7 @@ Investigate the mean and variance of the residuals via `summarise()`.
 5. After adding the true random error `e` to our tibble `lm.demo.fit` by joining `lm.demo.fit` with `demo`, let's make a scatter plot of the residuals against the true random errors `e`. 
 
     ```{r}
-      lm.demo.fit %>% left_join(demo) %>% ggplot(aes(x=e,y=.resid)) + 
+      lm.demo.fit |> left_join(demo) |> ggplot(aes(x=e,y=.resid)) + 
         geom_point() +
         xlim(-3,3) +
         ylim(-3,3)
@@ -129,7 +129,7 @@ Investigate the mean and variance of the residuals via `summarise()`.
     set.seed(2021)
     n <- 10
     ab <- c(1,1)
-    demo2 <- tibble(x=1:n,e=rnorm(n)) %>% mutate(y=ab[1]+ab[2]*x+e)
+    demo2 <- tibble(x=1:n,e=rnorm(n)) |> mutate(y=ab[1]+ab[2]*x+e)
     ```
 
     **Answer:** Simply copy & paste the code. Will get some different results but won't be anything really amazing. 
@@ -140,7 +140,7 @@ Investigate the mean and variance of the residuals via `summarise()`.
     set.seed(2020)
     n <- 50
     ab <- c(1,1)
-    demo3 <- tibble(x=1:n,e=rnorm(n)) %>% mutate(y=ab[1]+ab[2]*x+e)
+    demo3 <- tibble(x=1:n,e=rnorm(n)) |> mutate(y=ab[1]+ab[2]*x+e)
     ```
 
     **Answer:** Simply copy & paste the code. We can expect better estimation results with more data. The differences between estimates and true values, and corresponding `Std.Error`s shall decrease. 
@@ -232,7 +232,7 @@ where 0.0475 is from `Estimate` and 0.0027 is from `Std. Error`. The multiple 2 
 
     ```{r}
     library(broom)
-    augment(lm.youtube) %>% summarise(ratio.var = var(.resid)/var(sales))
+    augment(lm.youtube) |> summarise(ratio.var = var(.resid)/var(sales))
     ```
 
     *Compare this ratio with the `Multiple R-squared:`($R^2$) value (at the bottom of the summary output) by summing them together.*

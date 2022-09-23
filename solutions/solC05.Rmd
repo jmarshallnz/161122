@@ -30,7 +30,7 @@ Load the package `datarium` and the data `marketing`. We further turn the data s
 ```{r}
 library(datarium)
 data(`marketing`)
-marketing <- marketing %>% tibble()
+marketing <- marketing |> tibble()
 marketing
 ```
 
@@ -156,7 +156,7 @@ An tricky fact is that $R^2$ will always be improved no matter what covariate is
 
     ```{r}
     set.seed(2020)
-    marketing.sim <- marketing %>% mutate(noise=rnorm(200))
+    marketing.sim <- marketing |> mutate(noise=rnorm(200))
     ```
     
     This additional variable (`noise`) is simulated from an exponential distribution. Of course, `noise` does not contribute any information to `sales`. But let us add in it to `lm()` and produce a model summary as follows
@@ -273,7 +273,7 @@ In this exercise, we will study this critical issue arising from many real data 
     ```{r}
     set.seed(2021)
     n <- 20
-    demo  <- tibble(x1=1:n,x2=sample(1:n),e=rnorm(n)) %>% mutate(y=0.5*x1+0.5*x2+e) 
+    demo  <- tibble(x1=1:n,x2=sample(1:n),e=rnorm(n)) |> mutate(y=0.5*x1+0.5*x2+e) 
     demo
     ```
     
@@ -287,7 +287,7 @@ In this exercise, we will study this critical issue arising from many real data 
 
 
     ```{r}
-    demo.e.collin  <- demo %>% mutate(x3=x1+x2) 
+    demo.e.collin  <- demo |> mutate(x3=x1+x2) 
     demo.e.collin
     ```
 
@@ -334,7 +334,7 @@ In this exercise, we will study this critical issue arising from many real data 
 
     ```{r}
     set.seed(2022)
-    demo.collin  <- demo %>% mutate(x3.r=x1+x2+rnorm(n,sd=0.01)) 
+    demo.collin  <- demo |> mutate(x3.r=x1+x2+rnorm(n,sd=0.01)) 
     demo.collin
     ```
     
@@ -359,7 +359,7 @@ In this exercise, we will study this critical issue arising from many real data 
 
     ```{r}
     library(GGally)
-    demo.collin %>% select(-e) %>% ggpairs()
+    demo.collin |> select(-e) |> ggpairs()
     ```
     
     The diagonal of the pairs plot dispicts the densities of corresponding variables in the data set. The lower triangle collects the scatter plots of different pairs of variables and the upper triangle summarise the corresponding correlation coefficients. The pairs plot provides us an efficient way to visualise a multivariable data set.

@@ -31,7 +31,7 @@ We'll start by taking a look at the `marketing` dataset from `datarium` package.
     library(tidyverse)
     library(datarium)
     data('marketing')
-    marketing <- marketing %>% tibble()
+    marketing <- marketing |> tibble()
     marketing
     ```
 
@@ -48,7 +48,7 @@ We'll start by taking a look at the `marketing` dataset from `datarium` package.
 3. Now let's compute the correlation between the sales units and Youtube advertising budget by `summarise()` with the R function `cor()`. *What kind of information does the correlation coefficient convey to us?* 
 
     ```{r}
-    marketing %>% summarise(correlation=cor(youtube,sales))
+    marketing |> summarise(correlation=cor(youtube,sales))
     ```
 
 4. *Now try adding further code blocks that produce plots of the sales units versus Facebook and newspaper with smoothed curve and compute the corresponding correlation coefficients. You might want to try customising the plot a bit as well - remember you can change colour by adding `colour='red'` inside the `geom_point` part.*
@@ -103,14 +103,14 @@ where $a$ is the **intercept**, and $b$ is the **slope** of the relationship. We
     ```{r}
     ab <- coef(lm.youtube)
     ab
-    marketing.fitted <- marketing %>% mutate(fitted = ab[1] + ab[2]*youtube) 
+    marketing.fitted <- marketing |> mutate(fitted = ab[1] + ab[2]*youtube) 
     marketing.fitted
     ```
 
     Alternatively, an easy way to get all fitted values is to use `fitted.values()`.
   
     ```{r}
-    marketing %>% mutate(fitted = fitted.values(lm.youtube))
+    marketing |> mutate(fitted = fitted.values(lm.youtube))
     ```
 
 4. Since $y$(`sales`) is a random variable and the fitted line only captures the relationship between $mean[y]$ and $x$(youtube). You may want to measure the deviation of $y$ from the regression line, i.e. the magnitude of the points scattering around the line. We rewrite our model $mean[y]=a+bx$ in a more detailed manner as
@@ -137,20 +137,20 @@ e_i=y_i-(a+bx_i)=y_i-\hat y_i.
     You can directly calculate all $e_i$ using the fitted values and observed `sales` and then integrate them with `marketing.fitted` as
     
     ```{r}
-    marketing.fitted.res <-  marketing.fitted %>% mutate(res = sales - fitted) 
+    marketing.fitted.res <-  marketing.fitted |> mutate(res = sales - fitted) 
     marketing.fitted.res
     ```
 
     Unsurprisingly, we also have an easy way to get all residuals. That is to use `residuals()`.
     
     ```{r}
-    marketing.fitted %>% mutate(res = residuals(lm.youtube)) 
+    marketing.fitted |> mutate(res = residuals(lm.youtube)) 
     ```
 
     We can compute the mean of the residuals as follows
 
     ```{r}
-    marketing.fitted.res %>% summarise(mean.res=mean(res))
+    marketing.fitted.res |> summarise(mean.res=mean(res))
     ```
 
     *Compare the mean with zero and discuss your findings.*
@@ -158,8 +158,8 @@ e_i=y_i-(a+bx_i)=y_i-\hat y_i.
 5. We further compute the variance of the response variable `sales`($y$) with the variance of residuals `res`($e$). 
 
     ```{r}
-      marketing.fitted.res %>% summarise(var.sales=var(sales))
-      marketing.fitted.res %>% summarise(var.res=var(res))
+      marketing.fitted.res |> summarise(var.sales=var(sales))
+      marketing.fitted.res |> summarise(var.res=var(res))
     ```
 
     *Compare the two variance you calculated. Have a think about the result.*
@@ -167,7 +167,7 @@ e_i=y_i-(a+bx_i)=y_i-\hat y_i.
 6. The last step is to compute the correlation between of fitted values $\hat y_i$ with the residuals $e$. 
 
     ```{r}
-      marketing.fitted.res %>% summarise(cor.fitted.res=cor(fitted,res))
+      marketing.fitted.res |> summarise(cor.fitted.res=cor(fitted,res))
     ```
 
     *Compare the correlation coefficient with zero and discuss your findings.*

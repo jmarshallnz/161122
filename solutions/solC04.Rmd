@@ -64,14 +64,14 @@ housing
 2. Let's make a scatter-line plot of house price index over time. You may customise it a bit to get a better appearance. 
 
 ```{r}
-housing %>% ggplot(aes(x=date,y=index)) + geom_point() + geom_line() +
+housing |> ggplot(aes(x=date,y=index)) + geom_point() + geom_line() +
   xlab('Time') + ylab('House Price Index') + ggtitle('Will Kiwi afford the house price?')
 ```
 
 
 The warning message `Removed 1 rows containing missing values (geom_point).` in your HTML reminds you that there is an `NA` value in our data. Let's remove this NA value from the tibble via `drop_na()` as
 ```{r}
-housing <- housing %>% drop_na()
+housing <- housing |> drop_na()
 ```
 
 We can see clearly over the last three decades HPI was increasing in most years. There are a few exceptions, i.e., around 1998, 2008, 2011. *What happened in these years?*
@@ -87,21 +87,21 @@ What will happen in the next decade with the shock of COVID-19? Will the house p
 **Answer**:
 
 ```{r}
-housing %>% ggplot(aes(x=date,y=number)) + geom_point() + geom_line() +
+housing |> ggplot(aes(x=date,y=number)) + geom_point() + geom_line() +
   xlab('Time') + ylab('Number of House Sales') + ggtitle('How many houses are sold in the past years?')
 ```
 
 No clear trend or seasonality can be observed here. But the pattern can be linked to HPI. When the house price is increasing, the number of house sales tends to be high. However, when the house price is fatten, the number of house sales tends to be low. One can also expect the internal correlation between successive numbers given the frequent short term movements in this time series (increasing or decreasing within several successive quarters).
 
 ```{r}
-housing %>% ggplot(aes(x=date,y=m)) + geom_point() + geom_line() +
+housing |> ggplot(aes(x=date,y=m)) + geom_point() + geom_line() +
   xlab('Time') + ylab('Total Value of Housing Stock') + ggtitle('Is housing market always prospering?')
 ```
 
 Almost same features as we can see from HPI. Just notice that the total value of housing stock can be roughly calculated by the average house price times the total number of houses. The newly built houses make the depression caused by the Asian Financial crisis in 1997 and the 2011 Christchurch earthquake less obvious. 
 
 ```{r}
-housing %>% ggplot(aes(x=date,y=real_m)) + geom_point() + geom_line() +
+housing |> ggplot(aes(x=date,y=real_m)) + geom_point() + geom_line() +
   xlab('Time') + ylab('Residential Investment') + ggtitle('
 Residential Investment Opportunity!')
 ```
@@ -122,7 +122,7 @@ Moreover, if the underlying trend looks linear, a simple linear model like `y~t`
 Anyway, let's try it on HPI! Before fitting our linear model, it is necessary to expand our tibble by adding the time indices $1,2,3,...$ as follows.
 
 ```{r}
-housing.ts <- housing %>% mutate(time=1:n())
+housing.ts <- housing |> mutate(time=1:n())
 housing.ts
 ```
 
@@ -192,7 +192,7 @@ We can find an additional row in `Coefficients:` as `I(time^2)`. There is the es
 Visualising this model can be done with `visreg()` in the usual way, but let's use the `broom` library instead to do it here:
 
 ```{r}
-augment(hpi.qm) %>% ggplot(aes(x = time ,y=index)) + geom_point() + geom_line() +
+augment(hpi.qm) |> ggplot(aes(x = time ,y=index)) + geom_point() + geom_line() +
         geom_line(aes(y=.fitted),col='red') + xlab('Time Index') + ylab('House Price Index')
 ```
 
@@ -201,7 +201,7 @@ You may add the confidence band or prediction band by following Exercise 1 in La
 Sometimes people prefer making a plot in the calendar time rather than in the time index. This can be done easily by using `broom` as follows. Notice that we add the original data set `housing.ts` into `augment()` and change `x = time` to `x = date` in `ggplot()`. This is very handy in many cases especially you are fitting a linear model with transformation. 
 
 ```{r}
-augment(hpi.qm,housing.ts) %>% ggplot(aes(x = date ,y=index)) + geom_point() + geom_line() +
+augment(hpi.qm,housing.ts) |> ggplot(aes(x = date ,y=index)) + geom_point() + geom_line() +
         geom_line(aes(y=.fitted),col='red') + xlab('Time') + ylab('House Price Index')
 ```
 
@@ -273,9 +273,9 @@ How can we make use of the seasonal effects? We will start by exploring the data
 
 ```{r}
 consumption <- read_csv("https://www.massey.ac.nz/~jcmarsha/161122/data/consumption.csv")
-retail.trade.sales <- consumption %>%
+retail.trade.sales <- consumption |>
   filter(date < ymd('2020-01-01'))
-retail.trade.sales %>%
+retail.trade.sales |>
   ggplot(aes(x=date,y=x_m)) + geom_point() + geom_line() + 
   xlab('Time') + ylab('Retail Trade Sales')
 ```
@@ -289,7 +289,7 @@ We can clearly see an increasing trend over these years in general. The regular 
 2. First of all, we can extract a linear trend from this time series as follows
 
 ```{r}
-rts.ts <- retail.trade.sales %>% mutate(time=1:n())
+rts.ts <- retail.trade.sales |> mutate(time=1:n())
 rts.lm <- lm(x_m~time,data=rts.ts)
 summary(rts.lm)
 ```
@@ -314,7 +314,7 @@ Except for Q-Q plot, rest diagnostic plots look really really weird! *Add a few 
 In addition to the above standard diagnostic plots, the **residuals versus time** plot is frequently used in the residual diagnostics of time series modelling as
 
 ```{r}
-augment(rts.lm) %>%
+augment(rts.lm) |>
   ggplot(aes(x=time,y=.resid)) + geom_point() + geom_line() +
   ggtitle('Residuals versus Time Index') + xlab('Time Index')
 ```
@@ -325,14 +325,14 @@ The pattern in the **residuals versus time** plot seems containing the informati
 
 ```{r}
 set.seed(2020)
-tibble(e=rnorm(100)) %>% summarise(acf1=cor(e[-1],e[-length(e)]))
+tibble(e=rnorm(100)) |> summarise(acf1=cor(e[-1],e[-length(e)]))
 ```
 
 We further make a box plot to compare the residuals over different quarters.
 Here we add the data set `rts.ts` to `augment()` to make sure that we have the access to the calendar time and we can get the corresponding quarter by `quarter()` from `lubridate()`. 
 
 ```{r}
-augment(rts.lm, rts.ts) %>% mutate(quarter=quarter(date)) %>%
+augment(rts.lm, rts.ts) |> mutate(quarter=quarter(date)) |>
   ggplot(aes(y=.resid,x=quarter)) + geom_boxplot(aes(group=quarter))
 ```
 
@@ -345,14 +345,14 @@ How can we extract the information on seasonality? A simple idea is to estimate 
 
 **Answer**:
 ```{r}
-augment(rts.lm, rts.ts) %>% mutate(quarter=quarter(date)) %>% group_by(quarter) %>% summarise(resid.mean=mean(.resid))
+augment(rts.lm, rts.ts) |> mutate(quarter=quarter(date)) |> group_by(quarter) |> summarise(resid.mean=mean(.resid))
 ```
 
 
 4. The above procedures seems work well but tedious. A surprising fact is that we can complete these jobs with one line by `lm()` as follows. The trick is that we must turn `quarter` into a factor (categorical, qualitative) variable via `factor()` and include it in the regression formula in `lm()`.
 
 ```{r}
-rts.ts.q <- rts.ts %>% mutate(quarter=factor(quarter(date))) 
+rts.ts.q <- rts.ts |> mutate(quarter=factor(quarter(date))) 
 rts.lm.q <- lm(x_m~time+quarter,data=rts.ts.q)
 summary(rts.lm.q)
 ```
@@ -373,7 +373,7 @@ More details on this strange issue after adding factor variables in the linear m
 
 Visualise our model with both linear trend and seasonal effects:
 ```{r}
-augment(rts.lm.q) %>% ggplot(aes(x = time ,y=x_m)) + geom_point() + geom_line(alpha=0.3) +
+augment(rts.lm.q) |> ggplot(aes(x = time ,y=x_m)) + geom_point() + geom_line(alpha=0.3) +
   geom_line(aes(y=.fitted),col='red') + xlab('Time Index') + ylab('Retail Trade Sales')
 ```
 
@@ -386,7 +386,7 @@ Now the fitted curve looks much more reasonable! *Do you think there is any room
 **Answer**: 
 ```{r}
 plot(rts.lm.q)
-augment(rts.lm.q) %>% ggplot(aes(x=time,y=.resid)) + geom_point()
+augment(rts.lm.q) |> ggplot(aes(x=time,y=.resid)) + geom_point()
 ```
 Not really good! Still have some obvious patterns in the residuals. None of the plots pass the diagonostics. Need some better models to address it.
 
@@ -409,11 +409,11 @@ By adding `newdata=newtime` in `augment()`, we can get the prediction immediatel
 *Compute the mean square errors of your prediction in 2020.*
 
 ```{r}
-rts.2020 <- consumption %>%
-  filter(date >= ymd('2020-01-01') & date <= ymd('2021-01-01') ) %>% 
+rts.2020 <- consumption |>
+  filter(date >= ymd('2020-01-01') & date <= ymd('2021-01-01') ) |> 
   cbind(augment(rts.lm.q,newdata=newtime)) 
 rts.2020
-rts.2020 %>% summarise(mse=mean((x_m-.fitted)^2))
+rts.2020 |> summarise(mse=mean((x_m-.fitted)^2))
 ```
 The predictions are not really good as the sales have been underestimated consistently. 
 
@@ -427,7 +427,7 @@ The predictions are not really good as the sales have been underestimated consis
 ```{r}
 rts.lm.q.log <- lm(log(x_m)~time+quarter,data=rts.ts.q)
 summary(rts.lm.q.log)
-augment(rts.lm.q.log,newdata=newtime) %>% mutate(.pred=exp(.fitted))
+augment(rts.lm.q.log,newdata=newtime) |> mutate(.pred=exp(.fitted))
 ```
 
 Predictions are much better! You can check residuals and visualisation accordingly. 
