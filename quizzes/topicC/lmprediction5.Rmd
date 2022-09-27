@@ -16,16 +16,16 @@ answer <- tibble(value = prediction,
                  x = newdata$x,
                 thing = paste("x=", x))
 
-possible_answers <- answer %>% pull(value)
+possible_answers <- answer |> pull(value)
 
-possible_questions <- answer %>% filter(x != 0)
+possible_questions <- answer |> filter(x != 0)
 
 which_question <- sample_n(possible_questions, 1)
 which_question
 
-solutions <- possible_answers == (which_question %>% pull(value))
+solutions <- possible_answers == (which_question |> pull(value))
 
-explanations <- paste0("That is at ", answer %>% pull(thing), ".")
+explanations <- paste0("That is at ", answer |> pull(thing), ".")
 
 ## permute order of solutions/questions
 Order <- sample(1:5)
@@ -43,7 +43,7 @@ A simple linear model is fitted to `x` and `y` and the R summary table is given 
 summary(m)
 ```
 
-Which one of the following values is the prediction at `r which_question %>% pull(thing)`?
+Which one of the following values is the prediction at `r which_question |> pull(thing)`?
 
 ```{r questionlist, echo = FALSE, results = "asis"}
 answerlist(possible_answers, markup = "markdown")

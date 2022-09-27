@@ -58,7 +58,7 @@ To replicate the analysis in R:
 # read in and look at the data
 library(tidyverse)
 d <- read_csv("regression2.csv")
-d %>% ggplot(aes(x=x,y=y)) + geom_point()
+d |> ggplot(aes(x=x,y=y)) + geom_point()
 
 # fit model
 m <- lm(y ~ x, data = d)

@@ -10,13 +10,13 @@ setup_options <- tibble::tribble(~linear, ~seasonal, ~transform, ~error,
                                  FALSE, FALSE, FALSE, 1/10,
                                  TRUE, TRUE, TRUE, 1/2)
 
-setup <- setup_options %>% sample_n(1)
+setup <- setup_options |> sample_n(1)
 
-lineartrend <- setup %>% pull(linear)
+lineartrend <- setup |> pull(linear)
 quadratictrend<-!lineartrend
-seasonality <- setup %>% pull(seasonal)
-transformation <- setup %>% pull(transform)
-error_rate <- setup %>% pull(error)
+seasonality <- setup |> pull(seasonal)
+transformation <- setup |> pull(transform)
+error_rate <- setup |> pull(error)
 
 trigger <- c(lineartrend,quadratictrend,seasonality,transformation)
 
@@ -32,7 +32,7 @@ d$y <- b * d$t + seasonalindex + rexp(T,error_rate)
 if(quadratictrend==TRUE)  d$y <- d$y + c * (d$t)^2 
 if(transformation==TRUE)  d$y <- exp(d$y/30)
 
-d <- d %>% mutate(s=paste0("S",rep(1:freq,T/freq)))
+d <- d |> mutate(s=paste0("S",rep(1:freq,T/freq)))
 
 write.csv(d, "timeseries.csv", row.names = FALSE, quote = FALSE)
 

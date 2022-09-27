@@ -62,7 +62,7 @@ library(tidyverse)
 library(broom)
 d <- read_csv("regression2.csv")
 m <- lm(y ~ x, data = d)
-tidy(m) %>%
+tidy(m) |>
   mutate(low = estimate - 2*std.error,
          high = estimate + 2*std.error)
 ```
@@ -70,7 +70,7 @@ tidy(m) %>%
 You should get:
 
 ```{r, echo=FALSE}
-broom::tidy(m) %>%
+broom::tidy(m) |>
   mutate(low = estimate - 2*std.error,
          high = estimate + 2*std.error)
 ```

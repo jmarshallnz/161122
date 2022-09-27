@@ -8,14 +8,14 @@ n <- 50
 baseline <- 5
 # Ensure data is balanced so order don't matter
 d <- expand.grid(Treat = c('Control', 'Treatment'),
-                 Sex = c('F', 'M'), n = n) %>%
+                 Sex = c('F', 'M'), n = n) |>
   uncount(n)
 
 Sex_effect <- sample(binary_choice,1)
 Treat_effect <- sample(binary_choice,1)
 Inter_effect <- sample(binary_choice,1)*sample(c(1,-1),1)*0.5
 
-d <- d %>% mutate(y = baseline + Sex_effect*(Sex=='M')+ Treat_effect*(Treat=='Treatment') +
+d <- d |> mutate(y = baseline + Sex_effect*(Sex=='M')+ Treat_effect*(Treat=='Treatment') +
  Inter_effect*(Sex=='M')*(Treat=='Treatment') - Inter_effect*(Sex=='F')*(Treat=='Treatment') +
  Inter_effect*(Sex=='F')*(Treat=='Control') - Inter_effect*(Sex=='M')*(Treat=='Control') +
    rnorm(n(),sd=0.2))

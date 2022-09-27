@@ -84,8 +84,8 @@ bind_rows(glance(mod1),
 You'll get something like:
 
 ```{r, echo=FALSE}
-map(questions, ~ broom::glance(lm(as.formula(.), data=data))) %>%
-  set_names(questions) %>%
+map(questions, ~ broom::glance(lm(as.formula(.), data=data))) |>
+  set_names(questions) |>
   bind_rows(.id='model')
 ```
 

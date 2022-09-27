@@ -27,7 +27,7 @@ while(pvalue1>=0.05|pvalue2<0.05){
 d$y <- b * d$t + seasonalindex + rexp(T,1/10)
 if(quadratictrend==TRUE)  d$y <- d$y + c * (d$t)^2 
 if(transformation==TRUE)  d$y <- exp(d$y/50)
-d <- d %>% mutate(s=factor(rep(1:freq,T/freq)))
+d <- d |> mutate(s=factor(rep(1:freq,T/freq)))
 m.lm <- lm(y~t,data=d)
 m.lm.s <- lm(y~t+s,data=d)
 ANT1<-anova(m.lm,m.lm.s)
@@ -71,7 +71,7 @@ Question
 The scatter-line plot of a time series is below.
 
 ```{r, fig.width=8, fig.height=5, fig.retina=2, fig.cap=""}
-d %>% ggplot(aes(x=t,y=y)) +geom_line() + geom_point()
+d |> ggplot(aes(x=t,y=y)) +geom_line() + geom_point()
 ```
 
 In order to make sufficient good predictions, which one of the following aspects has to be taken into your consideration when fitting a regression model to this time series?

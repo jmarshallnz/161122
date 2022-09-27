@@ -44,18 +44,18 @@ if (type == "prediction") {
   answer_func <- "predict(m, newdata=newdata, interval='confidence', level=0.99)"
 }
 
-#  min_diff <- answer %>% pull(value) %>% sort() %>% diff() %>% min()
-#  if (min_diff / (answer %>% pull(value) %>% min()) > 0.2)
+#  min_diff <- answer |> pull(value) |> sort() |> diff() |> min()
+#  if (min_diff / (answer |> pull(value) |> min()) > 0.2)
    
-possible_answers <- answer %>% pull(value)
+possible_answers <- answer |> pull(value)
 
-possible_questions <- answer # %>% filter(thing != "baseline")
+possible_questions <- answer # |> filter(thing != "baseline")
 
 which_question <- sample_n(possible_questions, 1)
 
-solutions <- possible_answers == (which_question %>% pull(value))
+solutions <- possible_answers == (which_question |> pull(value))
 
-explanations <- paste0("That is the ", answer %>% pull(thing), ".")
+explanations <- paste0("That is the ", answer |> pull(thing), ".")
 
 ## permute order of solutions/questions
 Order <- sample(1:5)
@@ -68,9 +68,9 @@ Question
 ========
 Download the data file [regression3.csv](regression3.csv) by right clicking and 'Save link as', then load it into RStudio using `read_csv()` or the Import Dataset button.
 
-Use `lm()` to fit a linear model to `x` and `y` and make a prediction at x=`r which_question %>% pull(xval)`.
+Use `lm()` to fit a linear model to `x` and `y` and make a prediction at x=`r which_question |> pull(xval)`.
 
-Which of the following is a `r which_question %>% pull(thing)`?
+Which of the following is a `r which_question |> pull(thing)`?
 
 ```{r questionlist, echo = FALSE, results = "asis"}
 answerlist(possible_answers, markup = "markdown")
@@ -85,14 +85,14 @@ To replicate the analysis in R:
 d <- read.csv("regression3.csv")
 m <- lm(y ~ x, data = d)
 summary(m)
-newdata <- data.frame(x = `r which_question %>% pull(xval)`)
+newdata <- data.frame(x = `r which_question |> pull(xval)`)
 `r answer_func`
 ```
 
 You should get
 
 ```{r, echo=FALSE}
-newdata <- data.frame(x = which_question %>% pull(xval))
+newdata <- data.frame(x = which_question |> pull(xval))
 eval(str2expression(answer_func))
 ```
 

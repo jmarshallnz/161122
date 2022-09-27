@@ -18,7 +18,7 @@ d$x[OL] <- sample(c((-4):4),NO)
 
 m <- lm(y ~ x, data = d)
 
-OL.detected <- augment(m) %>% filter(.cooksd>cutoff) %>% summarise(n()) %>% as.numeric()
+OL.detected <- augment(m) |> filter(.cooksd>cutoff) |> summarise(n()) |> as.numeric()
 possible.questions <- OL.detected+c(-2,-1,0,1,2)
 if (min(possible.questions)<0) possible.questions <- possible.questions - min(possible.questions)
 
@@ -61,21 +61,21 @@ To replicate the analysis in R:
 library(tidyverse)
 library(broom)
 d <- read_csv("regression2.csv")
-d %>% ggplot(aes(x=x,y=y)) + geom_point()
+d |> ggplot(aes(x=x,y=y)) + geom_point()
 
 # fit model and check for cooks distance past the cutoff.
 m <- lm(y ~ x, data = d)
 plot(m,which=4)
 
 # find the outliers past the cutoff
-augment(m) %>% filter(.cooksd > `r cutoff`)
+augment(m) |> filter(.cooksd > `r cutoff`)
 ```
 
 You should get:
 
 ```{r, echo=FALSE, fig.cap=""}
 plot(m, which=4)
-augment(m) %>% filter(.cooksd > cutoff)
+augment(m) |> filter(.cooksd > cutoff)
 ```
 
 ```{r solutionlist, echo = FALSE, results = "asis"}
