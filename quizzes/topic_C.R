@@ -1,6 +1,6 @@
 library(exams)
 
-set.seed(2021)
+set.seed(2022)
 
 Quiz8 <- list(
   c("regressioncoefficient.Rmd","regressionxy.Rmd","regressionlinearmodel.Rmd","regressionresiduals.Rmd"),
