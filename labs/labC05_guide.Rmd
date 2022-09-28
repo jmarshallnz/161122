@@ -3,15 +3,14 @@ title: "Workshop C05: Multiple Linear Regression, ANOVA, Collinearity"
 output: html_document
 ---
 
+In this workshop we look at where we have more than one predictor in our linear model.
+
 Start by downloading `labC05.Rmd` and load it into RStudio.
 
 https://www.massey.ac.nz/~jcmarsha/161122/labs/labC05.Rmd
 
-Read through this document and work on the exercises therein.
+**Read through the `labC05.Rmd` file and work on the exercises within.**
 
-## General Guidelines
+ - Any *text in italics* reminds you that you need to have a think or complete some tasks by R. The first task is to read the following bold text to ensure that you know the ways to seek help!
 
-*Any italic text reminds you that you need to have a think or complete some tasks by R. The first task is to read the following bold text to ensure that you know the ways to seek help!*
-
-**The bold text highlights some important concepts in our learning process and some essential steps in R programming. Missing them may hamper your study progress!**
-
+ - Any **text in bold** highlights some important concepts in our learning process and some essential steps in R programming. Missing them may hamper your study progress!
