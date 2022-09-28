@@ -264,7 +264,7 @@ This represents a scale of statistical significance, as follows:
 
 - If P > 0.1, you get no asterisks and the result is "not significant".
 - If 0.05 < P < 0.1, you get no asterisks but a consolation '`.`'. The result is "not significant", but it's marginal. 
-- If 0.01 < P < 0.5, you get one asterisk and the result is "significant". 
+- If 0.01 < P < 0.05, you get one asterisk and the result is "significant". 
 - If 0.001 < P < 0.01, you get two asterisks and the result is "very significant".
 - If P < 0.001, you get three asterisks and the result is "very very significant", I guess.
 
@@ -651,7 +651,7 @@ g2 <- visreg(mod2,trans=exp,partial=TRUE,gg=TRUE) + ggtitle('lm(log(Bodywt) ~ lo
 ## Model without log transformation 
 
 ```{r, echo=FALSE, fig.align="center", fig.dim=c(6,5), out.width="100%"}
-g2
+g1
 ```
 ]
 
@@ -660,7 +660,7 @@ g2
 ## Model with log transformation 
 
 ```{r, echo=FALSE, fig.align="center", fig.dim=c(6,5), out.width="100%"}
-g1
+g2
 ```
 ]
 

@@ -432,11 +432,11 @@ You will never observe the true errors! But all the randomness comes from them.
 
 --
 
-The $\alpha$ and $\beta$ are known as 'coefficients' or 'parameters', which determine the linear relationship between $y$ and $x$ in the population. These values are fixed and unknown. We could only know them with 100% certainty if we measured every horse that ever lived or ever will live.
+The $\alpha$ and $\beta$ are known as 'coefficients' or 'parameters', which determine the linear relationship between $y$ and $x$ in the population. These values are fixed and unknown. We could only know them with 100% certainty if we measured every Moroccan donkey that ever lived or ever will live.
 
 --
 
-Instead, we collect data from a sample of horses and fit a model to these data to *estimate* the coefficients. We used our sample data to obtain 'point estimates' $\hat\alpha$ and $\hat\beta$.
+Instead, we collect data from a sample of donkeys and fit a model to these data to *estimate* the coefficients. We used our sample data to obtain 'point estimates' $\hat\alpha$ and $\hat\beta$.
 
 --
 
@@ -538,9 +538,9 @@ For each value of $x_i$, we have an estimated value of $y_i$, given by $\hat{y}_
 
 The difference between the real $y_i$ and fitted $\hat{y}_i$ is the '*residual*' $\hat\varepsilon_i = y_i - \hat{y}_i$. Residuals represent the random errors, random deviations from the mean of $y$ given $x$. 
 
-- Positive residuals correspond to horses that are heavier than expected given their heart girth. 
-- Residuals near zero correspond to horses as heavy as expected given their heart girth. 
-- Negative residuals correspond to horses that are lighter than expected given their heart girth. 
+- Positive residuals correspond to donkeys that are heavier than expected given their heart girth. 
+- Residuals near zero correspond to donkeys as heavy as expected given their heart girth. 
+- Negative residuals correspond to donkeys that are lighter than expected given their heart girth. 
 
 --
 
@@ -638,7 +638,7 @@ In our case, the linear model equation is $\mathsf{Body weight} =$ `r round(ab[1
 
 --
 
-The estimate for `Heartgirth` means that if the heart girth of Horse A is 1 unit larger than that of Horse B, we expect Horse A to be `r round(coef(mod)[2],2)` units heavier than Horse B, on average.
+The estimate for `Heartgirth` means that if the heart girth of donkey A is 1 unit larger than that of donkey B, we expect donkey A to be `r round(coef(mod)[2],2)` units heavier than donkey B, on average.
 
 ---
 
