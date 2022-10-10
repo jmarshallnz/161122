@@ -148,7 +148,7 @@ The four treatments are as follows:
 | No drugs      |  0    |  0    |  0       | $\mathsf{mean}(y)=\alpha$ | 
 | Just drug A   |  1    |  0    |  0       | $\mathsf{mean}(y)=\alpha + \beta_A$ | 
 | Just drug B   |  0    |  1    |  0       | $\mathsf{mean}(y)=\alpha + \beta_B$ | 
-| Both drugs    |  1    |  1    |  1       | $\mathsf{mean}(y)=\alpha + \beta_A + \beta_B$ | 
+| Both drugs    |  1    |  1    |  1       | $\mathsf{mean}(y)=\alpha + \beta_A + \beta_B + \beta_{AB}$ | 
 
 --
 
@@ -174,7 +174,7 @@ If the interaction parameter $\beta_{AB}$ is zero, then the effects of the drugs
 
 --
 
-If $\beta_{AB}$ is non-zero, then the two drugs interact parameter  can be used to measure whether or not the effects of the two drugs are additive or not.
+If $\beta_{AB}$ is non-zero, then there is some interactive effect of taking both drugs that is not accounted for by adding their effects together.
 
 --
 
@@ -423,10 +423,10 @@ Plotting the estimated means is very useful for interpreting a model.
 
 When you have interactions, you must interpret the effects of one variable within the context of another.
 
-```{r, echo=TRUE, eval=FALSE}
+```{r, echo=TRUE, eval=T, fig.height=4, fig.show='hold', out.width="50%"}
 library(visreg)
-visreg(mod_int, "Area", by="Sex")
-visreg(mod_int, "Area", by="Sex", overlay=TRUE)
+visreg(mod_int, "Area", by="Sex", gg=TRUE)
+visreg(mod_int, "Area", by="Sex", gg=TRUE, overlay=TRUE)
 ```
 
 ---
@@ -802,7 +802,7 @@ Better!
 
 ## Visualising the fit
 
-```{r, fig.width=8, fig.height=5, fig.align='center'}
+```{r, fig.width=8, fig.height=4, out.width="50%"}
 visreg(c3_int_log, "Age", by="Breed", trans=exp, 
        partial=TRUE, overlay=TRUE, ylab="Weight", gg=TRUE)
 ```
@@ -811,16 +811,20 @@ visreg(c3_int_log, "Age", by="Breed", trans=exp,
 
 ## Visualising the fit
 
-```{r, fig.width=8, fig.height=5, fig.align='center'}
+```{r, fig.width=8, fig.height=4, out.width="50%"}
 visreg(c3_int_log, "Age", by="Treatment", trans=exp, 
        partial=TRUE, overlay=TRUE, ylab="Weight", gg=TRUE)
 ```
+
+--
+
+We should be careful with this model though. It implies that calves grow exponentially, which probably cannot be sustained for very long! Otherwise, after a short time, the calves would be bigger than a house.
 
 ---
 
 ## Summary
 
-- Interactions are where the effect of one predictor variable on the response depends on the value of another predictor variable
+- Interactions are where the effect of one predictor variable on the response variable *depends on the value of another predictor variable*
 
 - Interaction between two binary factors
 
