@@ -120,11 +120,11 @@ What are the potential advantages of this?
 
 --
 
-A model that uses all variables *may* lead to more better and more precise estimates, with narrower confidence and prediction intervals. 
+A model that uses all variables *may* lead to better, more precise estimates, with narrower confidence and prediction intervals. 
 
 --
 
-However, we must be careful because a more complex model might make worse predictions than a simpler model, and it's not always obvious when this is the case!
+However, we must be careful because a more complex model might make *worse* predictions than a simpler model, and it's not always obvious when this is the case!
 
 ---
 
@@ -151,7 +151,7 @@ However, we get a bigger table of coefficients, and there are some important con
 
 ## Sidenote: Mathematical form of the linear model
 
-With $p$ predictors $x_1,x_2,\ldots,x_p$ for a single response $y$, the abstract sample becomes a little more complicated as
+With $p$ predictors $x_1,x_2,\ldots,x_p$ for a single response $y$, the abstract sample becomes a little more complicated as we have many more variables for each row of data:
 $(y_i,x_{i1},x_{i2},\ldots,x_{ip})$ with $i=1,2,\ldots,n$.
 
 We can write the model equation for each individual observation as
@@ -175,7 +175,7 @@ $$
 
 
 ```{r echo=TRUE }
-lm(Bodywt ~ Heartgirth, donkey) %>% 
+lm(Bodywt ~ Heartgirth, donkey) %>%
   summary %>% coef %>% round(.,2)
 ```
 <br>
@@ -201,7 +201,7 @@ lm(Bodywt ~ Heartgirth + Umbgirth, donkey) %>%
 
 Plug in the coefficients:
 
-$$\mathsf{Mean(Bodywt)} =-194.49 + \color{red}{2.39}\mathsf{Heartgirth} + 0.42 \mathsf{Umbgirth}$$
+$$\mathsf{Mean(Bodywt)} =-200.64 + \color{red}{2.39}\mathsf{Heartgirth} + 0.42 \mathsf{Umbgirth}$$
 ]]
 
 --
@@ -223,12 +223,12 @@ Our first question might be:
 
 --
 
-In the case of our donkeys, they four of the predictors are clearly related to *body weight*. Fitting a simple linear regression to each one in turn, they'd all be significant.
+In the case of our donkeys, all four of the predictors are clearly related to *body weight*. Fitting a simple linear regression to each one in turn, they'd all be significant.
 
 --
 
 When considering multiple regression, we ask a slightly different question:     
-> ***Which predictor variables are linearly related to the response variable*** **when accounting for all the predictor variables simultaneously?**
+> ***Which predictor variables are linearly related to the response variable*** **after accounting for all the other predictor variables in the model?**
 
 --
 
@@ -244,7 +244,7 @@ and add another predictor $\ \ \ \ \ \ \ \ \ \ \ \ \mathsf{y} = \alpha + \beta_1
 
 --
 
-Why? The predictor variables are nearly always, to some extent, correlated with each other, so they *compete with each other* to explain the same variation in the response. Each piece of the pie can only be eaten once!
+Why? The predictor variables are nearly always, to some extent, correlated with each other, so they are often able to explain the same bits of variation in the response. But each bit of the pie can only be eaten once!
 
 ---
 
@@ -282,7 +282,7 @@ summary(mod)
 
 .right-out-narrow[
 
-There is very strong evidence for effects of *heart girth*, *umbilical girth*, and *length*, when accounting for other predictors.
+There is very strong evidence for effects of *heart girth*, *umbilical girth*, and *length*, after accounting for other predictors.
 
 ]
 
@@ -305,9 +305,9 @@ summary(mod)
 
 .right-out-narrow[
 
-There is very strong evidence for effects of *heart girth*, *umbilical girth*, and *length*, when accounting for other predictors.
+There is very strong evidence for effects of *heart girth*, *umbilical girth*, and *length*, after accounting for other predictors.
 
-There is only weak evidence for an effect of *height* when accounting for the other predictors.
+There is only weak evidence for an effect of *height* after accounting for the other predictors.
 
 ]
 
@@ -329,9 +329,9 @@ summary(mod)
 
 .right-out-narrow[
 
-There is very strong evidence for effects of *heart girth*, *umbilical girth*, and *length*, when accounting for other predictors.
+There is very strong evidence for effects of *heart girth*, *umbilical girth*, and *length*, after accounting for other predictors.
 
-There is only weak evidence for an effect of *height* when accounting for the other predictors.
+There is only weak evidence for an effect of *height* after accounting for the other predictors.
 
 **This doesn't mean that** ***height*** **isn't related to body weight!**
 
@@ -600,7 +600,7 @@ To fit such a model, we need to convert the factor into numbers. There are many 
 
 --
 
-Consider a factor with two levels, say, $\mathsf{A}$ and $\mathsf{B}$. We have some $y$ values from group $\mathsf{A}$ and some $y$ values from group $\mathsf{B}$. We want to estimate the mean of $y$ for each group, $\mu_\mathsf{A}$ and $\mu_\mathsf{A}$, and test whether these means are different.
+Consider a factor with two levels, say, $\mathsf{A}$ and $\mathsf{B}$. We have some $y$ values from group $\mathsf{A}$ and some $y$ values from group $\mathsf{B}$. We want to estimate the mean of $y$ for each group, $\mu_\mathsf{A}$ and $\mu_\mathsf{B}$, and test whether these means are different.
 
 --
 
@@ -626,7 +626,7 @@ tibble(y = rnorm(6),
 
 
 
-Consider a factor with two levels, say, $\mathsf{A}$ and $\mathsf{B}$. We have some $y$ values from group $\mathsf{A}$ and some $y$ values from group $\mathsf{B}$. We want to estimate the mean of $y$ for each group, $\mu_\mathsf{A}$ and $\mu_\mathsf{A}$, and test whether these means are different.
+Consider a factor with two levels, say, $\mathsf{A}$ and $\mathsf{B}$. We have some $y$ values from group $\mathsf{A}$ and some $y$ values from group $\mathsf{B}$. We want to estimate the mean of $y$ for each group, $\mu_\mathsf{A}$ and $\mu_\mathsf{B}$, and test whether these means are different.
 
 We can codify a factor with two levels using an '*indicator*' (or '*dummy*') variable $z$, where
 $$z = \left\{
@@ -1383,7 +1383,7 @@ Why is the coefficient for `SexMale` (2.44 mm) not the same as the raw differenc
 
 --
 
-The coefficient is an estimate of the difference **when accounting for differences among areas**. Because the ratio of sexes is different among areas, some of the apparent difference between sexes could also be explained by being in different Areas.
+The coefficient is an estimate of the difference **after accounting for differences among areas**. Because the ratio of sexes is different among areas, some of the apparent difference between sexes could also be explained by being in different Areas.
 
 ---
 
@@ -1415,7 +1415,7 @@ petrels %>% group_by(Area) %>%
 
 --
 
-Similarly, the model estimates that birds in Area 6 have right wings 8.84 mm shorter than those in Area 1 **when accounting for differences in sex**. 
+Similarly, the model estimates that birds in Area 6 have right wings 8.84 mm shorter than those in Area 1 **after accounting for differences in sex**. 
 
 Ignoring sex, they're 9.41 mm shorter.
 
