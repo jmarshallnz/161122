@@ -59,7 +59,7 @@ library(tidyverse)
 odis <- read_csv("https://www.massey.ac.nz/~jcmarsha/161122/data/ODIs.csv")
 ```
 
-Using these data, the **proportion** of games `r result` by `r selected1` in the year `r selected2` is:
+Of the games played by `r selected1` in the year `r selected2`, what **proportion** did they win?
 
 ```{r questionlist, echo = FALSE, results = "asis"}
 answerlist(questions, markup = "markdown")
