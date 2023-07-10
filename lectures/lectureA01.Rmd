@@ -37,10 +37,10 @@ class: middle, inverse
 
 In order of appearance:
 
-Jonathan Marshall         |  Jonathan Godfrey          | Adam Smith               |  Julio Pereira
---------------------------|----------------------------|--------------------------|----------------
-j.c.marshall@massey.ac.nz |   a.j.godfrey@massey.ac.nz | a.n.h.smith@massey.ac.nz | j.pereia@massey.ac.nz
-Manawatu ScB3.17          |   Manawatu ScB3.15         | Albany MS3.09            | Albany MS3.16
+Jonathan Marshall         |  Jonathan Godfrey          | Mat Pawley
+--------------------------|----------------------------|--------------------------
+j.c.marshall@massey.ac.nz |   a.j.godfrey@massey.ac.nz | m.pawley@massey.ac.nz
+Manawatu ScB3.17          |   Manawatu ScB3.15         | Albany MS3.08
 
 ---
 
