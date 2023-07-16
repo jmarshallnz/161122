@@ -88,3 +88,13 @@ group_by(word) %>% summarise(n = first(n), stem = stem_word[which.min(nchar(stem
 
 count(word) %>%
   as.data.frame()
+
+
+if (0) {
+  all <- read_csv("~/Downloads/What do you think statistics is (Responses) - Form Responses 1(1).csv")
+  
+  all |> mutate(Timestamp = mdy_hms(Timestamp)) |>
+    filter(Timestamp > '2022-07-15') |>
+    mutate(Timestamp = if_else(Timestamp < '2023-01-01', Timestamp + period(1, units="year"), Timestamp)) |>
+    arrange(Timestamp) |> write_csv('stories/three_words/three_words.csv')
+}
