@@ -32,7 +32,7 @@ answerlist(questions, markup = "markdown")
 Solution
 ========
 
-The standard error is the standard deviation `r SampleSD` divided by the square root of the sample size, so we could use <code>`r SampleSD`/sqrt(`r SampleSize`)</code>.
+The standard deviation of $\bar{x}$, also known as the standard error, is the standard deviation `r SampleSD` divided by the square root of the sample size, so we could use <code>`r SampleSD`/sqrt(`r SampleSize`)</code>.
 
 ```{r solutionlist, echo = FALSE, results = "asis"}
 answerlist(mchoice2text(solutions, markup="markdown"), explanations, markup = "markdown")
