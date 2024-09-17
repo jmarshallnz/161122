@@ -1,22 +1,23 @@
 ---
 title: "Lecture C01"
 subtitle: "Simple Linear Regression"
-output:
-  xaringan::moon_reader:
-    css: [default, default-fonts, "part_c.css"]
-    # mathjax: "https://cdn.bootcss.com/mathjax/2.7.3/MathJax.js?config=TeX-MML-AM_CHTML"
-    nature:
-      highlightStyle: tomorrow
-      highlightLines: true
-      countIncrementalSlides: false
-      ratio: "16:9"
-      slideNumberFormat: |
-        <div class="progress-bar-container">
-          <div class="progress-bar" style="width: calc(%current% / %total% * 100%);">
-          </div>
-        </div>
-editor_options:
-  chunk_output_type: console
+format: 
+  revealjs:
+    theme: moon
+    css: ["part_c.css"]
+    slide-number: true
+    incremental: false
+    highlight-style: breezedark
+    highlight-lines: true
+    ratio: "16:9"
+    progress: true
+    slideNumberFormat: "%current%/%total%"
+execute:
+  echo: true
+  output: console
+editor: 
+  markdown: 
+    wrap: 72
 ---
 
 ```{r setup, echo=FALSE}
@@ -31,64 +32,75 @@ knitr::opts_chunk$set(fig.dim=c(8,5), out.width="70%", fig.retina=2)
 
 ## Learning Outcomes
 
-- The linear model.
+-   The linear model.
 
-- Using R to fit linear models.
+-   Using R to fit linear models.
 
-- Interpret the R outcomes. 
+-   Interpret the R outcomes.
 
----
+------------------------------------------------------------------------
 
 class: middle, inverse
 
-## If I have seen further it is by standing on the shoulders of giants 
-  — Isaac Newton 
+## If I have seen further it is by standing on the shoulders of giants
 
----
+— Isaac Newton
 
-## Two centuries of history 
+------------------------------------------------------------------------
 
---
-
-The earliest regression was fit using the method of least squares, which was published by Legendre in 1805 and by Gauss in 1809. Both applied the method to the problem of determining the orbits of bodies about the sun from astronomical observations.
+## Two centuries of history
 
 --
 
-The term "regression" was coined by Francis Galton in the nineteenth century to describe a biological phenomenon - regression toward the mean. 
+The earliest regression was fit using the method of least squares, which
+was published by Legendre in 1805 and by Gauss in 1809. Both applied the
+method to the problem of determining the orbits of bodies about the sun
+from astronomical observations.
 
 --
 
-The phenomenon was that the heights of descendants of tall ancestors tend to regress down towards a normal average.
- 
---
-
-Galton's work on regression had only this biological meaning and it was later extended by Udny Yule and Karl Pearson to more general statistical contexts.
+The term "regression" was coined by Francis Galton in the nineteenth
+century to describe a biological phenomenon - regression toward the
+mean.
 
 --
 
-Great mathematicians and statisticians spent almost two hundreds years to build the whole framework for linear regression. We will learn it in two weeks!
+The phenomenon was that the heights of descendants of tall ancestors
+tend to regress down towards a normal average.
 
----
+--
+
+Galton's work on regression had only this biological meaning and it was
+later extended by Udny Yule and Karl Pearson to more general statistical
+contexts.
+
+--
+
+Great mathematicians and statisticians spent almost two hundreds years
+to build the whole framework for linear regression. We will learn it in
+two weeks!
+
+------------------------------------------------------------------------
 
 class: middle, inverse
 
 # Example: 385 Moroccan donkeys
 
----
+------------------------------------------------------------------------
 
 ## Example: 385 Moroccan donkeys
 
-Variable   | Description
------------|-----------------
-Sex        | Sex (Female/Male)
-Age        | Age (years)
-Bodywt     | Weight (kg)
-Heartgirth | Girth at the heart (cm)
-Umbgirth   | Girth at the umbilicus (cm)
-Length     | Length from elbow to hind (cm)
-Height     | Height to the withers (cm)
+| Variable   | Description                    |
+|------------|--------------------------------|
+| Sex        | Sex (Female/Male)              |
+| Age        | Age (years)                    |
+| Bodywt     | Weight (kg)                    |
+| Heartgirth | Girth at the heart (cm)        |
+| Umbgirth   | Girth at the umbilicus (cm)    |
+| Length     | Length from elbow to hind (cm) |
+| Height     | Height to the withers (cm)     |
 
----
+------------------------------------------------------------------------
 
 ## Donkeys: relationships between body weight and other measurements
 
@@ -108,17 +120,18 @@ Which variables are most strongly related to body weight?
 
 --
 
-Let's build a model of body weight based on its linear relationship with heart girth.
+Let's build a model of body weight based on its linear relationship with
+heart girth.
 
----
+------------------------------------------------------------------------
 
 class: middle, inverse
 
 # Simple linear regression
 
----
+------------------------------------------------------------------------
 
-## Simple linear regression 
+## Simple linear regression
 
 --
 
@@ -126,29 +139,30 @@ Simple linear regression is a simplest form of a linear model.
 
 --
 
-The variable of interest, $y$, is called the "response variable". 
+The variable of interest, $y$, is called the "response variable".
 
 --
 
-If $y$ has a straight-line (i.e., "linear") relationship with another variable, $x$, we can capture this relationship with a regression model. 
+If $y$ has a straight-line (i.e., "linear") relationship with another
+variable, $x$, we can capture this relationship with a regression model.
 
 --
 
-More specifically, we model the *mean of* $y$ as a linear function of $x$. 
+More specifically, we model the *mean of* $y$ as a linear function of
+$x$.
 
-$$ \mathsf{Mean}[y] = \alpha + \beta x $$
---
+## $$ \mathsf{Mean}[y] = \alpha + \beta x $$
 
-Regression is primarily used for:
-- predicting the value of $y$ for a given value of $x$, and 
-- quantifying the strength of $y$'s association with $x$.
+Regression is primarily used for: - predicting the value of $y$ for a
+given value of $x$, and - quantifying the strength of $y$'s association
+with $x$.
 
----
-
+------------------------------------------------------------------------
 
 ## Simple linear regression - donkeys
 
-For example, $y$ can be the body weight and $x$ the heart girth of donkeys. 
+For example, $y$ can be the body weight and $x$ the heart girth of
+donkeys.
 
 Our model is: *Mean body weight* $= \alpha + \beta \times$*heart girth*
 
@@ -165,12 +179,12 @@ g1 <- ggplot(p, aes(x=Heartgirth, y=Bodywt)) +
 g1 + geom_point(col="#7f577492")
 ```
 
----
+------------------------------------------------------------------------
 
 ## Simple linear regression - donkeys
 
-
-For example, $y$ can be the body weight and $x$ the heart girth of donkeys. 
+For example, $y$ can be the body weight and $x$ the heart girth of
+donkeys.
 
 Our model is: *Mean body weight* $= \alpha + \beta \times$*heart girth*
 
@@ -188,11 +202,12 @@ g2 <- g1 +
 g2
 ```
 
----
+------------------------------------------------------------------------
 
 ## Simple linear regression - donkeys
 
-For example, $y$ can be the body weight and $x$ the heart girth of donkeys. 
+For example, $y$ can be the body weight and $x$ the heart girth of
+donkeys.
 
 Our model is: *Mean body weight* $= \alpha + \beta \times$*heart girth*
 
@@ -210,34 +225,41 @@ g3 <- g2 +
 g3
 ```
 
----
+------------------------------------------------------------------------
 
 ## Recap and definitions
 
 --
 
-$y$ is the **response**, or **dependent variable**, that we wish to model.
+$y$ is the **response**, or **dependent variable**, that we wish to
+model.
 
 --
 
-$x$ is the **explanatory** variable, **predictor**, **covariate**, or **independent variable**. We use $x$ to explain variation in $y$. When $x$ is numeric, the model is called a "regression", but we can also fit linear model to categorical predictors.
+$x$ is the **explanatory** variable, **predictor**, **covariate**, or
+**independent variable**. We use $x$ to explain variation in $y$. When
+$x$ is numeric, the model is called a "regression", but we can also fit
+linear model to categorical predictors.
 
 --
 
-The **regression line** tells us the estimate of $y$ for any value of $x$.
+The **regression line** tells us the estimate of $y$ for any value of
+$x$.
 
 --
 
-For simple linear regression, the predicted $y$, or $\hat{y}$, is modelled as:
+For simple linear regression, the predicted $y$, or $\hat{y}$, is
+modelled as:
 
 $$
 \hat{y} = \alpha + \beta x
-$$
-$\alpha$ is the **intercept** or **baseline** estimate of $y$ if $x=0$. 
+$$ $\alpha$ is the **intercept** or **baseline** estimate of $y$ if
+$x=0$.
 
-$\beta$ is the **slope**, or **gradient**, the increase in $y$ for a one-unit increase is $x$. 
+$\beta$ is the **slope**, or **gradient**, the increase in $y$ for a
+one-unit increase is $x$.
 
----
+------------------------------------------------------------------------
 
 ## Recap and definitions
 
@@ -262,7 +284,7 @@ simple_plot(x,y)
 text(4, 2.65, expression(y==alpha+beta*x))
 ```
 
----
+------------------------------------------------------------------------
 
 ## Recap and definitions
 
@@ -275,7 +297,7 @@ yv <- predict(line, data.frame(x=xv))
 mtext(expression(alpha), side=2, line=0.5, at = coef(line)[1], las=1, cex=1.5)
 ```
 
----
+------------------------------------------------------------------------
 
 ## Recap and definitions
 
@@ -293,7 +315,7 @@ mtext(expression(alpha), side=2, line=0.5, at = coef(line)[1], las=1, cex=1.5)
 text(4.32, yv[1]+0.2, expression(beta==over(rise,run)))
 ```
 
----
+------------------------------------------------------------------------
 
 ## Recap and definitions
 
@@ -313,7 +335,7 @@ text(1.1, yf(.5), expression(beta))
 
 ```
 
----
+------------------------------------------------------------------------
 
 ## Recap and definitions
 
@@ -338,9 +360,7 @@ text(2.1, yf(1.5), expression(beta))
 
 ```
 
-
-
----
+------------------------------------------------------------------------
 
 ## Recap and definitions
 
@@ -374,79 +394,96 @@ text(3.5, yf(3.5), "1", adj=c(0.5,3), col="grey30")
 text(4.1, yf(3.5), expression(beta))
 ```
 
-
----
+------------------------------------------------------------------------
 
 ## Fixed design and random design
 
 --
 
-We usually observe multiple pairs of observations of $y$ and $x$: $(x_1,y_1),(x_2,y_2),\ldots,(x_n,y_n)$.
+We usually observe multiple pairs of observations of $y$ and $x$:
+$(x_1,y_1),(x_2,y_2),\ldots,(x_n,y_n)$.
 
 --
 
-Notice that only the mean of $y$ is related to $x$ via the line. 
+Notice that only the mean of $y$ is related to $x$ via the line.
 
 --
 
-There is almost always random variation in the $y$ values around the regression line, but is there also random variation in the covariate $x$?
+There is almost always random variation in the $y$ values around the
+regression line, but is there also random variation in the covariate
+$x$?
 
 --
 
-We often treat $x$ as non-random or 'fixed' by the experimenter, and this is called the 'fixed design setting'. If $x$ is treated as a random variable, the model is in the 'random design setting'. 
+We often treat $x$ as non-random or 'fixed' by the experimenter, and
+this is called the 'fixed design setting'. If $x$ is treated as a random
+variable, the model is in the 'random design setting'.
 
 --
 
-In this course, we assume all the linear models are in the fixed design setting. Therefore, the values of $x$ are not random. 
+In this course, we assume all the linear models are in the fixed design
+setting. Therefore, the values of $x$ are not random.
 
----
+------------------------------------------------------------------------
 
 ## A mathematical formulation of the linear model
 
 --
 
-We can denote the data set in simple linear regression by $(x_1,y_1),(x_2,y_2),\ldots,(x_n,y_n)$
+We can denote the data set in simple linear regression by
+$(x_1,y_1),(x_2,y_2),\ldots,(x_n,y_n)$
 
 --
 
-We model the uncertainty or noisiness of the individual values of $y_i$ around the regression line takes the form of additive random errors denoted by $\varepsilon_i$.
+We model the uncertainty or noisiness of the individual values of $y_i$
+around the regression line takes the form of additive random errors
+denoted by $\varepsilon_i$.
 
 $$
 y_1=\alpha+\beta x_1 +\varepsilon_1,
-$$
-$$
+$$ $$
 y_2=\alpha+\beta x_2 +\varepsilon_2,
-$$
-$$
+$$ $$
 \vdots
-$$
-$$
+$$ $$
 y_n=\alpha+\beta x_n +\varepsilon_n.
 $$
 
-You will never observe the true errors! But all the randomness comes from them. 
+You will never observe the true errors! But all the randomness comes
+from them.
 
----
+------------------------------------------------------------------------
 
 ## Sample versus population
 
 --
 
-The $\alpha$ and $\beta$ are known as 'coefficients' or 'parameters', which determine the linear relationship between $y$ and $x$ in the population. These values are fixed and unknown. We could only know them with 100% certainty if we measured every Moroccan donkey that ever lived or ever will live.
+The $\alpha$ and $\beta$ are known as 'coefficients' or 'parameters',
+which determine the linear relationship between $y$ and $x$ in the
+population. These values are fixed and unknown. We could only know them
+with 100% certainty if we measured every Moroccan donkey that ever lived
+or ever will live.
 
 --
 
-Instead, we collect data from a sample of donkeys and fit a model to these data to *estimate* the coefficients. We used our sample data to obtain 'point estimates' $\hat\alpha$ and $\hat\beta$.
+Instead, we collect data from a sample of donkeys and fit a model to
+these data to *estimate* the coefficients. We used our sample data to
+obtain 'point estimates' $\hat\alpha$ and $\hat\beta$.
 
 --
 
-The sample statistics $\hat\alpha$ and $\hat\beta$ are point estimates of the true population parameters $\alpha$ and $\beta$. This process of estimating population parameters with sample statistics is generally referred to as 'statistical inference'.
+The sample statistics $\hat\alpha$ and $\hat\beta$ are point estimates
+of the true population parameters $\alpha$ and $\beta$. This process of
+estimating population parameters with sample statistics is generally
+referred to as 'statistical inference'.
 
 --
 
-An infinite number of lines is possible, each determined by different values of the coefficients. We need some criterion for choosing our 'best guess' point estimates of the coefficients based on our data set. 
+An infinite number of lines is possible, each determined by different
+values of the coefficients. We need some criterion for choosing our
+'best guess' point estimates of the coefficients based on our data set.
 
----
+------------------------------------------------------------------------
 
 ## Estimation of parameters
 
@@ -455,8 +492,7 @@ An infinite number of lines is possible, each determined by different values of 
 simple_plot(x,y)
 ```
 
----
-
+------------------------------------------------------------------------
 
 ## Estimation of parameters
 
@@ -473,7 +509,7 @@ axis(2, at=y_i, line=0, labels=expression(y[8]), las=1)
 
 ```
 
----
+------------------------------------------------------------------------
 
 ## Estimation of parameters
 
@@ -490,7 +526,7 @@ points(x_i, y_h, pch=16, cex=.7, col = 'dark blue')
 axis(2, at=c(y_h, y_i), line=0, labels=expression(hat(y)[8], y[8]), las=1)
 ```
 
----
+------------------------------------------------------------------------
 
 ## Estimation of parameters
 
@@ -511,8 +547,7 @@ points(x_i, y_h, pch=16, cex=.7, col = 'dark blue')
 text(x_i, mean(c(y_h, y_i)), col='black', adj=c(1.5, 0.5), expression(hat(epsilon)[8]), cex=1.2)
 ```
 
----
-
+------------------------------------------------------------------------
 
 ## Estimation of parameters
 
@@ -526,25 +561,33 @@ legend(legend=c("Observed data", "Predicted values of y","Residuals (observed y 
 
 ```
 
----
+------------------------------------------------------------------------
 
 ## Estimating the parameters
 
 --
 
-For each value of $x_i$, we have an estimated value of $y_i$, given by $\hat{y}_i = \hat\alpha + \hat\beta x_i$.
+For each value of $x_i$, we have an estimated value of $y_i$, given by
+$\hat{y}_i = \hat\alpha + \hat\beta x_i$.
 
 --
 
-The difference between the real $y_i$ and fitted $\hat{y}_i$ is the '*residual*' $\hat\varepsilon_i = y_i - \hat{y}_i$. Residuals represent the random errors, random deviations from the mean of $y$ given $x$. 
+The difference between the real $y_i$ and fitted $\hat{y}_i$ is the
+'*residual*' $\hat\varepsilon_i = y_i - \hat{y}_i$. Residuals represent
+the random errors, random deviations from the mean of $y$ given $x$.
 
-- Positive residuals correspond to donkeys that are heavier than expected given their heart girth. 
-- Residuals near zero correspond to donkeys as heavy as expected given their heart girth. 
-- Negative residuals correspond to donkeys that are lighter than expected given their heart girth. 
+-   Positive residuals correspond to donkeys that are heavier than
+    expected given their heart girth.
+-   Residuals near zero correspond to donkeys as heavy as expected given
+    their heart girth.
+-   Negative residuals correspond to donkeys that are lighter than
+    expected given their heart girth.
 
 --
 
-Our estimates of the intercept and slope $\hat\alpha$ and $\hat\beta$ are obtained by finding the values that minimise the variance of the residuals. This is called 'least squares' estimation.
+Our estimates of the intercept and slope $\hat\alpha$ and $\hat\beta$
+are obtained by finding the values that minimise the variance of the
+residuals. This is called 'least squares' estimation.
 
 --
 
@@ -557,19 +600,21 @@ $$
 \end{aligned}
 $$
 
----
+------------------------------------------------------------------------
 
 ## Estimating the parameters
 
-<iframe src="https://shiny.massey.ac.nz/jcmarsha/leastsquares/" height="500" width="1000" style="border: none"></iframe>
+<iframe src="https://shiny.massey.ac.nz/jcmarsha/leastsquares/" height="500" width="1000" style="border: none">
 
----
+</iframe>
+
+------------------------------------------------------------------------
 
 class: middle, inverse
 
 # Linear models in R
 
----
+------------------------------------------------------------------------
 
 ## Linear models in R
 
@@ -578,21 +623,26 @@ mod <- lm(Bodywt ~ Heartgirth, data = donkey)
 summary(mod)
 ```
 
-`lm()` is the R function to fit linear models. We will use it extensively!
+`lm()` is the R function to fit linear models. We will use it
+extensively!
 
 --
 
-The first argument is `formula = Bodywt ~ Heartgirth`. More generally, we use the simple formula `response ~ predictor` to specify the required simple regression model. 
+The first argument is `formula = Bodywt ~ Heartgirth`. More generally,
+we use the simple formula `response ~ predictor` to specify the required
+simple regression model.
 
 --
 
-The second argument `data = donkey` specifies the data object where the response and predictor variables can be found.
+The second argument `data = donkey` specifies the data object where the
+response and predictor variables can be found.
 
 --
 
-The function `summary()` is a generic tool used to print a summary of the information in an R object.
+The function `summary()` is a generic tool used to print a summary of
+the information in an R object.
 
----
+------------------------------------------------------------------------
 
 ## Linear models in R
 
@@ -605,28 +655,31 @@ summary(mod)
 
 </small>
 
----
+------------------------------------------------------------------------
 
 ## Linear models in R
 
 --
 
-`Call:`
-`lm(formula = Bodywt ~ Heartgirth, data = donkey)` 
+`Call:` `lm(formula = Bodywt ~ Heartgirth, data = donkey)`
 
 simply repeats the model you have fitted.
 
 --
 
-`Residuals:` provides you a quick summary on the distribution of your residuals with `min`, `max`, `median` and another two quartiles. 
+`Residuals:` provides you a quick summary on the distribution of your
+residuals with `min`, `max`, `median` and another two quartiles.
 
 --
 
-`Coefficients:` summarizes the information on the estimates for the regression coefficients and `Estimate` column gives us the values of our coefficients. We will discuss the columns `Std. Error`, `t value` and `Pr(>|t|)` in Lecture C2.
+`Coefficients:` summarizes the information on the estimates for the
+regression coefficients and `Estimate` column gives us the values of our
+coefficients. We will discuss the columns `Std. Error`, `t value` and
+`Pr(>|t|)` in Lecture C2.
 
 --
 
-We can also extract just the coefficients with the function `coef()`. 
+We can also extract just the coefficients with the function `coef()`.
 
 ```{r,echo=TRUE}
 ab <- coef(mod); ab
@@ -634,17 +687,22 @@ ab <- coef(mod); ab
 
 --
 
-In our case, the linear model equation is $\mathsf{Body weight} =$ `r round(ab[1],1)` $+$ `r round(ab[2],2)` $\times \mathsf{ Heart girth}$
+In our case, the linear model equation is $\mathsf{Body weight} =$
+`r round(ab[1],1)` $+$ `r round(ab[2],2)` $\times \mathsf{ Heart girth}$
 
 --
 
-The estimate for `Heartgirth` means that if the heart girth of donkey A is 1 unit larger than that of donkey B, we expect donkey A to be `r round(coef(mod)[2],2)` units heavier than donkey B, on average.
+The estimate for `Heartgirth` means that if the heart girth of donkey A
+is 1 unit larger than that of donkey B, we expect donkey A to be
+`r round(coef(mod)[2],2)` units heavier than donkey B, on average.
 
----
+------------------------------------------------------------------------
 
-## Let's make a plot 
+## Let's make a plot
 
-It is a good idea to look at the regression line on a scatter plot to see how well it fits the data. Just feed the coefficients to the function `geom_abline()`.
+It is a good idea to look at the regression line on a scatter plot to
+see how well it fits the data. Just feed the coefficients to the
+function `geom_abline()`.
 
 ```{r,echo=TRUE, fig.dim=c(6,3), message=FALSE}
 ab <- coef(mod)
@@ -652,38 +710,45 @@ ggplot(donkey, aes(x=Heartgirth, y=Bodywt)) + geom_point() +
   geom_abline(intercept=ab[1], slope=ab[2], col="dodgerblue")
 ```
 
----
+------------------------------------------------------------------------
 
 ## Let's make a plot
 
-There are a other ways to show a regression line, such as with the `geom_smooth()` function specifying `method="lm"`. 
+There are a other ways to show a regression line, such as with the
+`geom_smooth()` function specifying `method="lm"`.
 
 ```{r,echo=TRUE, fig.dim=c(6,3), message=FALSE}
 ggplot(donkey, aes(x=Heartgirth, y=Bodywt)) + geom_point() +
   geom_smooth(method="lm")
 ```
 
----
+------------------------------------------------------------------------
 
 ## Let's make a plot
 
-Or you can use the function `visreg()` from the package `visreg` (see Lab C1).
+Or you can use the function `visreg()` from the package `visreg` (see
+Lab C1).
 
 ```{r, echo=TRUE, fig.dim=c(6,3)}
 library(visreg)
 visreg(mod, gg=TRUE)
 ```
 
----
+------------------------------------------------------------------------
 
 ## Summary
 
-A simple linear regression model relates one response variable $y$ to one predictor variable $x$ using a straight line.
+A simple linear regression model relates one response variable $y$ to
+one predictor variable $x$ using a straight line.
 
-The position of a simple regression line is determined by two parameters, the intercept ( $\alpha$ ) and the slope ( $\beta$ ). 
+The position of a simple regression line is determined by two
+parameters, the intercept ( $\alpha$ ) and the slope ( $\beta$ ).
 
-The estimates $\hat\alpha$ and $\hat\beta$ are chosen to minimise residual variance. This means that the regression line explains as much of the variation in $y$ as possible.
+The estimates $\hat\alpha$ and $\hat\beta$ are chosen to minimise
+residual variance. This means that the regression line explains as much
+of the variation in $y$ as possible.
 
-To fit a linear model in R, we can use `lm()`, and we can then examine the results via `summary()` and `coef()`.
+To fit a linear model in R, we can use `lm()`, and we can then examine
+the results via `summary()` and `coef()`.
 
 We can overlay a regression line onto a scatter plot of $y$ vs $x$.
