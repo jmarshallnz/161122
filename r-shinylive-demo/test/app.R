@@ -10,6 +10,9 @@
 library(shiny)
 library(dplyr)
 library(bslib)
+library(pillar)
+library(fansi)
+library(tidyverse)
 Orange<-datasets::Orange
 part_orange <- sample_n(Orange, size = floor(nrow(Orange) / 2))
 

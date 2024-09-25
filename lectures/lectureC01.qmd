@@ -1,0 +1,746 @@
+---
+title: "297.101 Lecture C01"
+subtitle: "Simple Linear Regression"
+author: Dr. Nick Knowlton
+date: last-modified	
+format: 
+  revealjs:
+    embed-resources: true
+    theme: sky
+    css: ["part_c.css"]
+    slide-number: true
+    incremental: false
+    highlight-style: breezedark
+    highlight-lines: true
+    ratio: "16:9"
+    progress: true
+    slideNumberFormat: "%current%/%total%"
+    logo: 660491-ls_black_whitoutunz.png
+    include-in-header:
+      - text: |
+         <style>
+          .reveal .slide-logo {
+             max-height: unset;
+             height: 100px;
+          }
+         </style>
+execute:
+  output: true
+  eval: true
+  code-fold: true   # Add this to enable code folding
+editor: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, echo=FALSE}
+library(broom)
+library(knitr)
+library(ggplot2); theme_set(theme_bw(base_size=15))
+library(patchwork)
+
+# Ensure the plot options are set correctly
+opts_chunk$set(dev.args=list(bg='transparent'), comment="", warning=FALSE, echo=FALSE)
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.dim=c(8,5), out.width="70%", fig.retina=2)
+
+# Load the dataset
+donkey <- read.csv("https://www.massey.ac.nz/~jcmarsha/227215/data/donkey.csv")
+
+```
+
+## Learning Outcomes
+
+-- The linear model.
+
+-- Using R to fit linear models.
+
+-- Interpret the R outcomes.
+
+
+# **All Models Are Wrong, Some Are Useful**
+
+-- George Box
+
+
+## Two centuries of history
+
+
+--- The earliest regression was fit using the method of least squares, which
+was published by Legendre in 1805 and by Gauss in 1809. Both applied the
+method to the problem of determining the orbits of bodies about the sun
+from astronomical observations.
+
+. . .
+
+--- The term "regression" was coined by Francis Galton in the nineteenth
+century to describe a biological phenomenon - regression toward the
+mean.
+
+. . .
+
+--- The phenomenon was that the heights of descendants of tall ancestors
+tend to regress down towards a normal average.
+
+
+# Example: <br> Moroccan donkeys {style="text-align: center;"}
+
+![](donkey.png "Moroccan Donkey")
+
+## Example: Moroccan donkeys
+
+| Variable   | Description                    |
+|------------|--------------------------------|
+| Sex        | Sex (Female/Male)              |
+| Age        | Age (years)                    |
+| Bodywt     | Weight (kg)                    |
+| Heartgirth | Girth at the heart (cm)        |
+| Umbgirth   | Girth at the umbilicus (cm)    |
+| Length     | Length from elbow to hind (cm) |
+| Height     | Height to the withers (cm)     |
+
+
+```{r boxplot_prep, echo=FALSE}
+
+g1 <- ggplot(donkey, aes(x=Heartgirth, y=Bodywt)) + geom_point(col="#7f577492")
+g2 <- ggplot(donkey, aes(x=Umbgirth, y=Bodywt)) + geom_point(col="#7f577492")
+g3 <- ggplot(donkey, aes(x=Length, y=Bodywt)) + geom_point(col="#7f577492")
+g4 <- ggplot(donkey, aes(x=Height, y=Bodywt)) + geom_point(col="#7f577492")
+g5 <- ggplot(donkey, aes(x=Sex, y=Bodywt)) + geom_boxplot(col="#7f577492") 
+plot.out <- g1 + g2 + g3 + g4 + g5 + plot_layout(nrow=1) 
+
+
+```
+
+## Donkeys: relationships between body weight and other measurements
+
+```{r boxplot_plot1, echo=FALSE, fig.width=8, fig.height=6, message = FALSE, out.width="85%"}
+#| fig-align: center
+g1
+
+```
+
+Which variables are most strongly related to body weight?
+
+## Donkeys: relationships between body weight and other measurements
+
+```{r boxplot_plot2, echo=FALSE, fig.width=8, fig.height=6, message = FALSE, out.width="85%"}
+#| fig-align: center
+g2
+
+```
+
+Which variables are most strongly related to body weight?
+
+## Donkeys: relationships between body weight and other measurements
+
+```{r boxplot_plot3, echo=FALSE, fig.width=8, fig.height=6, message = FALSE, out.width="85%"}
+#| fig-align: center
+g3
+
+```
+
+Which variables are most strongly related to body weight?
+
+
+## Donkeys: relationships between body weight and other measurements
+
+```{r boxplot_plot4, echo=FALSE, fig.width=8, fig.height=6, message = FALSE, out.width="85%"}
+#| fig-align: center
+g4
+
+```
+
+Which variables are most strongly related to body weight?
+
+## Donkeys: relationships between body weight and other measurements
+
+```{r boxplot_plot5, echo=FALSE, fig.width=8, fig.height=6, message = FALSE, out.width="85%"}
+#| fig-align: center
+g5
+
+```
+
+Which variables are most strongly related to body weight?
+
+# Simple linear regression
+
+
+## Simple linear regression
+
+-- Simple linear regression is a simplest form of a linear model.
+
+. . .
+
+-- The variable of interest, $y$, is called the "response variable".
+
+. . .
+
+-- If $y$ has a straight-line (i.e., "linear") relationship with another
+variable, $x$, we can capture this relationship with a regression model.
+
+. . .
+
+-- More specifically, we model the *mean of* $y$ as a linear function of
+$x$.
+
+## $$ \mathsf{Mean}[y] = \alpha + \beta x $$
+
+Regression is primarily used for: - predicting the value of $y$ for a
+given value of $x$, and - quantifying the strength of $y$'s association
+with $x$.
+
+
+
+## Simple linear regression <br> Morocan Donkeys {style="text-align: center;"}
+
+For example, $y$ can be the body weight and $x$ the heart girth of
+donkeys.
+
+Our model is: *Mean body weight* $= \alpha + \beta \times$*heart girth*
+
+```{r echo=FALSE, fig.width=8, fig.height=6, message = FALSE, out.width="65%"}
+#| fig-align: center
+model_wt_hg <- lm(Bodywt ~ Heartgirth, data=donkey)
+ab <- coef(model_wt_hg)
+p <- augment(model_wt_hg, interval='prediction')
+
+g1 <- ggplot(p, aes(x=Heartgirth, y=Bodywt)) +
+  ylab("Response variable (Body weight in kg)") +
+  xlab("Explanatory variable (Heart girth in cm)") +
+  xlim(79,140) +
+  ylim(0,229)
+g1 + geom_point(col="#7f577492")
+```
+
+
+## Simple linear regression <br> Morocan Donkeys {style="text-align: center;"}
+
+For example, $y$ can be the body weight and $x$ the heart girth of
+donkeys.
+
+Our model is: *Mean body weight* $= \alpha + \beta \times$*heart girth*
+
+```{r echo=FALSE,  fig.width=8, fig.height=6, message = FALSE, out.width="65%"}
+#| fig-align: center
+g2 <- g1 + 
+  geom_smooth(method="lm", fill = 4) +
+  geom_point(col="#7f577492") + 
+  annotate('text', x=121, y=70, label= 
+             expression("Predicted mean body\nweight given heart girth"), 
+           hjust=0) +
+  annotate('curve', x=120, y=80, curvature = -0.2, 
+           xend = 110, yend = ab[1] + ab[2]*110-2,
+           arrow=arrow(angle=20, type='closed', 
+                       length=unit(0.15, 'inches')))
+g2
+```
+
+
+
+## Simple linear regression <br> Morocan Donkeys {style="text-align: center;"}
+
+For example, $y$ can be the body weight and $x$ the heart girth of
+donkeys.
+
+Our model is: *Mean body weight* $= \alpha + \beta \times$*heart girth*
+
+```{r echo=FALSE, fig.width=8, fig.height=6, out.width="65%", message = FALSE}
+#| fig-align: center
+g3 <- g2 +
+  geom_smooth(method="lm", fill = 4) +
+  geom_point(col="#7f577492") +
+  annotate('text', x=95, y=140, label = expression("Variation in body weights\naround predicted mean,\nor 'residual error'"), hjust=1) +
+  geom_ribbon(aes(ymin=.lower, ymax=.upper), alpha=.2) + 
+  geom_point(col="#7f577492") +
+  annotate('curve', x=95, y=160, curvature = -0.2, 
+           xend = 110, yend = ab[1] + ab[2]*110 + 20,
+           arrow=arrow(angle=20, type='closed', 
+                       length=unit(0.15, 'inches')))
+g3
+```
+
+
+
+## Recap and definitions
+
+-- $y$ is the **response**, or **dependent variable**, that we wish to
+model.
+
+. . .
+
+-- $x$ is the **explanatory** variable, **predictor**, **covariate**, or
+**independent variable**. We use $x$ to explain variation in $y$. When
+$x$ is numeric, the model is called a "regression", but we can also fit
+linear model to categorical predictors.
+
+. . .
+
+--The **regression line** tells us the estimate of $y$ for any value of
+$x$.
+
+## Recap and definitions
+
+--For simple linear regression, the predicted $y$, or $\hat{y}$, is
+modeled as:
+
+$$
+\hat{y} = \alpha + \beta x
+$$ $\alpha$ is the **intercept** or **baseline** estimate of $y$ if
+$x=0$.
+
+$\beta$ is the **slope** the increase in $y$ for a
+one-unit increase is $x$.
+
+
+
+## Recap and definitions
+
+```{r echo=FALSE, fig.align="center", fig.dim=c(8,5), out.width="70%"}
+#| fig-align: center
+# generate some data for a generic plot
+set.seed(3)
+x <- c(runif(20, 0, 5), 2.4)
+y <- 0.5 + 0.5*x + rnorm(21, 0, 0.4)
+y[21] = y[21] + .2
+line <- lm(y ~ x) 
+  
+simple_plot <- function(x,y) {
+  par(mar=c(2,2,1,1), cex=1.5)
+  plot(y ~ x, col=1, xlim=c(0, max(x)+0.2), ylim=c(0, max(y)+0.2), 
+       pch=19, xlab="", ylab="", xaxt="n", yaxt="n", xaxs="i", yaxs="i")
+  line <- lm(y ~ x) 
+  abline(line, lwd=2, col=4)
+  axis(1, line=0)
+}
+
+simple_plot(x,y)
+text(4, 2.65, expression(y==alpha+beta*x))
+```
+
+
+
+## Recap and definitions
+
+```{r echo=FALSE, fig.align="center", fig.dim=c(8,5), out.width="70%"}
+#| fig-align: center
+simple_plot(x,y)
+abline(h=coef(line)[1])
+text(4, 2.65, expression(y==alpha+beta*x))
+xv <- c(1,4)
+yv <- predict(line, data.frame(x=xv))
+mtext(expression(alpha), side=2, line=0.5, at = coef(line)[1], las=1, cex=1.5)
+```
+
+
+
+## Recap and definitions
+
+```{r echo=FALSE, fig.align="center", fig.dim=c(8,5), out.width="70%"}
+#| fig-align: center
+simple_plot(x,y)
+abline(h=coef(line)[1])
+text(4, 2.65, expression(y==alpha+beta*x))
+xv <- c(1,4)
+yv <- predict(line, data.frame(x=xv))
+lines(xv, rep(yv[1], 2), lty="dotted")
+lines(rep(xv[2], 2), yv, lty="dotted")
+text(mean(xv), yv[1], "run", adj=c(0.5,1.2), col="grey30")
+text(xv[2], mean(yv), "rise", adj=c(-0.2,0.5), col="grey30")
+mtext(expression(alpha), side=2, line=0.5, at = coef(line)[1], las=1, cex=1.5)
+text(4.32, yv[1]+0.2, expression(beta==over(rise,run)))
+```
+
+
+
+## Recap and definitions
+
+```{r echo=FALSE, fig.align="center", fig.dim=c(8,5), out.width="70%"}
+#| fig-align: center
+simple_plot(x,y)
+abline(h=coef(line)[1])
+text(4, 2.65, expression(y==alpha+beta*x))
+text(4.32, yv[1]+0.2, expression(beta==over(rise,run)))
+mtext(expression(alpha), side=2, line=0.5, at = coef(line)[1], las=1, cex=1.5)
+xv <- c(1,4)
+yf <- function(x) predict(line, data.frame(x=x))
+
+lines(x=0:1, yf(c(0,0)), col="grey30")
+lines(x=c(1,1), yf(c(0,1)))
+text(.5, yf(.5), "1", adj=c(0.5,3), col="grey30")
+text(1.1, yf(.5), expression(beta))
+
+```
+
+
+
+## Recap and definitions
+
+```{r echo=FALSE, fig.align="center", fig.dim=c(8,5), out.width="70%"}
+#| fig-align: center
+simple_plot(x,y)
+abline(h=coef(line)[1])
+text(4, 2.65, expression(y==alpha+beta*x))
+text(4.32, yv[1]+0.2, expression(beta==over(rise,run)))
+mtext(expression(alpha), side=2, line=0.5, at = coef(line)[1], las=1, cex=1.5)
+xv <- c(1,4)
+yf <- function(x) predict(line, data.frame(x=x))
+
+lines(x=0:1, yf(c(0,0)), col="grey30" )
+lines(x=c(1,1), yf(c(0,1)))
+text(.5, yf(.5), "1", adj=c(0.5,3), col="grey30")
+text(1.1, yf(.5), expression(beta))
+
+lines(x=1:2, yf(c(1,1)), col="grey30" )
+lines(x=c(2,2), yf(1:2))
+text(1.5, yf(1.5), "1", adj=c(0.5,3), col="grey30")
+text(2.1, yf(1.5), expression(beta))
+
+```
+
+
+
+## Recap and definitions
+
+```{r echo=FALSE, fig.align="center", fig.dim=c(8,5), out.width="70%"}
+#| fig-align: center
+simple_plot(x,y)
+abline(h=coef(line)[1])
+text(4, 2.65, expression(y==alpha+beta*x))
+text(4.32, yv[1]+0.2, expression(beta==over(rise,run)))
+mtext(expression(alpha), side=2, line=0.5, at = coef(line)[1], las=1, cex=1.5)
+xv <- c(1,4)
+yf <- function(x) predict(line, data.frame(x=x))
+
+lines(x=0:1, yf(c(0,0)), col="grey30" )
+lines(x=c(1,1), yf(c(0,1)))
+text(.5, yf(.5), "1", adj=c(0.5,3), col="grey30")
+text(1.1, yf(.5), expression(beta))
+
+lines(x=1:2, yf(c(1,1)), col="grey30" )
+lines(x=c(2,2), yf(1:2))
+text(1.5, yf(1.5), "1", adj=c(0.5,3), col="grey30")
+text(2.1, yf(1.5), expression(beta))
+
+lines(x=2:3, yf(c(2,2)), col="grey30" )
+lines(x=c(3,3), yf(2:3))
+text(2.5, yf(2.5), "1", adj=c(0.5,3), col="grey30")
+text(3.1, yf(2.5), expression(beta))
+
+lines(x=3:4, yf(c(3,3)), col="grey30" )
+lines(x=c(4,4), yf(3:4))
+text(3.5, yf(3.5), "1", adj=c(0.5,3), col="grey30")
+text(4.1, yf(3.5), expression(beta))
+```
+
+## A mathematical formulation of the linear model
+
+-- We can denote the data set in simple linear regression by $(x_1,y_1),(x_2,y_2),\ldots,(x_n,y_n)$
+
+-- We model the uncertainty or noisiness of the individual values of $y_i$
+around the regression line as **additive random errors** denoted by $\varepsilon_i$.
+
+$$
+y_i=\alpha+\beta x +\varepsilon_i,
+$$
+
+. . .
+
+You will never observe the true errors! But all the randomness comes
+from them.
+
+## Sample versus population
+
+:::{.r-fit-text .incremental}
+* The $\alpha$ and $\beta$ are known as *coefficients* or *parameters*,
+which determine the linear relationship between $y$ and $x$ in the
+population. These values are fixed and unknown. We could only know them
+with 100% certainty if we measured every Moroccan donkey that ever lived
+or ever will live.
+
+* Instead, we collect data from a sample of donkeys and fit a model to
+these data to *estimate* the coefficients. We used our sample data to
+obtain 'point estimates' $\hat\alpha$ and $\hat\beta$.
+
+* The sample statistics $\hat\alpha$ and $\hat\beta$ are point estimates
+of the true population parameters $\alpha$ and $\beta$. This process of
+estimating population parameters with sample statistics is generally
+referred to as 'statistical inference'.
+
+* An infinite number of lines is possible, each determined by different
+values of the coefficients. We need some criterion for choosing our
+'best guess' point estimates of the coefficients based on our data set.
+:::
+
+
+## Estimation of parameters {.center}
+
+```{r, echo=FALSE, fig.align="center", fig.dim=c(8,5), out.width="70%"}
+# generate some data for a generic plot
+simple_plot(x,y)
+```
+
+
+
+## Estimation of parameters {.center}
+
+```{r, echo=FALSE, fig.align="center", fig.dim=c(8,5), out.width="70%"}
+# generate some data for a generic plot
+
+simple_plot(x,y)
+x_i <- x[21]; y_i <- y[21]
+y_h <- predict(line, data.frame(x=x_i))
+lines(c(x_i, x_i), c(-4, y_i), lty='dotted')
+lines(c(-4, x_i), c(y_i, y_i), lty='dotted')
+axis(1, at=x_i, line=0, labels=expression(x[8]))
+axis(2, at=y_i, line=0, labels=expression(y[8]), las=1)
+
+```
+
+
+
+## Estimation of parameters {.center}
+
+```{r, echo=FALSE, fig.align="center", fig.dim=c(8,5), out.width="70%"}
+simple_plot(x,y)
+x_i <- x[21]; y_i <- y[21]
+y_h <- predict(line, data.frame(x=x_i))
+lines(c(x_i, x_i), c(-4, y_i), lty='dotted')
+lines(c(-4, x_i), c(y_i, y_i), lty='dotted')
+axis(1, at=x_i, line=0, labels=expression(x[8]))
+axis(2, at=y_i, line=0, labels=expression(y[8]), las=1)
+lines(c(-4, x_i), c(y_h, y_h), lty='dotted')
+points(x_i, y_h, pch=16, cex=.7, col = 'dark blue')
+axis(2, at=c(y_h, y_i), line=0, labels=expression(hat(y)[8], y[8]), las=1)
+```
+
+
+
+## Estimation of parameters {.center}
+
+```{r, echo=FALSE, fig.align="center", fig.dim=c(8,5), out.width="70%"}
+simple_plot(x,y)
+x_i <- x[21]; y_i <- y[21]
+y_h <- predict(line, data.frame(x=x_i))
+lines(c(x_i, x_i), c(-4, y_i), lty='dotted')
+lines(c(-4, x_i), c(y_i, y_i), lty='dotted')
+axis(1, at=x_i, line=0, labels=expression(x[8]))
+axis(2, at=y_i, line=0, labels=expression(y[8]), las=1)
+
+shape::Arrows(x_i, y_h, x_i, y_i, col=6, 
+              arr.adj = 1, arr.length = 0.2, arr.width= 0.2, arr.type="triangle", lwd=1)
+lines(c(-4, x_i), c(y_h, y_h), lty='dotted')
+axis(2, at=c(y_h, y_i), line=0, labels=expression(hat(y)[8], y[8]), las=1)
+points(x_i, y_h, pch=16, cex=.7, col = 'dark blue')
+text(x_i, mean(c(y_h, y_i)), col='black', adj=c(1.5, 0.5), expression(hat(epsilon)[8]), cex=1.2)
+```
+
+
+
+## Estimation of parameters {.center}
+
+```{r, echo=FALSE, fig.align="center", fig.dim=c(8,5), out.width="70%"}
+y_hat <- predict(line, data.frame(x=x))
+simple_plot(x,y)
+points(x, y_hat, pch=16, cex=.7, col='dark blue')
+shape::Arrows(x, y, x, y_hat, col=6, arr.length=0, lwd=1)
+legend(legend=c("Observed data", "Predicted values of y","Residuals (observed y - predicted y)"), x = "topleft", bty="n",
+       pch=c(19,16,124), pt.cex=c(1,.7, 0.7), col=c(1,"dark blue",6), cex=.7)
+
+```
+
+## Estimating the parameters {.center}
+
+-- For each value of $x_i$, we have an estimated value of $y_i$, given by
+$\hat{y}_i = \hat\alpha + \hat\beta x_i$.
+
+-- The difference between the real $y_i$ and fitted $\hat{y}_i$ is the
+'*residual*' $\hat\varepsilon_i = y_i - \hat{y}_i$. Residuals represent
+the random errors, random deviations from the mean of $y$ given $x$.
+
+:::{.r-fit-text .incremental}
+
+* Positive residuals correspond to donkeys that are heavier than
+    expected given their heart girth
+
+* Residuals near zero correspond to donkeys as heavy as expected given
+    their heart girth.
+
+* Negative residuals correspond to donkeys that are lighter than
+    expected given their heart girth.
+    
+:::
+
+## Estimating the parameters
+-- Our estimates of the intercept and slope $\hat\alpha$ and $\hat\beta$
+are obtained by finding the values that minimise the variance of the
+residuals. This is called 'least squares' estimation.
+
+-- The residual variance is given by:
+
+$$
+\begin{aligned}
+\mathsf{var}(\hat\varepsilon_i) &= \frac{1}{n}\sum_{i=1}^n \hat\varepsilon_i^2\\
+&= \frac{1}{n}\sum_{i=1}^n [y_i - (\hat\alpha + \hat\beta x_i)]^2
+\end{aligned}
+$$
+
+
+
+## Estimating the parameters
+
+<iframe src="https://shiny.massey.ac.nz/jcmarsha/leastsquares/" 
+    width="100%" 
+    height="90%" 
+    style="border: none; margin-top: 50px;">
+</iframe>
+
+
+
+
+# Linear models in **R**
+
+
+
+## Linear models in **R**
+
+:::{.columns .r-fit-text}
+
+:::{.column width="50%"}
+```{r, eval=FALSE}
+#| echo: true
+#| fig-cap: "Linear model"
+
+
+mod <- lm(Bodywt ~ Heartgirth, data = donkey)
+summary(mod)
+```
+
+`lm()` is the R function to fit linear models. We will use it
+extensively!
+:::
+
+:::{.column width="50%" .incremental}
+
+
+* The first argument is `formula = Bodywt ~ Heartgirth`. More generally,
+we use the simple formula `response ~ predictor` to specify the required
+simple regression model.
+
+* The second argument `data = donkey` specifies the data object where the
+response and predictor variables can be found.
+
+* The function `summary()` is a generic tool used to print a summary of
+the information in an R object.
+
+::: 
+:::
+
+## Linear models in **R**
+
+:::{.columns .r-fit-text}
+:::{.column width="50%"}
+
+```{r eval=TRUE, echo=TRUE, message=TRUE}
+mod <- lm(Bodywt ~ Heartgirth, data=donkey)
+summary(mod)
+```
+
+:::
+
+:::{.column width="50%" .incremental}
+
+* `Call:` `lm(formula = Bodywt ~ Heartgirth, data = donkey)`
+simply repeats the model you have fitted.
+
+* `Residuals:` provides you a quick summary on the distribution of your
+residuals with `min`, `max`, `median` and another two quartiles.
+
+* `Coefficients:` summarizes the information on the estimates for the
+regression coefficients and `Estimate` column gives us the values of our
+coefficients. We will discuss the columns `Std. Error`, `t value` and
+`Pr(>|t|)` in Lecture C2.
+
+:::
+:::
+## Linear models in **R**
+
+:::{.incremental}
+:::{.r-fit-text}
+We can also extract just the coefficients with the function `coef()`.
+
+```{r,echo=TRUE}
+ab <- coef(mod); ab
+```
+
+* In our case, the linear model equation is $\mathsf{Body weight} =$
+`r round(ab[1],1)` $+$ `r round(ab[2],2)` $\times \mathsf{ Heart girth}$
+
+:::
+
+* The estimate for `Heartgirth` means that if the heart girth of donkey A
+is 1 unit larger than that of donkey B, we expect donkey A to be
+`r round(coef(mod)[2],2)` units heavier than donkey B, on average.
+
+:::
+
+
+## Let's make a plot
+
+It is a good idea to look at the regression line on a scatter plot to
+see how well it fits the data. Just feed the coefficients to the
+function `geom_abline()`.
+
+```{r,echo=TRUE, fig.dim=c(6,3), message=FALSE}
+ab <- coef(mod)
+ggplot(donkey, aes(x=Heartgirth, y=Bodywt)) + geom_point() + 
+  geom_abline(intercept=ab[1], slope=ab[2], col="dodgerblue")
+```
+
+
+
+## Let's make a plot
+
+There are a other ways to show a regression line, such as with the
+`geom_smooth()` function specifying `method="lm"`.
+
+```{r,echo=TRUE, fig.dim=c(6,3), message=FALSE}
+ggplot(donkey, aes(x=Heartgirth, y=Bodywt)) + geom_point() +
+  geom_smooth(method="lm")
+```
+
+
+
+## Let's make a plot
+
+Or you can use the function `visreg()` from the package `visreg` (see
+Lab C1).
+
+```{r, echo=TRUE, fig.dim=c(6,3)}
+library(visreg)
+visreg(mod, gg=TRUE)
+```
+
+
+
+## Summary
+:::{.r-fit-text .incremental}
+* A simple linear regression model relates one response variable $y$ to
+one predictor variable $x$ using a straight line.
+
+* The position of a simple regression line is determined by two
+parameters, the intercept ($\alpha$) and the slope ($\beta$).
+
+* The estimates $\hat\alpha$ and $\hat\beta$ are chosen to minimize
+residual variance. This means that the regression line explains as much
+of the variation in $y$ as possible.
+
+* To fit a linear model in R, we can use `lm()`, and we can then examine
+the results via `summary()` and `coef()`.
+
+* We can overlay a regression line onto a scatter plot of $y$ vs $x$.
+:::
+
+---
+
+![](donkey.png){fig-align="center"}
