@@ -89,7 +89,7 @@ with Linearity being the most important.
 
     We can demonstrate this idea by using the stochastic simulation. An example of a good plot (left) and bad plot (right) is shown below for two artificial data sets, i.e., linear and exponential. 
 
-    ```{r,  fig.width=8, fig.height=3,}
+```{r,  fig.width=8, fig.height=3,}
     set.seed(2020)
     n <- 50
     ab <- c(0,2)

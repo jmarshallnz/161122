@@ -5,7 +5,7 @@ set.seed(2022)
 Quiz8 <- list(
   c("regressioncoefficient.Rmd","regressionxy.Rmd","regressionlinearmodel.Rmd","regressionresiduals.Rmd"),
   c("detailspredictioninterval.Rmd","detailsresidualse.Rmd","detailssimulation.Rmd", "detailsRsquared.Rmd"),
-  c("lmvisualise.Rmd"),
+  c("lmvisualise.Rmd"),c("regressionScatterplot.Rmd"),
   c("lmsignificance.Rmd","lmconfinterval.Rmd"),
   c("lmprediction.Rmd")
 )
